@@ -18,7 +18,7 @@ public class Glk {
 	}
 	
 	@SuppressWarnings("unused")
-	private Window glk_window_open(Window split, long method, long size, long wintype, long rock) {
+	private Window window_open(Window split, long method, long size, long wintype, long rock) {
 		if (wintype != Window.WINTYPE_TEXTBUFFER) {
 			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
 			return null;
@@ -33,17 +33,17 @@ public class Glk {
 	}
 	
 	@SuppressWarnings("unused")
-	private void glk_set_window(Window window) {
+	private void set_window(Window window) {
 		// NOOP -- we only have a single window yet
 	}
 	
 	@SuppressWarnings("unused")
-	private void glk_put_string(String str) {
+	private void put_string(String str) {
 		_view.append(str);
 	}
 	
 	@SuppressWarnings("unused")
-	private void glk_set_style(long styl) {
+	private void set_style(long styl) {
 		if (styl != STYLE_NORMAL)
 			Log.w("Glk", "Unimplemented style requested: " + Long.toString(styl));
 	}
