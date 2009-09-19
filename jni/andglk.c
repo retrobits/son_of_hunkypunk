@@ -436,10 +436,17 @@ void glk_put_string(char *s)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "glk_put_string", "([FIXME: char *])V");
+		mid = (*env)->GetMethodID(env, _class, "glk_put_string", "(Ljava/lang/String;)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, s);
+	jchar buf[1024];
+	char *it = s;
+	jchar *jt = buf;
+	while (jt - buf < 1024 && *it)
+		*(jt++) = *(it++);
 
+	jstring str = (*env)->NewString(env, buf, it - s);
+
+	(*env)->CallVoidMethod(env, _this, mid, str);
 }
 
 void glk_put_string_stream(strid_t str, char *s)

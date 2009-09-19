@@ -33,6 +33,10 @@ public class Glk {
 	void glk_set_window(Window window) {
 		// NOOP -- we only have a single window yet
 	}
+	
+	void glk_put_string(String str) {
+		_view.append(str);
+	}
 
 	public View getView() {
 		return _view;
