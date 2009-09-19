@@ -7,7 +7,7 @@ public class GlkTest extends Activity {
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	System.loadLibrary("andglk");
+    	System.loadLibrary("model");
     	Glk glk = new Glk(this);
         setContentView(glk.getView());
     	glk.start();
