@@ -5,6 +5,7 @@ JavaVM *_jvm;
 jclass _class;
 JNIEnv *_env;
 jobject _this;
+char *_line_event_buf;
 
 #define GLK_JNI_VERSION JNI_VERSION_1_2
 
@@ -22,7 +23,7 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 	return GLK_JNI_VERSION;
 }
 
-void Java_org_andglk_Glk_start(JNIEnv *env, jobject this)
+void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
 {
 	_this = (*env)->NewGlobalRef(env, this);
 	glk_main();
@@ -690,10 +691,9 @@ void glk_select(event_t *event)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "select", "([FIXME: event_t *])V");
+		mid = (*env)->GetMethodID(env, _class, "select", "()Lorg/andglk/Event;");
 
-	(*env)->CallVoidMethod(env, _this, mid, event);
-
+	(*env)->CallObjectMethod(env, _this, mid, event);
 }
 
 void glk_select_poll(event_t *event)
@@ -718,16 +718,28 @@ void glk_request_timer_events(glui32 millisecs)
 
 }
 
-void glk_request_line_event(winid_t win, char *buf, glui32 maxlen,
-    glui32 initlen)
+void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initlen)
 {
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "request_line_event", "(Lorg/andglk/Window;[FIXME: char *]JJ)V");
+		mid = (*env)->GetMethodID(env, _class, "request_line_event", "(Lorg/andglk/Window;Ljava/lang/String;J)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win, buf, maxlen, initlen);
+	_line_event_buf = buf;
 
+	jstring str = 0;
+	jchar jbuf[initlen];
+
+	if (initlen > 0) {
+		char *it = buf;
+		jchar *jt = jbuf;
+		while (jt - jbuf < initlen)
+			*(jt++) = *(it++);
+
+		str = (*env)->NewString(env, jbuf, maxlen);
+	}
+
+	(*env)->CallVoidMethod(env, _this, mid, win, str, (jlong) maxlen);
 }
 
 void glk_request_char_event(winid_t win)
