@@ -13,10 +13,11 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 	_jvm = jvm;
 
 	JNIEnv *env;
-	if ((*jvm)->GetEnv(jvm, &env, GLK_JNI_VERSION))
+	if ((*jvm)->GetEnv(jvm, (void **)&env, GLK_JNI_VERSION))
 		return JNI_ERR;
 
-	_class = (*env)->FindClass(env, "org/andglk/Glk");
+	jclass cls = (*env)->FindClass(env, "org/andglk/Glk");
+	_class = (*env)->NewGlobalRef(env, cls);
 
 	return GLK_JNI_VERSION;
 }
