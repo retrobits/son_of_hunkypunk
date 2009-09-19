@@ -23,6 +23,17 @@ my %javatypes = (
 	"frefid_t" => "Object"
 );
 
+
+my %realjavatypes = (
+	"void" => "void",
+	"glui32" => "long",
+	"glsi32" => "int",
+	"unsigned char" => "char",
+	"winid_t" => "Window",
+	"strid_t" => "Stream",
+	"frefid_t" => "FileRef"
+);
+
 sub t2sig($)
 {
 	my $arg = shift;
@@ -35,6 +46,13 @@ sub t2java($)
 	$javatypes{$arg} || "/*[FIXME: $arg]*/";
 }
 
+sub t2realjava($)
+{
+	my $arg = shift;
+	$realjavatypes{$arg} || "/*[FIXME: $arg]*/";
+}
+
+my $java = ($#ARGV == 0 && shift);
 
 while (<>) {
 	if ($_ =~ /extern ((.*?) ([a-z0-9_A-Z]+)\((.*?)\));/s) {
@@ -45,13 +63,14 @@ while (<>) {
 		my (@argtypes, @argnames);
 		map { /^(.*?)\s*([a-zA-Z0-9_]+$)/; push @argtypes, $1; push @argnames, $2; } @args;
 		
-		my $signature = "(".join("", map { t2sig($_) } @argtypes).")";
-		$signature .= t2sig($rettype);
-		my $call = "";
-		$call = "return " unless $rettype eq "void";
-		$call .= "(*env)->Call".t2java($rettype)."Method(env, _this, mid".(@argnames && (", ".join(", ", @argnames)) || "").");\n";
-		
-		print << "EEE"
+		unless ($java) {
+			my $signature = "(".join("", map { t2sig($_) } @argtypes).")";
+			$signature .= t2sig($rettype);
+			my $call = "";
+			$call = "return " unless $rettype eq "void";
+			$call .= "(*env)->Call".t2java($rettype)."Method(env, _this, mid".(@argnames && (", ".join(", ", @argnames)) || "").");\n";
+			
+			print << "EEE"
 $decl
 {
 	JNIEnv *env = JNU_GetEnv();
@@ -63,5 +82,14 @@ $decl
 }
 
 EEE
+		} else {
+			$rettype = t2realjava($rettype);
+			@argtypes = map { t2realjava($_) } @argtypes;
+			for (0..$#argnames) {
+				$args[$_] = $argtypes[$_]." ".$argnames[$_];
+			}
+			
+			print "$rettype $name(".join(", ", @args).")\n";
+		} 
 	}
 }

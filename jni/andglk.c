@@ -136,7 +136,7 @@ winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _class, "glk_window_open", "(Lorg/andglk/Window;JJJJ)Lorg/andglk/Window;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, split, method, size, wintype, rock);
+	return (*env)->CallObjectMethod(env, _this, mid, split, (jlong) method, (jlong) size, (jlong) wintype, (jlong) rock);
 
 }
 

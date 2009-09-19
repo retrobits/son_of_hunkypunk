@@ -8,9 +8,9 @@ public class GlkTest extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	System.loadLibrary("andglk");
-    	Glk glk = new Glk();
+    	Glk glk = new Glk(this);
     	glk.start();
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(glk.getView());
     }
 }
