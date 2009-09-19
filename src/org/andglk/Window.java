@@ -2,12 +2,10 @@ package org.andglk;
 
 import android.widget.TextView;
 
-public class Window {
-	private TextView _view;
-	
+public interface Window {
 	public final static long WINTYPE_TEXTBUFFER = 3;
 
-	public Window(TextView view) {
-		_view = view;
-	}
+	public abstract void putString(String str);
+
+	public abstract void requestLineEvent(String initial, long maxlen);
 }
