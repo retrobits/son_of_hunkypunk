@@ -489,7 +489,7 @@ void glk_set_style(glui32 styl)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _class, "glk_set_style", "(J)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, styl);
+	(*env)->CallVoidMethod(env, _this, mid, (jlong) styl);
 
 }
 
