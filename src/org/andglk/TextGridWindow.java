@@ -2,6 +2,7 @@ package org.andglk;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 
@@ -19,13 +20,14 @@ public class TextGridWindow extends Window {
 			TypedArray ta = context.obtainStyledAttributes(null, new int[] { android.R.attr.textAppearance }, 
 					android.R.attr.textViewStyle, 0);
 			int res = ta.getResourceId(0, -1);
-			ta = context.obtainStyledAttributes(res, new int[] { android.R.attr.textSize });
+			ta = context.obtainStyledAttributes(res, new int[] { android.R.attr.textSize, android.R.attr.textColor });
 			_fontSize = ta.getDimensionPixelSize(0, -1);
 			
 			mPaint = new Paint();
 			mPaint.setTypeface(Typeface.MONOSPACE);
 			mPaint.setAntiAlias(true);
 			mPaint.setTextSize(_fontSize);
+			mPaint.setColor(ta.getColor(1, 0xffffffff));
 			
 			_charsW = _charsH = 0;
 		}
@@ -80,6 +82,16 @@ public class TextGridWindow extends Window {
 			
 			postInvalidate();
 		}
+		
+		@Override
+		protected void onDraw(Canvas canvas) {
+			super.onDraw(canvas);
+			
+			float ch = measureCharacterHeight(), cw = measureCharacterWidth();
+			for (int y = 0; y < _charsH; y++)
+				for (int x = 0; x < _charsW; x++)
+					canvas.drawText(_framebuf, y * _charsW + x, 1, cw * x, ch * (y + 1), mPaint);
+		}
 	}
 	private View _view;
 	private Glk _glk;
@@ -99,7 +111,7 @@ public class TextGridWindow extends Window {
 	}
 
 	@Override
-	public View getView() {
+	public android.view.View getView() {
 		return _view;
 	}
 	
