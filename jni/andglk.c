@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <android/log.h>
 #include <stdlib.h>
+#include <setjmp.h>
 #include "glk.h"
 
 JavaVM *_jvm;
@@ -9,6 +10,7 @@ JNIEnv *_env;
 jobject _this;
 char *_line_event_buf;
 glui32 _line_event_buf_len;
+jmp_buf _quit_env;
 
 #define GLK_JNI_VERSION JNI_VERSION_1_2
 
@@ -35,7 +37,8 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
 {
 	_this = (*env)->NewGlobalRef(env, this);
-	glk_main();
+	if (!setjmp(_quit_env))
+		glk_main();
 }
 
 
@@ -50,13 +53,10 @@ JNIEnv *JNU_GetEnv()
 
 void glk_exit(void)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "exit", "()V");
+	// TODO: cleanup objects
 
-	(*env)->CallVoidMethod(env, _this, mid);
-
+	// any cleaner way to have glk_exit() not returning (as per spec)?
+	longjmp(_quit_env, 1);
 }
 
 void glk_set_interrupt_handler(void (*func)(void))

@@ -98,11 +98,10 @@ public class Glk extends Thread {
 	}
 	
 	@SuppressWarnings("unused")
-	private void put_char(char c)
-	{
+	private void put_char(char c) {
 		_currentWindow.put_char(c);
 	}
-
+	
 	public View getView() {
 		return _veryRoot;
 	}
