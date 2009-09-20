@@ -102,6 +102,7 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private long _rock;
 	protected View _view = null;
 	private Handler _uiHandler;

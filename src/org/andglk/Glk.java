@@ -1,6 +1,5 @@
 package org.andglk;
 
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -12,6 +11,7 @@ import android.widget.FrameLayout;
 
 public class Glk extends Thread {
 	private static final long STYLE_NORMAL = 0;
+	@SuppressWarnings("unused")
 	private Window _root, _currentWindow;
 	private FrameLayout _veryRoot;
 	private Handler _uiHandler = new Handler();
@@ -87,6 +87,17 @@ public class Glk extends Thread {
 		return Character.toLowerCase(c);
 	}
 	
+	@SuppressWarnings("unused")
+	private FileRef fileref_create_by_prompt(int pointer, long usage, long fmode, long rock)
+	{
+		switch((int) usage) {
+		default:
+			Log.w("Glk", "unimplemented usage in fileref_create_by_prompt: " + Long.toString(usage));
+			return null;
+		}
+	}
+	
+	@SuppressWarnings("unused")
 	private void put_char(char c)
 	{
 		_currentWindow.put_char(c);

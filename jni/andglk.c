@@ -627,10 +627,17 @@ frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_create_by_prompt", "(JJJ)Lorg/andglk/FileRef;");
+		mid = (*env)->GetMethodID(env, _class, "fileref_create_by_prompt", "(IJJJ)Lorg/andglk/FileRef;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, usage, fmode, rock);
+	jobject *pointer = malloc(sizeof(jobject *));
+	jobject fref = (*env)->CallObjectMethod(env, _this, mid, (jint) pointer, (jlong) usage, (jlong) fmode, (jlong) rock);
+	if (0 == fref) {
+		free(pointer);
+		return NULL;
+	}
 
+	*pointer = (*env)->NewGlobalRef(env, fref);
+	return pointer;
 }
 
 frefid_t glk_fileref_create_from_fileref(glui32 usage, frefid_t fref,
