@@ -113,29 +113,14 @@ public class TextBufferWindow extends Window {
 		_rock = rock;
 		_uiHandler = glk.getUiHandler();
 		final ViewGroup parentView = (ViewGroup) glk.getView();
-		
-		// let's do the thread dance!
-		synchronized(this) {
-			_uiHandler.post(new Runnable() {
-				@Override
-				public void run() {
-					View view = new View(parentView.getContext());
-					parentView.addView(view);
-					synchronized(TextBufferWindow.this) {
-						_view = view;
-						// and zag
-						TextBufferWindow.this.notify();
-					}
-				}
-			});
 
-			while (_view == null) try {
-				// zig
-				wait();
-			} catch (InterruptedException e) {
-				// try again
+		glk.waitForUi(new Runnable() {
+			@Override
+			public void run() {
+				_view = new View(parentView.getContext());
+				parentView.addView(_view);
 			}
-		}
+		});
 	}
 	
 	@Override

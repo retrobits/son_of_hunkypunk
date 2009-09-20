@@ -16,6 +16,7 @@ public class Glk extends Thread {
 	private FrameLayout _frame;
 	private Handler _uiHandler = new Handler();
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
+	protected boolean _done;
 
 	@Override
 	public void run() {
@@ -92,12 +93,12 @@ public class Glk extends Thread {
 	}
 	
 	@SuppressWarnings("unused")
-	private FileRef fileref_create_by_prompt(int pointer, long usage, long fmode, long rock)
+	private int fileref_create_by_prompt(long usage, long fmode, long rock)
 	{
 		switch((int) usage) {
 		default:
 			Log.w("Glk", "unimplemented usage in fileref_create_by_prompt: " + Long.toString(usage));
-			return null;
+			return 0;
 		}
 	}
 	
@@ -116,5 +117,27 @@ public class Glk extends Thread {
 
 	public void postEvent(Event e) {
 		_eventQueue.add(e);
+	}
+
+	public void waitForUi(final Runnable runnable) {
+		synchronized(this) {
+			_done = false;
+			_uiHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					synchronized(Glk.this) {
+						runnable.run();
+						Glk.this.notify();
+						_done = true;
+					}
+				}
+			});
+
+			while (!_done) try {
+				wait();
+			} catch (InterruptedException e) {
+				// try again
+			}
+		}
 	}
 }
