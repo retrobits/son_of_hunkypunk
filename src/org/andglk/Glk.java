@@ -51,7 +51,6 @@ public class Glk extends Thread {
 	
 	@SuppressWarnings("unused")
 	private void put_string(final String str) {
-		Log.d("Glk", "put_string(\"" + str + "\")");
 		_currentWindow.putString(str);
 	}
 	
@@ -86,6 +85,11 @@ public class Glk extends Thread {
 	private char char_to_lower(char c)
 	{
 		return Character.toLowerCase(c);
+	}
+	
+	private void put_char(char c)
+	{
+		_currentWindow.put_char(c);
 	}
 
 	public View getView() {

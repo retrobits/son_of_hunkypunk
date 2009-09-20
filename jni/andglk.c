@@ -431,7 +431,7 @@ void glk_put_char(unsigned char ch)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _class, "put_char", "(C)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, ch);
+	(*env)->CallVoidMethod(env, _this, mid, (jchar) ch);
 
 }
 

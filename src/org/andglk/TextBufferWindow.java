@@ -157,4 +157,14 @@ public class TextBufferWindow extends Window {
 			}
 		});
 	}
+
+	@Override
+	public void put_char(final char c) {
+		_uiHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				_view.append(Character.toString(c));
+			}
+		});
+	}
 }
