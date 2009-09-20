@@ -179,16 +179,21 @@ void glk_window_close(winid_t win, stream_result_t *result)
 
 }
 
-void glk_window_get_size(winid_t win, glui32 *widthptr,
-    glui32 *heightptr)
+void glk_window_get_size(winid_t win, glui32 *widthptr, glui32 *heightptr)
 {
+	if (!win)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_size", "(Lorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _Window, "get_size", "()[J");
 
-	(*env)->CallVoidMethod(env, _this, mid, win, widthptr, heightptr);
-
+	jlongArray res = (*env)->CallObjectMethod(env, *win, mid);
+	jlong *arr = (*env)->GetLongArrayElements(env, res, NULL);
+	*widthptr = arr[0];
+	*heightptr = arr[1];
+	(*env)->ReleaseLongArrayElements(env, res, arr, JNI_ABORT);
 }
 
 void glk_window_set_arrangement(winid_t win, glui32 method,
@@ -285,13 +290,15 @@ void glk_window_clear(winid_t win)
 
 void glk_window_move_cursor(winid_t win, glui32 xpos, glui32 ypos)
 {
+	if (!win)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_move_cursor", "(Lorg/andglk/Window;JJ)V");
+		mid = (*env)->GetMethodID(env, _Window, "move_cursor", "(JJ)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win, xpos, ypos);
-
+	(*env)->CallVoidMethod(env, *win, mid, (jlong) xpos, (jlong)ypos);
 }
 
 strid_t glk_window_get_stream(winid_t win)

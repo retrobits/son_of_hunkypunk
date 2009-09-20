@@ -1,7 +1,5 @@
 package org.andglk;
 
-import java.lang.reflect.Array;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Paint;
@@ -14,6 +12,8 @@ public class TextGridWindow extends Window {
 		private int _charsW;
 		private int _charsH;
 		private char[] _framebuf;
+		private long _cursorX;
+		private long _cursorY;
 
 		public View(Context context) {
 			super(context);
@@ -40,7 +40,7 @@ public class TextGridWindow extends Window {
 		}
 		
 		@Override
-		protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		protected synchronized void onSizeChanged(int w, int h, int oldw, int oldh) {
 			oldw = _charsW;
 			oldh = _charsH;
 			_charsW = (int) (w / measureCharacterWidth());
@@ -59,7 +59,17 @@ public class TextGridWindow extends Window {
 			for (int i = 0; i < _charsW * _charsH; ++i)
 				_framebuf[i] = ' ';
 			
+			_cursorX = _cursorY = 0;
 			invalidate();
+		}
+
+		public synchronized long[] getSize() {
+			return new long[] { _charsW, _charsH };
+		}
+
+		public void move_cursor(long x, long y) {
+			_cursorX = x;
+			_cursorY = y;
 		}
 	}
 	private View _view;
@@ -97,5 +107,15 @@ public class TextGridWindow extends Window {
 				_view.clear();
 			}
 		});
+	}
+	
+	@Override
+	public long[] get_size() {
+		return _view.getSize();
+	}
+	
+	@Override
+	public void move_cursor(long x, long y) {
+		_view.move_cursor(x, y);
 	}
 }
