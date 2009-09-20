@@ -12,8 +12,7 @@ public class TextGridWindow extends Window {
 		private int _charsW;
 		private int _charsH;
 		private char[] _framebuf;
-		private long _cursorX;
-		private long _cursorY;
+		private int _pos;
 
 		public View(Context context) {
 			super(context);
@@ -55,11 +54,11 @@ public class TextGridWindow extends Window {
 		}
 
 		/* must be run on the main thread */
-		public void clear() {
+		public synchronized void clear() {
 			for (int i = 0; i < _charsW * _charsH; ++i)
 				_framebuf[i] = ' ';
 			
-			_cursorX = _cursorY = 0;
+			_pos = 0;
 			invalidate();
 		}
 
@@ -67,9 +66,19 @@ public class TextGridWindow extends Window {
 			return new long[] { _charsW, _charsH };
 		}
 
-		public void move_cursor(long x, long y) {
-			_cursorX = x;
-			_cursorY = y;
+		public synchronized void move_cursor(long x, long y) {
+			_pos = (int) (y * _charsW + x);
+		}
+
+		public synchronized void putString(String str) {
+			int end = str.length();
+			if (end > _charsW * _charsH - _pos)
+				end = _charsW * _charsH - _pos;
+			
+			str.getChars(0, end, _framebuf, _pos);
+			_pos = end;
+			
+			postInvalidate();
 		}
 	}
 	private View _view;
@@ -117,5 +126,10 @@ public class TextGridWindow extends Window {
 	@Override
 	public void move_cursor(long x, long y) {
 		_view.move_cursor(x, y);
+	}
+	
+	@Override
+	public void putString(String str) {
+		_view.putString(str);
 	}
 }
