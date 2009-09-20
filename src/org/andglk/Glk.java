@@ -1,6 +1,7 @@
 package org.andglk;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -9,6 +10,7 @@ public class Glk extends Thread {
 	private static final long STYLE_NORMAL = 0;
 	private Window _root, _currentWindow;
 	private FrameLayout _veryRoot;
+	private Handler _uiHandler = new Handler();
 
 	@Override
 	public void run() {
@@ -32,6 +34,8 @@ public class Glk extends Thread {
 		}
 		
 		switch ((int)wintype) {
+		case Window.WINTYPE_TEXTBUFFER:
+			return _root = new TextBufferWindow(_veryRoot, _uiHandler, rock);
 		default:
 			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
 			return null;
