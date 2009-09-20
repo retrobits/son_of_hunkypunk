@@ -112,7 +112,7 @@ unsigned char glk_char_to_lower(unsigned char ch)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _class, "char_to_lower", "(C)C");
 
-	return (*env)->CallCharMethod(env, _this, mid, ch);
+	return (*env)->CallCharMethod(env, _this, mid, (jchar) ch);
 
 }
 

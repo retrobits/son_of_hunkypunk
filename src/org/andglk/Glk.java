@@ -81,6 +81,12 @@ public class Glk extends Thread {
 			}
 		}
 	}
+	
+	@SuppressWarnings("unused")
+	private char char_to_lower(char c)
+	{
+		return Character.toLowerCase(c);
+	}
 
 	public View getView() {
 		return _veryRoot;
