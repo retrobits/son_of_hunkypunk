@@ -7,7 +7,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 public class Glk extends Thread {
@@ -34,13 +33,6 @@ public class Glk extends Thread {
 	
 	@SuppressWarnings("unused")
 	private int window_open(Window split, long method, long size, long wintype, long rock) {
-		ViewGroup parent;
-		if (split != null) {
-			Log.w("Glk", "splitting not supported yet");
-			return 0;
-		} else
-			parent = _frame;
-
 		Window wnd;
 		switch ((int)wintype) {
 		case Window.WINTYPE_TEXTBUFFER:
@@ -51,15 +43,17 @@ public class Glk extends Thread {
 			return 0;
 		}
 		
-		final ViewGroup finalParent = parent;
 		final Window finalWindow = wnd;
-		
-		waitForUi(new Runnable() {
-			@Override
-			public void run() {
-				finalParent.addView(finalWindow.getView());
-			}
-		});
+
+		if (split == null)
+			waitForUi(new Runnable() {
+				@Override
+				public void run() {
+					_frame.addView(finalWindow.getView());
+				}
+			});
+		else
+			new PairWindow(this, split, wnd, method, size);
 		
 		return wnd.getPointer();
 	}

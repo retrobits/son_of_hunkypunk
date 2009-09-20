@@ -154,4 +154,14 @@ public class TextBufferWindow extends Window {
 	public android.view.View getView() {
 		return _view;
 	}
+	
+	@Override
+	public float measureZeroHeight() {
+		return _view.getLineHeight();
+	}
+	
+	@Override
+	public float measureZeroWidth() {
+		return _view.getPaint().measureText("0");
+	}
 }
