@@ -1,11 +1,14 @@
 #include <jni.h>
+#include <android/log.h>
+#include <stdlib.h>
 #include "glk.h"
 
 JavaVM *_jvm;
-jclass _class;
+jclass _class, _Event, _LineInputEvent;
 JNIEnv *_env;
 jobject _this;
 char *_line_event_buf;
+glui32 _line_event_buf_len;
 
 #define GLK_JNI_VERSION JNI_VERSION_1_2
 
@@ -19,6 +22,12 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	jclass cls = (*env)->FindClass(env, "org/andglk/Glk");
 	_class = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/Event");
+	_Event = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/LineInputEvent");
+	_LineInputEvent = (*env)->NewGlobalRef(env, cls);
 
 	return GLK_JNI_VERSION;
 }
@@ -135,10 +144,16 @@ winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_open", "(Lorg/andglk/Window;JJJJ)Lorg/andglk/Window;");
+		mid = (*env)->GetMethodID(env, _class, "window_open", "(ILorg/andglk/Window;JJJJ)Lorg/andglk/Window;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, split, (jlong) method, (jlong) size, (jlong) wintype, (jlong) rock);
-
+	jobject *pointer = malloc(sizeof(jobject *));
+	jobject window = (*env)->CallObjectMethod(env, _this, mid, (jint) pointer, split ? *split : 0, (jlong) method, (jlong) size, (jlong) wintype, (jlong) rock);
+	if (window == 0) {
+		free(pointer);
+		return(NULL);
+	}
+	*pointer = (*env)->NewGlobalRef(env, window);
+	return pointer;
 }
 
 void glk_window_close(winid_t win, stream_result_t *result)
@@ -305,8 +320,7 @@ void glk_set_window(winid_t win)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _class, "set_window", "(Lorg/andglk/Window;)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win);
-
+	(*env)->CallVoidMethod(env, _this, mid, win ? *win : NULL);
 }
 
 strid_t glk_stream_open_file(frefid_t fileref, glui32 fmode,
@@ -686,6 +700,46 @@ glui32 glk_fileref_does_file_exist(frefid_t fref)
 
 }
 
+static glui32 jstring2latin1(JNIEnv *env, jstring str, char *buf, glui32 maxlen)
+{
+	glui32 len = (*env)->GetStringLength(env, str);
+	if (len > maxlen)
+		len = maxlen;
+
+	const jchar * jbuf = (*env)->GetStringChars(env, str, NULL);
+	int i;
+	for (i = 0; i < len; ++i)
+		buf[i] = jbuf[i];
+
+	(*env)->ReleaseStringChars(env, str, jbuf);
+	return len;
+}
+
+static void event2glk(JNIEnv *env, jobject ev, event_t *event)
+{
+	static jfieldID window = 0;
+	if (window == 0)
+		window = (*env)->GetFieldID(env, _Event, "windowPointer", "I");
+
+	event->win = (winid_t) (*env)->GetIntField(env, ev, window);
+
+	if ((*env)->IsInstanceOf(env, ev, _LineInputEvent)) {
+		event->type = evtype_LineInput;
+
+		{
+			static jfieldID line_id = 0;
+			if (0 == line_id)
+				line_id = (*env)->GetFieldID(env, _LineInputEvent, "line", "Ljava/lang/String;");
+
+			jstring line = (*env)->GetObjectField(env, ev, line_id);
+			event->val1 = jstring2latin1(env, line, _line_event_buf, _line_event_buf_len);
+			_line_event_buf[event->val1] = 0;
+			__android_log_print(ANDROID_LOG_DEBUG, "andglk.c", "got line: \"%s\"\n", _line_event_buf);
+			event->val2 = 0;
+		}
+	}
+}
+
 void glk_select(event_t *event)
 {
 	JNIEnv *env = JNU_GetEnv();
@@ -693,7 +747,8 @@ void glk_select(event_t *event)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _class, "select", "()Lorg/andglk/Event;");
 
-	(*env)->CallObjectMethod(env, _this, mid, event);
+	jobject ev = (*env)->CallObjectMethod(env, _this, mid, event);
+	event2glk(env, ev, event);
 }
 
 void glk_select_poll(event_t *event)
@@ -726,6 +781,7 @@ void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initle
 		mid = (*env)->GetMethodID(env, _class, "request_line_event", "(Lorg/andglk/Window;Ljava/lang/String;J)V");
 
 	_line_event_buf = buf;
+	_line_event_buf_len = maxlen;
 
 	jstring str = 0;
 	jchar jbuf[initlen];
@@ -739,7 +795,7 @@ void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initle
 		str = (*env)->NewString(env, jbuf, maxlen);
 	}
 
-	(*env)->CallVoidMethod(env, _this, mid, win, str, (jlong) maxlen);
+	(*env)->CallVoidMethod(env, _this, mid, win ? *win : 0, str, (jlong) maxlen);
 }
 
 void glk_request_char_event(winid_t win)

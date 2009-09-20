@@ -18,7 +18,7 @@
 /* You may have to edit the definition of glui32 to make sure it's really a
     32-bit unsigned integer type, and glsi32 to make sure it's really a
     32-bit signed integer type. If they're not, horrible things will happen. */
-#include <inttypes.h>
+#include <stdint.h>
 typedef uint32_t glui32;
 typedef int32_t glsi32;
 
@@ -31,10 +31,10 @@ typedef int32_t glsi32;
 
 /* These types are opaque object identifiers. They're pointers to opaque
     C structures, which are defined differently by each library. */
-typedef jobject winid_t;
-typedef jobject strid_t;
-typedef jobject frefid_t;
-typedef jobject schanid_t;
+typedef jobject *winid_t;
+typedef jobject *strid_t;
+typedef jobject *frefid_t;
+typedef jobject *schanid_t;
 
 #define gestalt_Version (0)
 #define gestalt_CharInput (1)

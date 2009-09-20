@@ -12,16 +12,17 @@ import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
 import android.view.KeyEvent;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 
-public class TextBufferWindow implements Window {
-	private class View extends TextView {
+public class TextBufferWindow extends Window {
+	private class View extends TextView implements OnEditorActionListener {
+		private int _start;
 		private class Filter implements InputFilter {
 			private long _maxlen;
-			private int _start;
 
-			public Filter(int start, long maxlen) {
-				_start = start;
+			public Filter(long maxlen) {
 				_maxlen = maxlen;
 			}
 
@@ -61,10 +62,11 @@ public class TextBufferWindow implements Window {
 			setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 			setMovementMethod(ArrowKeyMovementMethod.getInstance());
 			setFocusableInTouchMode(true);
+			setOnEditorActionListener(this);
 
 			final Editable e = getEditableText();
-			final int start = e.length();
-			final InputFilter filter = new Filter(start, maxlen);
+			_start = e.length();
+			final InputFilter filter = new Filter(maxlen);
 
 			e.setFilters(new InputFilter[] { filter });
 			if (initial != null)
@@ -72,15 +74,42 @@ public class TextBufferWindow implements Window {
 			Selection.setSelection(e, e.length());
 			requestFocus();
 		}
+
+		@Override
+		public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+			if (actionId != EditorInfo.IME_NULL)
+				return false;
+			
+			String s = getLineInput();
+			Event e = new LineInputEvent(TextBufferWindow.this, s);
+			
+			append("\n");
+//			setInputType(InputType.TYPE_NULL);
+//			setMovementMethod(getDefaultMovementMethod());
+//			setFocusable(false);
+//			setOnEditorActionListener(null);
+			
+			_glk.postEvent(e);
+			return true;
+		}
+
+		private String getLineInput() {
+			final CharSequence text = getText();
+			return text.subSequence(_start, text.length()).toString();
+		}
 	}
 
 	private long _rock;
 	protected View _view = null;
 	private Handler _uiHandler;
+	private Glk _glk;
 
-	public TextBufferWindow(final ViewGroup parentView, Handler handler, long rock) {
+	public TextBufferWindow(Glk glk, int pointer, long rock) {
+		super(pointer);
+		_glk = glk;
 		_rock = rock;
-		_uiHandler = handler;
+		_uiHandler = glk.getUiHandler();
+		final ViewGroup parentView = (ViewGroup) glk.getView();
 		
 		// let's do the thread dance!
 		synchronized(this) {
@@ -105,7 +134,7 @@ public class TextBufferWindow implements Window {
 			}
 		}
 	}
-
+	
 	@Override
 	public synchronized void putString(final String str) {
 		_uiHandler.post(new Runnable() {

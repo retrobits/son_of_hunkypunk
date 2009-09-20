@@ -1,5 +1,9 @@
 package org.andglk;
 
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -11,13 +15,11 @@ public class Glk extends Thread {
 	private Window _root, _currentWindow;
 	private FrameLayout _veryRoot;
 	private Handler _uiHandler = new Handler();
+	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
 
 	@Override
 	public void run() {
-		// somehow making the method synchronized doesn't work. dalvik thing, perhaps?
-		synchronized(this) {
-			runProgram();
-		}
+		runProgram();
 	}
 	
 	native private void runProgram();
@@ -27,7 +29,7 @@ public class Glk extends Thread {
 	}
 	
 	@SuppressWarnings("unused")
-	private Window window_open(Window split, long method, long size, long wintype, long rock) {
+	private Window window_open(int pointer, Window split, long method, long size, long wintype, long rock) {
 		if (split != null) {
 			Log.w("Glk", "Window splitting requested but not implemented");
 			return null;
@@ -35,7 +37,7 @@ public class Glk extends Thread {
 		
 		switch ((int)wintype) {
 		case Window.WINTYPE_TEXTBUFFER:
-			return _root = new TextBufferWindow(_veryRoot, _uiHandler, rock);
+			return _root = new TextBufferWindow(this, pointer, rock);
 		default:
 			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
 			return null;
@@ -69,17 +71,26 @@ public class Glk extends Thread {
 	private Event select()
 	{
 		Log.d("Glk", "select()");
+		Event ev;
 		while (true) {
 			try {
-				wait();
-				break;
+				ev = _eventQueue.take();
+				Log.d("Glk", "select()ed event " + ev.toString());
+				return ev;
 			} catch (InterruptedException e) {
 			}
 		}
-		return null;
 	}
 
 	public View getView() {
 		return _veryRoot;
+	}
+
+	public Handler getUiHandler() {
+		return _uiHandler;
+	}
+
+	public void postEvent(Event e) {
+		_eventQueue.add(e);
 	}
 }
