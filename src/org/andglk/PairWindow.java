@@ -57,8 +57,8 @@ public class PairWindow extends Window {
 		if (division == WINMETHOD_FIXED) {
 			boolean horiz = l.getOrientation() == LinearLayout.HORIZONTAL; 
 			float zeroSize =  horiz ?
-					neww.measureZeroWidth() :
-						neww.measureZeroHeight();
+					neww.measureCharacterWidth() :
+						neww.measureCharacterHeight();
 			int total = Math.round(zeroSize * size);
 			lp = new LinearLayout.LayoutParams(horiz ? total : LayoutParams.FILL_PARENT, horiz ? LayoutParams.FILL_PARENT : total);
 		} else
@@ -87,6 +87,6 @@ public class PairWindow extends Window {
 		return _view;
 	}
 	
-	public float measureZeroWidth() { return 0.0f; }
-	public float measureZeroHeight() { return 0.0f; }
+	public float measureCharacterWidth() { return 0.0f; }
+	public float measureCharacterHeight() { return 0.0f; }
 }

@@ -156,12 +156,12 @@ public class TextBufferWindow extends Window {
 	}
 	
 	@Override
-	public float measureZeroHeight() {
+	public float measureCharacterHeight() {
 		return _view.getLineHeight();
 	}
 	
 	@Override
-	public float measureZeroWidth() {
+	public float measureCharacterWidth() {
 		return _view.getPaint().measureText("0");
 	}
 }

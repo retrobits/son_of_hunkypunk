@@ -38,6 +38,9 @@ public class Glk extends Thread {
 		case Window.WINTYPE_TEXTBUFFER:
 			wnd = new TextBufferWindow(this, rock);
 			break;
+		case Window.WINTYPE_TEXTGRID:
+			wnd = new TextGridWindow(this, rock);
+			break;
 		default:
 			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
 			return 0;
