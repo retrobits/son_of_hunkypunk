@@ -41,6 +41,22 @@ void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
 		glk_main();
 }
 
+jint Java_org_andglk_CPointed_makePoint(JNIEnv *env, jobject this)
+{
+	jobject *ptr = malloc(sizeof(jobject));
+	*ptr = (*env)->NewGlobalRef(env, this);
+	return (jint) ptr;
+}
+
+void Java_org_andglk_CPointed_releasePoint(JNIEnv *env, jobject this, jint point)
+{
+	if (!point)
+		return;
+
+	jobject *ptr = (jobject *) point;
+	(*env)->DeleteGlobalRef(env, *ptr);
+	free(ptr);
+}
 
 JNIEnv *JNU_GetEnv()
 {
@@ -144,16 +160,9 @@ winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_open", "(ILorg/andglk/Window;JJJJ)Lorg/andglk/Window;");
+		mid = (*env)->GetMethodID(env, _class, "window_open", "(Lorg/andglk/Window;JJJJ)I");
 
-	jobject *pointer = malloc(sizeof(jobject *));
-	jobject window = (*env)->CallObjectMethod(env, _this, mid, (jint) pointer, split ? *split : 0, (jlong) method, (jlong) size, (jlong) wintype, (jlong) rock);
-	if (window == 0) {
-		free(pointer);
-		return(NULL);
-	}
-	*pointer = (*env)->NewGlobalRef(env, window);
-	return pointer;
+	return (winid_t) (*env)->CallIntMethod(env, _this, mid, split ? *split : 0, (jlong) method, (jlong) size, (jlong) wintype, (jlong) rock);
 }
 
 void glk_window_close(winid_t win, stream_result_t *result)
@@ -627,17 +636,9 @@ frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_create_by_prompt", "(IJJJ)Lorg/andglk/FileRef;");
+		mid = (*env)->GetMethodID(env, _class, "fileref_create_by_prompt", "(JJJ)I");
 
-	jobject *pointer = malloc(sizeof(jobject *));
-	jobject fref = (*env)->CallObjectMethod(env, _this, mid, (jint) pointer, (jlong) usage, (jlong) fmode, (jlong) rock);
-	if (0 == fref) {
-		free(pointer);
-		return NULL;
-	}
-
-	*pointer = (*env)->NewGlobalRef(env, fref);
-	return pointer;
+	return (frefid_t) (*env)->CallIntMethod(env, _this, mid, (jlong) usage, (jlong) fmode, (jlong) rock);
 }
 
 frefid_t glk_fileref_create_from_fileref(glui32 usage, frefid_t fref,

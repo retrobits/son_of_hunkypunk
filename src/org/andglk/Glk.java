@@ -13,7 +13,7 @@ public class Glk extends Thread {
 	private static final long STYLE_NORMAL = 0;
 	@SuppressWarnings("unused")
 	private Window _root, _currentWindow;
-	private FrameLayout _veryRoot;
+	private FrameLayout _frame;
 	private Handler _uiHandler = new Handler();
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
 
@@ -25,23 +25,27 @@ public class Glk extends Thread {
 	native private void runProgram();
 	
 	public Glk(Context context) {
-		_veryRoot = new FrameLayout(context);
+		_frame = new FrameLayout(context);
 	}
 	
 	@SuppressWarnings("unused")
-	private Window window_open(int pointer, Window split, long method, long size, long wintype, long rock) {
+	private int window_open(Window split, long method, long size, long wintype, long rock) {
 		if (split != null) {
-			Log.w("Glk", "Window splitting requested but not implemented");
-			return null;
+			Log.w("Glk", "splitting not supported yet");
+			return 0;
 		}
-		
+
+		Window wnd;
 		switch ((int)wintype) {
 		case Window.WINTYPE_TEXTBUFFER:
-			return _root = new TextBufferWindow(this, pointer, rock);
+			wnd = new TextBufferWindow(this, rock);
+			break;
 		default:
 			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
-			return null;
+			return 0;
 		}
+		
+		return wnd.getPointer();
 	}
 	
 	@SuppressWarnings("unused")
@@ -103,7 +107,7 @@ public class Glk extends Thread {
 	}
 	
 	public View getView() {
-		return _veryRoot;
+		return _frame;
 	}
 
 	public Handler getUiHandler() {
