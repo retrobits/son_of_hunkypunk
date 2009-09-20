@@ -5,7 +5,7 @@
 #include "glk.h"
 
 JavaVM *_jvm;
-jclass _class, _Event, _LineInputEvent;
+jclass _class, _Event, _LineInputEvent, _Window;
 JNIEnv *_env;
 jobject _this;
 char *_line_event_buf;
@@ -30,6 +30,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/LineInputEvent");
 	_LineInputEvent = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/Window");
+	_Window = (*env)->NewGlobalRef(env, cls);
 
 	return GLK_JNI_VERSION;
 }
@@ -269,13 +272,15 @@ winid_t glk_window_get_sibling(winid_t win)
 
 void glk_window_clear(winid_t win)
 {
+	if (!win)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_clear", "(Lorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _Window, "clear", "()V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win);
-
+	(*env)->CallVoidMethod(env, *win, mid);
 }
 
 void glk_window_move_cursor(winid_t win, glui32 xpos, glui32 ypos)

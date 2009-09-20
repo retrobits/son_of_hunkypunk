@@ -1,11 +1,19 @@
 package org.andglk;
 
+import java.lang.reflect.Array;
+
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 
 public class TextGridWindow extends Window {
 	private class View extends android.view.View {
 		private int _fontSize;
+		private Paint mPaint;
+		private int _charsW;
+		private int _charsH;
+		private char[] _framebuf;
 
 		public View(Context context) {
 			super(context);
@@ -14,15 +22,51 @@ public class TextGridWindow extends Window {
 			int res = ta.getResourceId(0, -1);
 			ta = context.obtainStyledAttributes(res, new int[] { android.R.attr.textSize });
 			_fontSize = ta.getDimensionPixelSize(0, -1);
+			
+			mPaint = new Paint();
+			mPaint.setTypeface(Typeface.MONOSPACE);
+			mPaint.setAntiAlias(true);
+			mPaint.setTextSize(_fontSize);
+			
+			_charsW = _charsH = 0;
 		}
 
 		public float measureCharacterHeight() {
-			return _fontSize;
+			return mPaint.getFontSpacing();
+		}
+		
+		public float measureCharacterWidth() {
+			return mPaint.measureText("0");
+		}
+		
+		@Override
+		protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+			oldw = _charsW;
+			oldh = _charsH;
+			_charsW = (int) (w / measureCharacterWidth());
+			_charsH = (int) (h / measureCharacterHeight());
+			
+			char[] oldfb = _framebuf;
+			_framebuf = new char[_charsW * _charsH];
+			
+			for (int y = 0; y < Math.min(oldh, _charsH); ++y)
+				for (int x = 0; x < Math.min(oldw, _charsW); ++y)
+					_framebuf[y * _charsW + x] = oldfb[y * oldw + x];
+		}
+
+		/* must be run on the main thread */
+		public void clear() {
+			for (int i = 0; i < _charsW * _charsH; ++i)
+				_framebuf[i] = ' ';
+			
+			invalidate();
 		}
 	}
 	private View _view;
+	private Glk _glk;
 
 	public TextGridWindow(final Glk glk, long rock) {
+		_glk = glk;
 		glk.waitForUi(new Runnable() {
 			@Override
 			public void run() {
@@ -43,5 +87,15 @@ public class TextGridWindow extends Window {
 	@Override
 	public float measureCharacterHeight() {
 		return _view.measureCharacterHeight();
+	}
+
+	@Override
+	public void clear() {
+		_glk.waitForUi(new Runnable() {
+			@Override
+			public void run() {
+				_view.clear();
+			}
+		});
 	}
 }

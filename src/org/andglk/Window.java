@@ -27,4 +27,5 @@ public abstract class Window extends CPointed {
 	public abstract View getView();
 	public float measureCharacterWidth() { throw new RuntimeException(new NoSuchMethodException()); }
 	public float measureCharacterHeight() { throw new RuntimeException(new NoSuchMethodException()); }
+	public void clear() { throw new RuntimeException(new NoSuchMethodException()); }
 }
