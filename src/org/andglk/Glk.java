@@ -7,6 +7,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 public class Glk extends Thread {
@@ -17,6 +18,7 @@ public class Glk extends Thread {
 	private Handler _uiHandler = new Handler();
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
 	protected boolean _done;
+	private Context _context;
 
 	@Override
 	public void run() {
@@ -27,14 +29,17 @@ public class Glk extends Thread {
 	
 	public Glk(Context context) {
 		_frame = new FrameLayout(context);
+		_context = context;
 	}
 	
 	@SuppressWarnings("unused")
 	private int window_open(Window split, long method, long size, long wintype, long rock) {
+		ViewGroup parent;
 		if (split != null) {
 			Log.w("Glk", "splitting not supported yet");
 			return 0;
-		}
+		} else
+			parent = _frame;
 
 		Window wnd;
 		switch ((int)wintype) {
@@ -45,6 +50,16 @@ public class Glk extends Thread {
 			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
 			return 0;
 		}
+		
+		final ViewGroup finalParent = parent;
+		final Window finalWindow = wnd;
+		
+		waitForUi(new Runnable() {
+			@Override
+			public void run() {
+				finalParent.addView(finalWindow.getView());
+			}
+		});
 		
 		return wnd.getPointer();
 	}
@@ -119,25 +134,32 @@ public class Glk extends Thread {
 		_eventQueue.add(e);
 	}
 
-	public void waitForUi(final Runnable runnable) {
-		synchronized(this) {
-			_done = false;
-			_uiHandler.post(new Runnable() {
-				@Override
-				public void run() {
-					synchronized(Glk.this) {
-						runnable.run();
-						Glk.this.notify();
-						_done = true;
-					}
-				}
-			});
-
-			while (!_done) try {
-				wait();
-			} catch (InterruptedException e) {
-				// try again
-			}
+	public synchronized void waitForUi(final Runnable runnable) {
+		if (Thread.currentThread().equals(_uiHandler.getLooper().getThread())) {
+			runnable.run();
+			return;
 		}
+		
+		_done = false;
+		_uiHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				synchronized(Glk.this) {
+					runnable.run();
+					Glk.this.notify();
+					_done = true;
+				}
+			}
+		});
+
+		while (!_done) try {
+			wait();
+		} catch (InterruptedException e) {
+			// try again
+		}
+	}
+
+	public Context getContext() {
+		return _context;
 	}
 }

@@ -11,7 +11,6 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
 import android.view.KeyEvent;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -108,17 +107,15 @@ public class TextBufferWindow extends Window {
 	private Handler _uiHandler;
 	private Glk _glk;
 
-	public TextBufferWindow(Glk glk, long rock) {
+	public TextBufferWindow(final Glk glk, long rock) {
 		_glk = glk;
 		_rock = rock;
 		_uiHandler = glk.getUiHandler();
-		final ViewGroup parentView = (ViewGroup) glk.getView();
 
 		glk.waitForUi(new Runnable() {
 			@Override
 			public void run() {
-				_view = new View(parentView.getContext());
-				parentView.addView(_view);
+				_view = new View(glk.getContext());
 			}
 		});
 	}
@@ -151,5 +148,10 @@ public class TextBufferWindow extends Window {
 				_view.append(Character.toString(c));
 			}
 		});
+	}
+
+	@Override
+	public android.view.View getView() {
+		return _view;
 	}
 }
