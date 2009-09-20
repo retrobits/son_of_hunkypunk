@@ -28,7 +28,7 @@ public class TextBufferWindow implements Window {
 				}
 			});
 
-			while (_view != null) try {
+			while (_view == null) try {
 				// zig
 				wait();
 			} catch (InterruptedException e) {
