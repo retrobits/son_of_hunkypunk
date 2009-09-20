@@ -56,6 +56,7 @@ public class TextBufferWindow extends Window {
 
 		public View(Context context) {
 			super(context);
+			setSingleLine(false);
 		}
 		
 		public void requestLineEvent(String initial, long maxlen) {
@@ -77,17 +78,19 @@ public class TextBufferWindow extends Window {
 
 		@Override
 		public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-			if (actionId != EditorInfo.IME_NULL)
+			if (actionId != EditorInfo.IME_NULL || event.getAction() != KeyEvent.ACTION_DOWN)
 				return false;
 			
 			String s = getLineInput();
 			Event e = new LineInputEvent(TextBufferWindow.this, s);
 			
 			append("\n");
-//			setInputType(InputType.TYPE_NULL);
-//			setMovementMethod(getDefaultMovementMethod());
-//			setFocusable(false);
-//			setOnEditorActionListener(null);
+			setOnEditorActionListener(null);
+			setRawInputType(InputType.TYPE_NULL);
+			setMovementMethod(getDefaultMovementMethod());
+			setFocusable(false);
+			Editable ed = getEditableText();
+			ed.setFilters(new InputFilter[]{});
 			
 			_glk.postEvent(e);
 			return true;
