@@ -6,9 +6,11 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Selection;
+import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
+import android.view.KeyEvent;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -36,10 +38,12 @@ public class TextBufferWindow implements Window {
 					len = len - (dend - dstart) + (end - start); 
 				} else {
 					result = TextUtils.concat(dest.subSequence(dstart, _start), source.subSequence(start, end));
+					if (result instanceof Spannable)
+						Selection.setSelection((Spannable) result, result.length());
 					len = len - (dend - dstart) + result.length();
 				} 
 				
-				if (len - _start> _maxlen) {
+				if (len - _start > _maxlen) {
 					if (result == null)
 						result = source.subSequence(start, end);
 					result = result.subSequence(0, (int) _maxlen);
@@ -56,7 +60,7 @@ public class TextBufferWindow implements Window {
 		public void requestLineEvent(String initial, long maxlen) {
 			setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 			setMovementMethod(ArrowKeyMovementMethod.getInstance());
-			setFocusable(true);
+			setFocusableInTouchMode(true);
 
 			final Editable e = getEditableText();
 			final int start = e.length();
