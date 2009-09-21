@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style name="TextBufferWindow" parent="@android:attr/textViewStyle">
+		<item name="android:typeface">serif</item>
+	</style>
+	
+	<style name="input">
+		<item name="android:textStyle">bold</item>
+		<item name="android:textColor">#060</item>
+	</style>
+
+	<style name="header" parent="@android:style/TextAppearance.Medium">
+		<item name="android:textStyle">bold</item>
+	</style>
+
+	<style name="subheader">
+		<item name="android:textStyle">bold</item>
+	</style>
+	
+	<style name="blockquote">
+		<item name="android:textStyle">italic</item>
+	</style>
+</resources>
