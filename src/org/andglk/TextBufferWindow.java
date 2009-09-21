@@ -179,9 +179,9 @@ public class TextBufferWindow extends Window {
 	private Handler _uiHandler;
 	private Glk _glk;
 
-	public TextBufferWindow(final Glk glk, long rock) {
+	public TextBufferWindow(final Glk glk, int rock) {
+		super(rock);
 		_glk = glk;
-		_rock = rock;
 		_uiHandler = glk.getUiHandler();
 
 		glk.waitForUi(new Runnable() {

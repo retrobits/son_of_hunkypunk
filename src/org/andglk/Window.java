@@ -4,6 +4,10 @@ import android.view.View;
 
 
 public abstract class Window extends CPointed {
+	public Window(int rock) {
+		super(rock);
+	}
+
 	public final static int WINTYPE_ALLTYPES = 0;
 	public final static int WINTYPE_PAIR = 1;
 	public final static int WINTYPE_BLANK = 2;

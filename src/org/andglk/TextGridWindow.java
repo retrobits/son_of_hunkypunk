@@ -97,7 +97,8 @@ public class TextGridWindow extends Window {
 	private View _view;
 	private Glk _glk;
 
-	public TextGridWindow(final Glk glk, long rock) {
+	public TextGridWindow(final Glk glk, int rock) {
+		super(rock);
 		_glk = glk;
 		glk.waitForUi(new Runnable() {
 			@Override

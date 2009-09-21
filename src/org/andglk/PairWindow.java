@@ -12,6 +12,7 @@ public class PairWindow extends Window {
 	private Glk _glk;
 
 	public PairWindow(final Glk glk, final Window oldw, final Window neww, final long method, final long size) {
+		super(0);
 		glk.waitForUi(new Runnable() {
 			@Override
 			public void run() {

@@ -43,8 +43,8 @@ public class Glk extends Thread {
 		_context = context;
 	}
 	
-	@SuppressWarnings("unused")
-	private int window_open(Window split, long method, long size, long wintype, long rock) {
+	@SuppressWarnings("unused") // referenced in C
+	private int window_open(Window split, long method, long size, long wintype, int rock) {
 		Window wnd;
 		switch ((int)wintype) {
 		case Window.WINTYPE_TEXTBUFFER:

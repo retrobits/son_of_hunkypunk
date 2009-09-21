@@ -5,7 +5,7 @@
 #include "glk.h"
 
 JavaVM *_jvm;
-jclass _class, _Event, _LineInputEvent, _Window;
+jclass _class, _Event, _LineInputEvent, _Window, _FileRef;
 JNIEnv *_env;
 jobject _this;
 char *_line_event_buf;
@@ -33,6 +33,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/Window");
 	_Window = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/FileRef");
+	_FileRef = (*env)->NewGlobalRef(env, cls);
 
 	return GLK_JNI_VERSION;
 }
@@ -163,9 +166,9 @@ winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_open", "(Lorg/andglk/Window;JJJJ)I");
+		mid = (*env)->GetMethodID(env, _class, "window_open", "(Lorg/andglk/Window;JJJI)I");
 
-	return (winid_t) (*env)->CallIntMethod(env, _this, mid, split ? *split : 0, (jlong) method, (jlong) size, (jlong) wintype, (jlong) rock);
+	return (winid_t) (*env)->CallIntMethod(env, _this, mid, split ? *split : 0, (jlong) method, (jlong) size, (jlong) wintype, (jint) rock);
 }
 
 void glk_window_close(winid_t win, stream_result_t *result)
@@ -648,15 +651,14 @@ frefid_t glk_fileref_create_by_name(glui32 usage, char *name,
 
 }
 
-frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode,
-    glui32 rock)
+frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
 {
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_create_by_prompt", "(JJJ)I");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "createByPrompt", "(III)I");
 
-	return (frefid_t) (*env)->CallIntMethod(env, _this, mid, (jlong) usage, (jlong) fmode, (jlong) rock);
+	return (frefid_t) (*env)->CallStaticIntMethod(env, _FileRef, mid, (jint) usage, (jint) fmode, (jint) rock);
 }
 
 frefid_t glk_fileref_create_from_fileref(glui32 usage, frefid_t fref,

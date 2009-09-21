@@ -1,22 +1,32 @@
 package org.andglk;
 
 public class CPointed {
-	protected int _pointer;
+	protected int mPointer;
+	private int mRock;
 
-	public CPointed() {
-		_pointer = makePoint();
+	public CPointed(int rock) {
+		mPointer = makePoint();
+		setRock(rock);
 	}
 	
 	private native int makePoint();
 
 	public int getPointer() {
-		return _pointer;
+		return mPointer;
 	}
 	
 	private native void releasePoint(int ptr);
 	
 	public void release() {
-		releasePoint(_pointer);
-		_pointer = 0;
+		releasePoint(mPointer);
+		mPointer = 0;
+	}
+
+	public void setRock(int rock) {
+		mRock = rock;
+	}
+
+	public int getRock() {
+		return mRock;
 	}
 }
