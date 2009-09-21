@@ -10,7 +10,19 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 public class Glk extends Thread {
-	private static final long STYLE_NORMAL = 0;
+	public final static int STYLE_NORMAL = 0;
+	public final static int STYLE_EMPHASIZED = 1;
+	public final static int STYLE_PREFORMATTED = 2;
+	public final static int STYLE_HEADER = 3;
+	public final static int STYLE_SUBHEADER = 4;
+	public final static int STYLE_ALERT = 5;
+	public final static int STYLE_NOTE = 6;
+	public final static int STYLE_BLOCKQUOTE = 7;
+	public final static int STYLE_INPUT = 8;
+	public final static int STYLE_USER1 = 9;
+	public final static int STYLE_USER2 = 10;
+	public final static int STYLE_NUMSTYLES = 11;
+
 	@SuppressWarnings("unused")
 	private Window _root, _currentWindow;
 	private FrameLayout _frame;

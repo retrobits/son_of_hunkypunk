@@ -10,6 +10,7 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
+import android.text.style.TextAppearanceSpan;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
@@ -18,6 +19,7 @@ import android.widget.TextView.OnEditorActionListener;
 public class TextBufferWindow extends Window {
 	private class View extends TextView implements OnEditorActionListener {
 		private int _start;
+		private TextAppearanceSpan _inputSpan;
 		private class Filter implements InputFilter {
 			private long _maxlen;
 
@@ -49,12 +51,21 @@ public class TextBufferWindow extends Window {
 					result = result.subSequence(0, (int) _maxlen);
 				}
 				
+				// hack around strange span behaviour
+				// (TextAppearanceSpan with 0 size affects whole paragraph)
+				Spannable s = View.this.getEditableText();
+				if (len > _start && s.getSpanStart(_inputSpan) == -1)
+					View.this.getEditableText().setSpan(_inputSpan, _start, _start, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+				else if (s.getSpanStart(_inputSpan) != -1 && len == _start)
+					View.this.getEditableText().removeSpan(_inputSpan);
+				
 				return result;
 			}
 		}
 
 		public View(Context context) {
 			super(context);
+			setTextAppearance(context, R.style.normal);
 			setSingleLine(false);
 		}
 		
@@ -66,6 +77,7 @@ public class TextBufferWindow extends Window {
 
 			final Editable e = getEditableText();
 			_start = e.length();
+			_inputSpan = new TextAppearanceSpan(getContext(), R.style.input);
 			final InputFilter filter = new Filter(maxlen);
 
 			e.setFilters(new InputFilter[] { filter });
@@ -82,14 +94,18 @@ public class TextBufferWindow extends Window {
 			
 			String s = getLineInput();
 			Event e = new LineInputEvent(TextBufferWindow.this, s);
+			Editable ed = getEditableText();
+			if (ed.length() > _start)
+				ed.setSpan(_inputSpan, _start, ed.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+			else
+				ed.removeSpan(_inputSpan);
+			ed.setFilters(new InputFilter[]{});
 			
 			append("\n");
 			setOnEditorActionListener(null);
 			setRawInputType(InputType.TYPE_NULL);
 			setMovementMethod(getDefaultMovementMethod());
 			setFocusable(false);
-			Editable ed = getEditableText();
-			ed.setFilters(new InputFilter[]{});
 			
 			_glk.postEvent(e);
 			return true;
