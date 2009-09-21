@@ -138,6 +138,7 @@ public class TextBufferWindow extends Window {
 	
 	@Override
 	public synchronized void putString(final String str) {
+		super.putString(str);
 		_uiHandler.post(new Runnable() {
 			@Override
 			public void run() {
@@ -158,6 +159,7 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void put_char(final char c) {
+		super.put_char(c);
 		_uiHandler.post(new Runnable() {
 			@Override
 			public void run() {

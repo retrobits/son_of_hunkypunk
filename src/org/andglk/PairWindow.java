@@ -7,6 +7,9 @@ import android.widget.LinearLayout;
 
 public class PairWindow extends Window {
 	private LinearLayout _view;
+	private Window mKey;
+	private Window mSub;
+	private Glk _glk;
 
 	public PairWindow(final Glk glk, final Window oldw, final Window neww, final long method, final long size) {
 		glk.waitForUi(new Runnable() {
@@ -20,6 +23,7 @@ public class PairWindow extends Window {
 	/* this must run in the main thread */
 	protected void init(Glk glk, Window oldw, Window neww, long method,
 			long size) {
+		_glk = glk;
 		LinearLayout l = _view = new LinearLayout(glk.getContext());
 		l.setWeightSum(100);
 
@@ -78,6 +82,12 @@ public class PairWindow extends Window {
 		oldParent.removeView(oldv);
 		oldParent.addView(l, parentIndex);
 		
+		oldw.setParent(this);
+		neww.setParent(this);
+		
+		mKey = oldw;
+		mSub = neww;
+		
 		l.addView(first);
 		l.addView(second);
 	}
@@ -89,4 +99,49 @@ public class PairWindow extends Window {
 	
 	public float measureCharacterWidth() { return 0.0f; }
 	public float measureCharacterHeight() { return 0.0f; }
+
+	public void dissolve(final Window die) {
+		_glk.waitForUi(new Runnable() {
+			@Override
+			public void run() {
+				doDissolve(die);
+			}
+		});
+	}
+
+	protected void doDissolve(Window die) {
+		Window keep;
+		if (die != mKey) {
+			keep = mKey;
+	
+			// transfer layout parameters back to the key window
+			View v = mKey.getView();
+			LayoutParams lp = getView().getLayoutParams();
+			v.setLayoutParams(lp);
+		} else
+			// we are closing the key, so we don't care about layout parameters
+			keep = mSub;
+		
+		// first we replace the views
+		View keepv = keep.getView();
+		ViewGroup thisv = (ViewGroup) getView(), parentv = (ViewGroup) thisv.getParent();
+		assert(parentv != null);
+		
+		int index = (parentv.getChildAt(0) == thisv) ? 0 : 1;
+		parentv.removeView(thisv);
+		thisv.removeView(keepv);
+		parentv.addView(keepv, index);
+		
+		// then modify window hierarchy
+		PairWindow parent = getParent();
+		if (parent != null) {
+			if (parent.mKey == this)
+				parent.mKey = keep;
+			else
+				parent.mSub = keep;
+		}
+		
+		// ok, we're done
+		release();
+	}
 }

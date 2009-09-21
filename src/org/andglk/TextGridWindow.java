@@ -84,7 +84,7 @@ public class TextGridWindow extends Window {
 		}
 		
 		@Override
-		protected void onDraw(Canvas canvas) {
+		protected synchronized void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
 			
 			float ch = measureCharacterHeight(), cw = measureCharacterWidth();
@@ -142,6 +142,7 @@ public class TextGridWindow extends Window {
 	
 	@Override
 	public void putString(String str) {
+		super.putString(str);
 		_view.putString(str);
 	}
 }

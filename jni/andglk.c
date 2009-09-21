@@ -170,13 +170,19 @@ winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
 
 void glk_window_close(winid_t win, stream_result_t *result)
 {
+	if (!win)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_close", "(Lorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _Window, "close", "()J");
 
-	(*env)->CallVoidMethod(env, _this, mid, win, result);
-
+	glui32 written = (*env)->CallLongMethod(env, *win, mid);
+	if (result) {
+		result->readcount = 0;
+		result->writecount = written;
+	}
 }
 
 void glk_window_get_size(winid_t win, glui32 *widthptr, glui32 *heightptr)

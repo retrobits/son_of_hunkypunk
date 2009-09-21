@@ -20,14 +20,47 @@ public abstract class Window extends CPointed {
 	public final static int WINMETHOD_FIXED = 0x10;
 	public final static int WINMETHOD_PROPORTIONAL = 0x20;
 	public final static int WINMETHOD_DIVISIONMASK = 0xf0;
+	
+	private PairWindow mParent = null;
+	private long _written = 0;
 
-	public void putString(String str) { throw new RuntimeException(new NoSuchMethodException()); }
+	/** Writes @param str to the window's output stream.
+	 * 
+	 * @param str text to print
+	 */
+	public void putString(String str) { 
+		_written += str.length(); 
+	}
 	public void requestLineEvent(String initial, long maxlen) { throw new RuntimeException(new NoSuchMethodException()); }
-	public void put_char(char c) { throw new RuntimeException(new NoSuchMethodException()); }
+	
+	/** Writes @p c to the window's output stream.
+	 * 
+	 * @param c
+	 */
+	public void put_char(char c) {
+		_written++;
+	}
+	
 	public abstract View getView();
 	public float measureCharacterWidth() { throw new RuntimeException(new NoSuchMethodException()); }
 	public float measureCharacterHeight() { throw new RuntimeException(new NoSuchMethodException()); }
 	public void clear() { throw new RuntimeException(new NoSuchMethodException()); }
 	public long[] get_size() { throw new RuntimeException(new NoSuchMethodException()); }
 	public void move_cursor(long x, long y) { throw new RuntimeException(new NoSuchMethodException()); }
+	
+	public long close() {
+		PairWindow pair = getParent();
+		if (pair != null)
+			pair.dissolve(this);
+		release();
+		return _written;
+	}
+	
+	protected void setParent(PairWindow parent) {
+		mParent = parent;
+	}
+	
+	public PairWindow getParent() {
+		return mParent;
+	}
 }
