@@ -63,4 +63,5 @@ public abstract class Window extends CPointed {
 	public PairWindow getParent() {
 		return mParent;
 	}
+	public abstract void setStyle(long styl);
 }

@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.util.Log;
 
 public class TextGridWindow extends Window {
 	private class View extends android.view.View {
@@ -144,5 +145,17 @@ public class TextGridWindow extends Window {
 	public void putString(String str) {
 		super.putString(str);
 		_view.putString(str);
+	}
+
+	@Override
+	public void setStyle(long styl) {
+		switch ((int) styl) {
+		default:
+			Log.w("Glk", "TextGridWindow got unimplemented style: " + Long.toString(styl));
+			// fall through, normal is default
+		case Glk.STYLE_NORMAL:
+			// do nothing, we only have one style yet
+			break;
+		}
 	}
 }

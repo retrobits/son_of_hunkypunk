@@ -85,8 +85,7 @@ public class Glk extends Thread {
 	
 	@SuppressWarnings("unused")
 	private void set_style(long styl) {
-		if (styl != STYLE_NORMAL)
-			Log.w("Glk", "Unimplemented style requested: " + Long.toString(styl));
+		_currentWindow.setStyle(styl);
 	}
 	
 	@SuppressWarnings("unused")

@@ -11,6 +11,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
@@ -19,7 +20,8 @@ import android.widget.TextView.OnEditorActionListener;
 public class TextBufferWindow extends Window {
 	private class View extends TextView implements OnEditorActionListener {
 		private int _start;
-		private TextAppearanceSpan _inputSpan;
+		private TextAppearanceSpan mStyleSpan;
+		private int mStyleStart;
 		private class Filter implements InputFilter {
 			private long _maxlen;
 
@@ -50,23 +52,41 @@ public class TextBufferWindow extends Window {
 						result = source.subSequence(start, end);
 					result = result.subSequence(0, (int) _maxlen);
 				}
-				
-				// hack around strange span behaviour
-				// (TextAppearanceSpan with 0 size affects whole paragraph)
-				Spannable s = View.this.getEditableText();
-				if (len > _start && s.getSpanStart(_inputSpan) == -1)
-					View.this.getEditableText().setSpan(_inputSpan, _start, _start, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-				else if (s.getSpanStart(_inputSpan) != -1 && len == _start)
-					View.this.getEditableText().removeSpan(_inputSpan);
-				
+
 				return result;
+			}
+		}
+		
+		@Override
+		protected void onTextChanged(CharSequence text, int start, int before,
+				int after) {
+			if (mStyleSpan == null)
+				return;
+
+			/* the point is that if the span was to vanish, 
+			 * we remove it and if it gets removed we revive it when needed
+			 * (that's because 0-len spans behave funny)
+			 */
+			Editable e = getEditableText();
+
+			final int sstart = e.getSpanStart(mStyleSpan);
+			final int elen = e.length();
+			
+			// span is missing and we can put it in
+			if (sstart == -1 && elen > mStyleStart)
+				e.setSpan(mStyleSpan, mStyleStart, elen, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+			// span is there but shrank to 0
+			else if (sstart != -1 && sstart == e.getSpanEnd(mStyleSpan)) {
+				mStyleStart = sstart;
+				e.removeSpan(mStyleSpan);
 			}
 		}
 
 		public View(Context context) {
 			super(context);
-			setTextAppearance(context, R.style.normal);
+			setTextAppearance(context, R.style.TextBufferWindow);
 			setSingleLine(false);
+			setText("", BufferType.EDITABLE);
 		}
 		
 		public void requestLineEvent(String initial, long maxlen) {
@@ -77,7 +97,7 @@ public class TextBufferWindow extends Window {
 
 			final Editable e = getEditableText();
 			_start = e.length();
-			_inputSpan = new TextAppearanceSpan(getContext(), R.style.input);
+			setStyle(Glk.STYLE_INPUT);
 			final InputFilter filter = new Filter(maxlen);
 
 			e.setFilters(new InputFilter[] { filter });
@@ -95,10 +115,7 @@ public class TextBufferWindow extends Window {
 			String s = getLineInput();
 			Event e = new LineInputEvent(TextBufferWindow.this, s);
 			Editable ed = getEditableText();
-			if (ed.length() > _start)
-				ed.setSpan(_inputSpan, _start, ed.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-			else
-				ed.removeSpan(_inputSpan);
+			setStyle(Glk.STYLE_NORMAL);
 			ed.setFilters(new InputFilter[]{});
 			
 			append("\n");
@@ -114,6 +131,42 @@ public class TextBufferWindow extends Window {
 		private String getLineInput() {
 			final CharSequence text = getText();
 			return text.subSequence(_start, text.length()).toString();
+		}
+
+		/** Sets current style to @p styl.
+		 * 
+		 * @note Must be ran in the main thread.
+		 * @param styl
+		 */
+		public void setStyle(long styl) {
+			Editable e = getEditableText();
+			if (mStyleSpan != null) {
+				int start = mStyleStart;
+				int end = e.length();
+				if (start == end)
+					e.removeSpan(mStyleSpan);
+				else
+					e.setSpan(mStyleSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}
+			
+			mStyleStart = e.length(); 
+			
+			switch((int) styl) {
+			case Glk.STYLE_HEADER:
+				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.header);
+				break;
+			case Glk.STYLE_SUBHEADER:
+				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.subheader);
+				break;
+			case Glk.STYLE_INPUT:
+				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.input);
+				break;
+			default:
+				Log.w("Glk", "TextBufferWindow doesn't know style " + Long.toString(styl));
+				// fall through, normal is default
+			case Glk.STYLE_NORMAL:
+				mStyleSpan = null;
+			}
 		}
 	}
 
@@ -181,5 +234,15 @@ public class TextBufferWindow extends Window {
 	@Override
 	public float measureCharacterWidth() {
 		return _view.getPaint().measureText("0");
+	}
+
+	@Override
+	public void setStyle(final long styl) {
+		_glk.waitForUi(new Runnable() {
+			@Override
+			public void run() {
+				_view.setStyle(styl);
+			}
+		});
 	}
 }

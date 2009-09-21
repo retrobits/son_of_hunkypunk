@@ -144,4 +144,9 @@ public class PairWindow extends Window {
 		// ok, we're done
 		release();
 	}
+
+	@Override
+	public void setStyle(long styl) {
+		// noop
+	}
 }
