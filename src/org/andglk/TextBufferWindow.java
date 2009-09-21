@@ -161,6 +161,9 @@ public class TextBufferWindow extends Window {
 			case Glk.STYLE_INPUT:
 				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.input);
 				break;
+			case Glk.STYLE_BLOCKQUOTE:
+				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.blockquote);
+				break;
 			default:
 				Log.w("Glk", "TextBufferWindow doesn't know style " + Long.toString(styl));
 				// fall through, normal is default
