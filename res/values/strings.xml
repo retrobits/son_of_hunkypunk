@@ -2,4 +2,6 @@
 <resources>
     <string name="hello">Hello World, GlkTest!</string>
     <string name="app_name">AndGlk</string>
+    <string name="saved_game">Saved game</string>
+    <string name="new_saved_game_hint">Name for a new saved game</string>
 </resources>

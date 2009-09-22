@@ -22,6 +22,7 @@ public class Glk extends Thread {
 	public final static int STYLE_USER1 = 9;
 	public final static int STYLE_USER2 = 10;
 	public final static int STYLE_NUMSTYLES = 11;
+	private static Glk _instance;
 
 	@SuppressWarnings("unused")
 	private Window _root, _currentWindow;
@@ -39,6 +40,8 @@ public class Glk extends Thread {
 	native private void runProgram();
 	
 	public Glk(Context context) {
+		assert (_instance == null);
+		_instance = this;
 		_frame = new FrameLayout(context);
 		_context = context;
 	}
@@ -169,5 +172,9 @@ public class Glk extends Thread {
 
 	public Context getContext() {
 		return _context;
+	}
+
+	public static Glk getInstance() {
+		return _instance;
 	}
 }
