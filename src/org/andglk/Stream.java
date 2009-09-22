@@ -1,6 +1,12 @@
 package org.andglk;
 
+import java.io.IOException;
+
+import android.util.Log;
+
 public abstract class Stream extends CPointed {
+	private int mWritten;
+
 	protected Stream(int rock) {
 		super(rock);
 	}
@@ -42,4 +48,21 @@ public abstract class Stream extends CPointed {
 	 * @return The read character (0..255) or -1 if at the end of stream.
 	 */
 	abstract int getChar();
+
+	/** Write a string to the stream.
+	 * 
+	 * @param str The string to write.
+	 */
+	public void putString(String str) {
+		try {
+			doPutString(str);
+			mWritten += str.length();
+		} catch (IOException e) {
+			Log.e("Glk/Stream", "I/O error in putString", e);
+		}
+	}
+
+	protected abstract void doPutString(String str) throws IOException;
+
+	public abstract void setStyle(long styl);
 }

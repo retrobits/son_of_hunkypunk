@@ -15,26 +15,31 @@ public class FileStream extends Stream {
 	public FileStream(FileRef fileref, int fmode, int rock) {
 		super(rock);
 
-		String mode;
 		File file = fileref.getFile();
-		switch (fmode) {
-		case FileRef.FILEMODE_WRITE:
-			if (file.exists())
-				file.delete();
-			mode = "rw";
-			break;
-		case FileRef.FILEMODE_READ:
-			mode = "r";
-			break;
-		default:
-			// TODO
-			throw new RuntimeException(new NoSuchMethodError("not implemented file mode " + Integer.toString(fmode)));
-		}
-		
 		try {
-			mFile = new RandomAccessFile(fileref.getFile(), mode);
+			switch (fmode) {
+			case FileRef.FILEMODE_WRITE:
+				if (file.exists())
+					file.delete();
+				mFile = new RandomAccessFile(fileref.getFile(), "rw");
+				break;
+			case FileRef.FILEMODE_READ:
+				mFile = new RandomAccessFile(fileref.getFile(), "r");
+				break;
+			case FileRef.FILEMODE_WRITEAPPEND:
+				mFile = new RandomAccessFile(fileref.getFile(), "rw");
+				mFile.seek(mFile.length());
+				break;
+			default:
+				// TODO
+				throw new RuntimeException(new NoSuchMethodError("not implemented file mode " + Integer.toString(fmode)));
+			}
+		
 		} catch (FileNotFoundException e) {
 			assert(false); // should not happen, we make checks earlier
+		} catch (IOException e) {
+			Log.e("Glk/FileStream", "I/O when opening file", e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -71,5 +76,15 @@ public class FileStream extends Stream {
 			Log.e("Glk/FileStream", "I/O error in getChar", e);
 			return -1;
 		}
+	}
+
+	@Override
+	public void setStyle(long styl) {
+		// TODO: consider writing transcripts as rich text
+	}
+
+	@Override
+	protected void doPutString(String str) throws IOException {
+		mFile.writeBytes(str);
 	}
 }

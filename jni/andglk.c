@@ -326,13 +326,14 @@ strid_t glk_window_get_stream(winid_t win)
 
 void glk_window_set_echo_stream(winid_t win, strid_t str)
 {
+	if (!win)
+		return;
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_set_echo_stream", "(Lorg/andglk/Window;Lorg/andglk/Stream;)V");
+		mid = (*env)->GetMethodID(env, _Window, "setEchoStream", "(Lorg/andglk/Stream;)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win, str);
-
+	(*env)->CallVoidMethod(env, *win, mid, (str) ? *str : 0);
 }
 
 strid_t glk_window_get_echo_stream(winid_t win)
@@ -512,13 +513,23 @@ void glk_put_string(char *s)
 
 void glk_put_string_stream(strid_t str, char *s)
 {
+	if (!str)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "put_string_stream", "(Lorg/andglk/Stream;[FIXME: char *])V");
+		mid = (*env)->GetMethodID(env, _Stream, "putString", "(Ljava/lang/String;)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, str, s);
+	jchar buf[1024];
+	char *it = s;
+	jchar *jt = buf;
+	while (jt - buf < 1024 && *it)
+		*(jt++) = *(it++);
 
+	jstring string = (*env)->NewString(env, buf, it - s);
+
+	(*env)->CallVoidMethod(env, *str, mid, string);
 }
 
 void glk_put_buffer(char *buf, glui32 len)

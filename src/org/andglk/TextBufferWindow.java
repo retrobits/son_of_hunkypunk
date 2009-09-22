@@ -113,6 +113,12 @@ public class TextBufferWindow extends Window {
 				return false;
 			
 			String s = getLineInput();
+			
+			if (mEchoStream != null) {
+				mEchoStream.putString(s);
+				mEchoStream.putChar('\n');
+			}
+			
 			Event e = new LineInputEvent(TextBufferWindow.this, s);
 			Editable ed = getEditableText();
 			setStyle(Glk.STYLE_NORMAL);
@@ -214,8 +220,8 @@ public class TextBufferWindow extends Window {
 	}
 
 	@Override
-	public void put_char(final char c) {
-		super.put_char(c);
+	public void putChar(final char c) {
+		super.putChar(c);
 		_uiHandler.post(new Runnable() {
 			@Override
 			public void run() {

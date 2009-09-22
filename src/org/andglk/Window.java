@@ -27,12 +27,15 @@ public abstract class Window extends CPointed {
 	
 	private PairWindow mParent = null;
 	private long _written = 0;
+	protected Stream mEchoStream;
 
 	/** Writes @param str to the window's output stream.
 	 * 
 	 * @param str text to print
 	 */
-	public void putString(String str) { 
+	public void putString(String str) {
+		if (mEchoStream != null)
+			mEchoStream.putString(str);
 		_written += str.length(); 
 	}
 	public void requestLineEvent(String initial, long maxlen) { throw new RuntimeException(new NoSuchMethodException()); }
@@ -41,7 +44,9 @@ public abstract class Window extends CPointed {
 	 * 
 	 * @param c
 	 */
-	public void put_char(char c) {
+	public void putChar(char c) {
+		if (mEchoStream != null)
+			mEchoStream.putChar(c);
 		_written++;
 	}
 	
@@ -67,5 +72,13 @@ public abstract class Window extends CPointed {
 	public PairWindow getParent() {
 		return mParent;
 	}
-	public abstract void setStyle(long styl);
+	
+	public void setStyle(long styl) {
+		if (mEchoStream != null)
+			mEchoStream.setStyle(styl);
+	}
+	
+	public void setEchoStream(Stream echoStream) {
+		mEchoStream = echoStream;
+	}
 }

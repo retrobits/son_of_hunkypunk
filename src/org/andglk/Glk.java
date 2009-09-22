@@ -131,7 +131,7 @@ public class Glk extends Thread {
 	
 	@SuppressWarnings("unused")
 	private void put_char(char c) {
-		_currentWindow.put_char(c);
+		_currentWindow.putChar(c);
 	}
 	
 	public View getView() {
