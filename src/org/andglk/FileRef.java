@@ -121,7 +121,7 @@ public class FileRef extends CPointed {
 						if (allowNew && which == 0)
 							new NewFileDialog(FilePrompt.this, usage);
 						else
-							publishResult(new File(baseDir, list[shift + which]));
+							publishResult(new File(baseDir, list[which]));
 					}})
 				.setOnCancelListener(new OnCancelListener() {
 					@Override
