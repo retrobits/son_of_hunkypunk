@@ -1,5 +1,6 @@
 package org.andglk;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 
@@ -10,8 +11,11 @@ public class FileStream extends Stream {
 		super(rock);
 
 		String mode;
+		File file = fileref.getFile();
 		switch (fmode) {
 		case FileRef.FILEMODE_WRITE:
+			if (file.exists())
+				file.delete();
 			mode = "rw";
 			break;
 		default:
