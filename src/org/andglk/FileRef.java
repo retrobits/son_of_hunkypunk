@@ -6,8 +6,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.EditText;
 
@@ -25,19 +28,31 @@ public class FileRef extends CPointed {
 	public final static int FILEMODE_READ = 0x02;
 	public final static int FILEMODE_READWRITE = 0x03;
 	public final static int FILEMODE_WRITEAPPEND = 0x05;
-	private final String mFilename;
 
 	private FileRef(String filename, int rock) {
 		super(rock);
-		mFilename = filename;
 	}
-	
-	private static class FilenamePrompt implements Future<String> {
+
+	/** A future which asks the user for a new filename.
+	 * @author divide
+	 */
+	private static class NewFilePrompt implements Future<String> {
 		private String mFilename;
 		private boolean mDone = false;
+		private Handler mUiHandler;
+		
+		public NewFilePrompt(final int usage) {
+			mUiHandler = Glk.getInstance().getUiHandler();
+			mUiHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					new NewFileDialog(NewFilePrompt.this, usage);
+				}
+			});
+		}
+		
 		@Override
-		public boolean cancel(boolean arg0) {
-			// TODO Auto-generated method stub
+		public synchronized boolean cancel(boolean mayInterrupt) {
 			return false;
 		}
 
@@ -58,8 +73,7 @@ public class FileRef extends CPointed {
 		}
 
 		@Override
-		public boolean isCancelled() {
-			// TODO Auto-generated method stub
+		public synchronized boolean isCancelled() {
 			return false;
 		}
 
@@ -68,10 +82,69 @@ public class FileRef extends CPointed {
 			return mDone;
 		}
 		
-		public synchronized void publishResult(String filename) {
+		private synchronized void publishResult(String filename) {
 			mFilename = filename;
 			mDone = true;
 			notify();
+		}
+	}
+	private static class NewFileDialog extends AlertDialog implements OnClickListener, OnCancelListener {
+		private EditText mNameEdit;
+		private final NewFilePrompt mNewFilePrompt;
+
+		/** Create a new file prompt. 
+		 * The user will be prompted for a name for a new file 
+		 * to be placed in appropriate directory according to usage.
+		 * The filename will then be set as the result of {@link NewFilePrompt}.
+		 * If user cancels, null will be set.
+		 * 
+		 * If file with given name already exists, the user is warned 
+		 * and asked to confirm overwriting first.
+		 * @note this must be created in the main thread;
+		 *
+		 * @param newFilePrompt future to place the computation in
+		 * @param usage
+		 */
+		protected NewFileDialog(NewFilePrompt newFilePrompt, final int usage) {
+			super(Glk.getInstance().getContext());
+			mNewFilePrompt = newFilePrompt;
+			int title = 0, hint = 0;
+			switch (usage & FILEUSAGE_TYPEMASK) {
+			case FILEUSAGE_SAVEDGAME:
+				title = R.string.saved_game;
+				hint = R.string.new_saved_game_hint;
+				break;
+			default:
+				Log.w("Glk", "unimplemented FileRef.createByPrompt usage " + Integer.toString(usage));
+				mNewFilePrompt.publishResult(null);
+				return;
+			}
+			
+			Context context = Glk.getInstance().getContext();
+			mNameEdit = new EditText(context);
+			mNameEdit.setHint(hint);
+			setTitle(title);
+			setButton(AlertDialog.BUTTON_POSITIVE, context.getString(android.R.string.ok), this);
+			setButton(AlertDialog.BUTTON_NEGATIVE, context.getString(android.R.string.cancel), this);
+			setView(mNameEdit);
+			setCancelable(true);
+			setOnCancelListener(this);
+			show();
+		}
+
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+			if (which == BUTTON_NEGATIVE) {
+				cancel();
+				return;
+			}
+			
+			mNewFilePrompt.publishResult(mNameEdit.getText().toString());
+		}
+
+		@Override
+		public synchronized void onCancel(DialogInterface dialog) {
+			mNewFilePrompt.publishResult(null);
 		}
 	}
 
@@ -84,10 +157,11 @@ public class FileRef extends CPointed {
 	 * @return C pointer to a reference to the new fileref or 0 if canceled or errored.
 	 */
 	public static int createByPrompt(int usage, int mode, int rock) {
-		FilenamePrompt filename;
+		Future<String> filename;
+		
 		switch (mode) {
 		case FILEMODE_WRITE:
-			filename = askFilenameForWrite(usage);
+			filename = new NewFilePrompt(usage);
 			break;
 		default:
 			Log.w("Glk", "unimplemented FileRef.createByPrompt filemode " + Integer.toString(mode));
@@ -105,50 +179,5 @@ public class FileRef extends CPointed {
 			Log.e("Glk/FileRef", "error while prompting for fileref", e);
 			return 0;
 		}
-	}
-
-	private static FilenamePrompt askFilenameForWrite(final int usage) {
-		final FilenamePrompt fp = new FilenamePrompt();
-		Glk.getInstance().getUiHandler().post(new Runnable() {
-		@Override
-			public void run() {
-				int title = 0, hint = 0;
-				switch (usage & FILEUSAGE_TYPEMASK) {
-				case FILEUSAGE_SAVEDGAME:
-					title = R.string.saved_game;
-					hint = R.string.new_saved_game_hint;
-					break;
-				default:
-					Log.w("Glk", "unimplemented FileRef.createByPrompt usage " + Integer.toString(usage));
-					fp.publishResult(null);
-					return;
-				}
-				
-				assert (Glk.getInstance() != null);
-				final EditText nameEdit = new EditText(Glk.getInstance().getContext());
-				nameEdit.setHint(hint);
-				new AlertDialog.Builder(Glk.getInstance().getContext())
-					.setTitle(title)
-					.setPositiveButton(android.R.string.ok, new OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							fp.publishResult(nameEdit.getText().toString());
-						}
-					})
-					.setNegativeButton(android.R.string.cancel, new OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							fp.publishResult(null);
-						}
-					})
-					.setView(nameEdit)
-					.show();
-			}	
-		});
-		return fp;
-	}
-
-	public String getFilename() {
-		return mFilename;
 	}
 }
