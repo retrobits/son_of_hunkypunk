@@ -44,21 +44,74 @@ public class FileRef extends CPointed {
 	/** A future which asks the user for a new filename.
 	 * @author divide
 	 */
-	private static class NewFilePrompt implements Future<File> {
+	private static class FilePrompt implements Future<File> {
 		private File mFile;
 		private boolean mDone = false;
 		private Handler mUiHandler;
 		
-		public NewFilePrompt(final int usage) {
+		public FilePrompt(final int usage, final int mode) throws NoSuchMethodException {
 			mUiHandler = Glk.getInstance().getUiHandler();
+			
+			switch (mode) {
+			case FILEMODE_WRITE:
+			case FILEMODE_READ:
+				break;
+			default:
+				throw new NoSuchMethodException("filemode not implemented: " + Integer.toString(mode));
+			}
+
 			mUiHandler.post(new Runnable() {
 				@Override
 				public void run() {
-					new NewFileDialog(NewFilePrompt.this, usage);
+					switch (mode) {
+					case FILEMODE_WRITE:
+						new NewFileDialog(FilePrompt.this, usage);
+						break;
+					case FILEMODE_READ:
+						try {
+								buildExistingFileDialog(usage);
+							} catch (NoSuchMethodException e) {
+								publishResult(null);
+							}
+						break;
+					}
 				}
 			});
 		}
 		
+		protected void buildExistingFileDialog(int usage) throws NoSuchMethodException {
+			Glk glk = Glk.getInstance();
+			final File baseDir = glk.getFilesDir(usage);
+			
+			final String[] list = baseDir.list();
+			
+			int theTitle;
+			switch (usage) {
+			case FILEUSAGE_SAVEDGAME:
+				theTitle = R.string.pick_saved_game;
+				break;
+			default:
+				// TODO
+				throw new NoSuchMethodException("picking file of not implemented usage: ");
+			}
+			final int title = theTitle;
+			
+			new AlertDialog.Builder(glk.getContext())
+				.setItems(list, new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						publishResult(new File(baseDir, list[which]));
+					}})
+				.setOnCancelListener(new OnCancelListener() {
+					@Override
+					public void onCancel(DialogInterface dialog) {
+						publishResult(null);
+					}})
+				.setCancelable(true)
+				.setTitle(title)
+				.show();
+		}
+
 		@Override
 		public synchronized boolean cancel(boolean mayInterrupt) {
 			return false;
@@ -98,13 +151,13 @@ public class FileRef extends CPointed {
 	}
 	private static class NewFileDialog extends AlertDialog implements OnClickListener, OnCancelListener {
 		private EditText mNameEdit;
-		private final NewFilePrompt mNewFilePrompt;
+		private final FilePrompt mNewFilePrompt;
 		private File mBaseDir;
 
 		/** Create a new file prompt. 
 		 * The user will be prompted for a name for a new file 
 		 * to be placed in appropriate directory according to usage.
-		 * The filename will then be set as the result of {@link NewFilePrompt}.
+		 * The filename will then be set as the result of {@link FilePrompt}.
 		 * If user cancels, null will be set.
 		 * 
 		 * If file with given name already exists, the user is warned 
@@ -114,7 +167,7 @@ public class FileRef extends CPointed {
 		 * @param newFilePrompt future to place the computation in
 		 * @param usage
 		 */
-		protected NewFileDialog(NewFilePrompt newFilePrompt, final int usage) {
+		protected NewFileDialog(FilePrompt newFilePrompt, final int usage) {
 			super(Glk.getInstance().getContext());
 			mNewFilePrompt = newFilePrompt;
 			int title = 0, hint = 0;
@@ -205,18 +258,8 @@ public class FileRef extends CPointed {
 	 * @return C pointer to a reference to the new fileref or 0 if canceled or errored.
 	 */
 	public static int createByPrompt(int usage, int mode, int rock) {
-		Future<File> filename;
-		
-		switch (mode) {
-		case FILEMODE_WRITE:
-			filename = new NewFilePrompt(usage);
-			break;
-		default:
-			Log.w("Glk", "unimplemented FileRef.createByPrompt filemode " + Integer.toString(mode));
-			return 0;
-		}
-		
 		try {
+			Future<File> filename = new FilePrompt(usage & FILEUSAGE_TYPEMASK, mode);
 			File fname = filename.get();
 			Log.d("FileRef", "got filename: " + fname.getAbsolutePath());
 			if (fname != null)
