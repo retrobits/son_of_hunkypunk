@@ -2,7 +2,10 @@ package org.andglk;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
+
+import android.util.Log;
 
 public class FileStream extends Stream {
 	private RandomAccessFile mFile;
@@ -27,6 +30,16 @@ public class FileStream extends Stream {
 			mFile = new RandomAccessFile(fileref.getFile(), mode);
 		} catch (FileNotFoundException e) {
 			assert(false); // should not happen, we make checks earlier
+		}
+	}
+
+	@Override
+	void putChar(char c) {
+		try {
+			mFile.write(c);
+		} catch (IOException e) {
+			// we don't do error handling, so just log it
+			Log.e("Glk/FileStream", "I/O error in putChar", e);
 		}
 	}
 }

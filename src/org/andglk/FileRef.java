@@ -232,4 +232,8 @@ public class FileRef extends CPointed {
 	public File getFile() {
 		return mFile;
 	}
+
+	public boolean isText() {
+		return mIsText;
+	}
 }

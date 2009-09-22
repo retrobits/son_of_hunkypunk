@@ -1,6 +1,6 @@
 package org.andglk;
 
-public class Stream extends CPointed {
+public abstract class Stream extends CPointed {
 	protected Stream(int rock) {
 		super(rock);
 	}
@@ -11,7 +11,8 @@ public class Stream extends CPointed {
 	 * Similarly, platform-dependent attributes such as file type are determined by {@code fileref}.
 	 * 
 	 * <p>When writing in binary mode, Unicode values (characters greater than 255) cannot be written to the file. 
-	 * If you try, they will be stored as 0x3F ("?") characters. In text mode, Unicode values are stored in UTF-8.
+	 * If you try, they will be stored as 0x3F ("?") characters. In text mode, Unicode values are stored in UTF-8 
+	 * (but 8-bit characters are written raw).
 	 * 
 	 * @param fileref Indicates which file will be opened.
 	 * @param fmode Can be any of {@link FileRef#FILEMODE_READ}, {@link FileRef#FILEMODE_READWRITE}, 
@@ -27,4 +28,6 @@ public class Stream extends CPointed {
 	static int openFile(FileRef fileref, int fmode, int rock) {
 		return (new FileStream(fileref, fmode, rock)).getPointer();
 	}
+	
+	abstract void putChar(char c);
 }

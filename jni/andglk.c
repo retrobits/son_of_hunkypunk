@@ -471,13 +471,15 @@ void glk_put_char(unsigned char ch)
 
 void glk_put_char_stream(strid_t str, unsigned char ch)
 {
+	if (!str)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "put_char_stream", "(Lorg/andglk/Stream;C)V");
+		mid = (*env)->GetMethodID(env, _Stream, "putChar", "(C)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, str, ch);
-
+	(*env)->CallVoidMethod(env, *str, mid, (jchar) ch);
 }
 
 void glk_put_string(char *s)
