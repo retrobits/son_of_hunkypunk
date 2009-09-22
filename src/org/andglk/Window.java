@@ -1,11 +1,30 @@
 package org.andglk;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 import android.view.View;
 
-
 public abstract class Window extends CPointed {
+	private static List<Window> _windows = new LinkedList<Window>();
+	private static Iterator<Window> _iterator;
+	private static Window _last;
+	
 	public Window(int rock) {
 		super(rock);
+		_windows.add(this);
+	}
+	
+	static public Window iterate(Window w) {
+		if (w == null)
+			_iterator = _windows.iterator();
+		else if (_last != w) {
+			_iterator = _windows.iterator();
+			while (_iterator.next() != w);
+		}
+		_last = _iterator.next();
+		return _last;
 	}
 
 	public final static int WINTYPE_ALLTYPES = 0;

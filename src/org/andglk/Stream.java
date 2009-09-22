@@ -1,14 +1,19 @@
 package org.andglk;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import android.util.Log;
 
 public abstract class Stream extends CPointed {
 	private int mWritten;
+	private static List<Stream> _streams = new LinkedList<Stream>();
 
 	protected Stream(int rock) {
 		super(rock);
+		
+		_streams.add(this);
 	}
 
 	/** Opens a stream which reads from or writes to a disk file.

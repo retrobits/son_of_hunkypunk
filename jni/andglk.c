@@ -6,6 +6,7 @@
 
 JavaVM *_jvm;
 jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream;
+jmethodID _getRock, _getPointer;
 JNIEnv *_env;
 jobject _this;
 char *_line_event_buf;
@@ -39,6 +40,10 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/FileStream");
 	_Stream = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/FileStream");
+	_getRock = (*env)->GetMethodID(env, cls, "getRock", "()I");
+	_getPointer = (*env)->GetMethodID(env, cls, "getPointer", "()I");
 
 	return GLK_JNI_VERSION;
 }
@@ -86,24 +91,12 @@ void glk_exit(void)
 
 void glk_set_interrupt_handler(void (*func)(void))
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "set_interrupt_handler", "(L)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, func);
-
+	/* this cheap library doesn't understand interrupts */
 }
 
 void glk_tick(void)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "tick", "()V");
-
-	(*env)->CallVoidMethod(env, _this, mid);
-
+	/* we run in an own thread, OS takes care of this */
 }
 
 glui32 glk_gestalt(glui32 sel, glui32 val)
@@ -237,10 +230,16 @@ winid_t glk_window_iterate(winid_t win, glui32 *rockptr)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_iterate", "(Lorg/andglk/Window;)Lorg/andglk/Window;");
+		mid = (*env)->GetStaticMethodID(env, _Window, "iterate", "(Lorg/andglk/Window;)Lorg/andglk/Window;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, win, rockptr);
+	jobject nextwin = (*env)->CallStaticObjectMethod(env, _Window, mid, win ? *win : 0);
 
+	if (!nextwin)
+		return 0;
+
+	if (rockptr)
+		*rockptr = (*env)->CallIntMethod(env, nextwin, _getRock);
+	return (winid_t) (*env)->CallIntMethod(env, nextwin, _getPointer);
 }
 
 glui32 glk_window_get_rock(winid_t win)

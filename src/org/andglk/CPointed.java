@@ -1,9 +1,10 @@
 package org.andglk;
 
+
 public class CPointed {
 	protected int mPointer;
 	private int mRock;
-
+	
 	public CPointed(int rock) {
 		mPointer = makePoint();
 		setRock(rock);

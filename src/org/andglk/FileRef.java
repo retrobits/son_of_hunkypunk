@@ -1,6 +1,8 @@
 package org.andglk;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -34,11 +36,15 @@ public class FileRef extends CPointed {
 	public final static int FILEMODE_WRITEAPPEND = 0x05;
 	private final File mFile;
 	private final boolean mIsText;
+	
+	static List<FileRef> _fileRefs = new LinkedList<FileRef>();
 
 	private FileRef(File file, boolean isText, int rock) {
 		super(rock);
 		mFile = file;
 		mIsText = isText;
+		
+		_fileRefs.add(this);
 	}
 
 	/** A future which asks the user for a new filename.
