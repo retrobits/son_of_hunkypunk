@@ -383,13 +383,23 @@ strid_t glk_stream_open_memory(char *buf, glui32 buflen, glui32 fmode,
 
 void glk_stream_close(strid_t str, stream_result_t *result)
 {
+	if (!str)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_close", "(Lorg/andglk/Stream;[FIXME: stream_result_t *])V");
+		mid = (*env)->GetMethodID(env, _Stream, "close", "()[I");
 
-	(*env)->CallVoidMethod(env, _this, mid, str, result);
+	jarray res = (*env)->CallObjectMethod(env, *str, mid);
 
+	if (!result)
+		return;
+
+	jint *arr = (*env)->GetIntArrayElements(env, res, NULL);
+	result->readcount = arr[0];
+	result->writecount = arr[1];
+	(*env)->ReleaseIntArrayElements(env, res, arr, JNI_ABORT);
 }
 
 strid_t glk_stream_iterate(strid_t str, glui32 *rockptr)

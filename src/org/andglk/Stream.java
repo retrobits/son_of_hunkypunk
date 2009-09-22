@@ -30,4 +30,10 @@ public abstract class Stream extends CPointed {
 	}
 	
 	abstract void putChar(char c);
+	
+	/** Close the stream.
+	 * 
+	 * @return Total number of bytes read[0] and written[1] to the stream.
+	 */
+	abstract int[] close();
 }
