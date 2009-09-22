@@ -65,7 +65,7 @@ public class FileStream extends Stream {
 	int getChar() {
 		try {
 			int res = mFile.read();
-			mRead ++;
+			mRead++;
 			return res;
 		} catch (IOException e) {
 			Log.e("Glk/FileStream", "I/O error in getChar", e);

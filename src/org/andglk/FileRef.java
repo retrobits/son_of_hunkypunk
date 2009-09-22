@@ -55,6 +55,7 @@ public class FileRef extends CPointed {
 			switch (mode) {
 			case FILEMODE_WRITE:
 			case FILEMODE_READ:
+			case FILEMODE_WRITEAPPEND:
 				break;
 			default:
 				throw new NoSuchMethodException("filemode not implemented: " + Integer.toString(mode));
@@ -69,26 +70,43 @@ public class FileRef extends CPointed {
 						break;
 					case FILEMODE_READ:
 						try {
-								buildExistingFileDialog(usage);
+								buildExistingFileDialog(usage, false);
 							} catch (NoSuchMethodException e) {
 								publishResult(null);
 							}
 						break;
+					case FILEMODE_WRITEAPPEND:
+						try {
+							buildExistingFileDialog(usage, true);
+						} catch (NoSuchMethodException e) {
+							publishResult(null);
+						}
+					break;
 					}
 				}
 			});
 		}
 		
-		protected void buildExistingFileDialog(int usage) throws NoSuchMethodException {
+		protected void buildExistingFileDialog(final int usage, final boolean allowNew) throws NoSuchMethodException {
 			Glk glk = Glk.getInstance();
 			final File baseDir = glk.getFilesDir(usage);
 			
-			final String[] list = baseDir.list();
+			String[] filelist = baseDir.list();
+			final int shift = (allowNew ? 1 : 0);
+			final String[] list = new String[shift + filelist.length];
+			for (int i = 0; i < filelist.length; i++)
+				list[shift + i] = filelist[i];
+			if (allowNew)
+				list[0] = glk.getContext().getString(R.string.create_new_file);
 			
 			int theTitle;
 			switch (usage) {
 			case FILEUSAGE_SAVEDGAME:
 				theTitle = R.string.pick_saved_game;
+				break;
+			case FILEUSAGE_TRANSCRIPT:
+				theTitle = R.string.pick_transcript_append;
+				// TODO when not appending
 				break;
 			default:
 				// TODO
@@ -100,7 +118,10 @@ public class FileRef extends CPointed {
 				.setItems(list, new OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						publishResult(new File(baseDir, list[which]));
+						if (allowNew && which == 0)
+							new NewFileDialog(FilePrompt.this, usage);
+						else
+							publishResult(new File(baseDir, list[shift + which]));
 					}})
 				.setOnCancelListener(new OnCancelListener() {
 					@Override
@@ -176,6 +197,10 @@ public class FileRef extends CPointed {
 			case FILEUSAGE_SAVEDGAME:
 				title = R.string.saved_game;
 				hint = R.string.new_saved_game_hint;
+				break;
+			case FILEUSAGE_TRANSCRIPT:
+				title = R.string.new_transcript;
+				hint = R.string.name;
 				break;
 			default:
 				Log.w("Glk", "unimplemented FileRef.createByPrompt usage " + Integer.toString(usage));

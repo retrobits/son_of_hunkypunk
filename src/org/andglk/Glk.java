@@ -192,6 +192,9 @@ public class Glk extends Thread {
 		case FileRef.FILEUSAGE_SAVEDGAME:
 			name = "savedgames";
 			break;
+		case FileRef.FILEUSAGE_TRANSCRIPT:
+			name = "transcripts";
+			break;
 		default:
 			Log.e("Glk", "I don't know where to place files with usage = " + Integer.toString(usage));
 			return null;
