@@ -13,7 +13,10 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 
 public class FileRef extends CPointed {
 	public final static int FILEUSAGE_DATA = 0x00;
@@ -29,16 +32,18 @@ public class FileRef extends CPointed {
 	public final static int FILEMODE_READ = 0x02;
 	public final static int FILEMODE_READWRITE = 0x03;
 	public final static int FILEMODE_WRITEAPPEND = 0x05;
+	private final File mFile;
 
-	private FileRef(String filename, int rock) {
+	private FileRef(File file, int rock) {
 		super(rock);
+		mFile = file;
 	}
 
 	/** A future which asks the user for a new filename.
 	 * @author divide
 	 */
-	private static class NewFilePrompt implements Future<String> {
-		private String mFilename;
+	private static class NewFilePrompt implements Future<File> {
+		private File mFile;
 		private boolean mDone = false;
 		private Handler mUiHandler;
 		
@@ -58,19 +63,19 @@ public class FileRef extends CPointed {
 		}
 
 		@Override
-		public synchronized String get() throws InterruptedException, ExecutionException {
+		public synchronized File get() throws InterruptedException, ExecutionException {
 			wait();
-			return mFilename;
+			return mFile;
 		}
 
 		@Override
-		public synchronized String get(long arg0, TimeUnit arg1)
+		public synchronized File get(long arg0, TimeUnit arg1)
 				throws InterruptedException, ExecutionException,
 				TimeoutException {
 			wait(TimeUnit.MILLISECONDS.convert(arg0, arg1));
 			if (!mDone)
 				throw new TimeoutException();
-			return mFilename;
+			return mFile;
 		}
 
 		@Override
@@ -83,8 +88,8 @@ public class FileRef extends CPointed {
 			return mDone;
 		}
 		
-		private synchronized void publishResult(String filename) {
-			mFilename = filename;
+		private synchronized void publishResult(File theFile) {
+			mFile = theFile;
 			mDone = true;
 			notify();
 		}
@@ -127,6 +132,15 @@ public class FileRef extends CPointed {
 			Context context = Glk.getInstance().getContext();
 			mNameEdit = new EditText(context);
 			mNameEdit.setHint(hint);
+			mNameEdit.setSingleLine(true);
+			mNameEdit.setOnEditorActionListener(new OnEditorActionListener() {
+				@Override
+				public boolean onEditorAction(TextView v, int actionId,
+						KeyEvent event) {
+					filenameConfirmed(NewFileDialog.this);
+					return true;
+				}
+			});
 			setTitle(title);
 			setButton(AlertDialog.BUTTON_POSITIVE, context.getString(android.R.string.ok), this);
 			setButton(AlertDialog.BUTTON_NEGATIVE, context.getString(android.R.string.cancel), this);
@@ -142,11 +156,16 @@ public class FileRef extends CPointed {
 				cancel();
 				return;
 			}
-			
+
+			filenameConfirmed(dialog);
+		}
+
+		private void filenameConfirmed(DialogInterface dialog) {
 			File theFile = new File(mBaseDir, mNameEdit.getText().toString());
-			if (!theFile.exists() || dialog != this)
-				mNewFilePrompt.publishResult(mNameEdit.getText().toString());
-			else {
+			if (!theFile.exists() || dialog != this) {
+				dismiss();
+				mNewFilePrompt.publishResult(theFile);
+			} else {
 				show();
 				confirmOverwrite();
 			}
@@ -184,7 +203,7 @@ public class FileRef extends CPointed {
 	 * @return C pointer to a reference to the new fileref or 0 if canceled or errored.
 	 */
 	public static int createByPrompt(int usage, int mode, int rock) {
-		Future<String> filename;
+		Future<File> filename;
 		
 		switch (mode) {
 		case FILEMODE_WRITE:
@@ -196,8 +215,8 @@ public class FileRef extends CPointed {
 		}
 		
 		try {
-			String fname = filename.get();
-			Log.d("FileRef", "got filename: " + fname);
+			File fname = filename.get();
+			Log.d("FileRef", "got filename: " + fname.getAbsolutePath());
 			if (fname != null)
 				return (new FileRef(fname, rock)).getPointer();
 			else
@@ -206,5 +225,9 @@ public class FileRef extends CPointed {
 			Log.e("Glk/FileRef", "error while prompting for fileref", e);
 			return 0;
 		}
+	}
+
+	public File getFile() {
+		return mFile;
 	}
 }
