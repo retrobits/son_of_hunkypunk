@@ -10,6 +10,7 @@ import android.util.Log;
 public class FileStream extends Stream {
 	private RandomAccessFile mFile;
 	private int mWritten = 0;
+	private int mRead = 0;
 
 	public FileStream(FileRef fileref, int fmode, int rock) {
 		super(rock);
@@ -21,6 +22,9 @@ public class FileStream extends Stream {
 			if (file.exists())
 				file.delete();
 			mode = "rw";
+			break;
+		case FileRef.FILEMODE_READ:
+			mode = "r";
 			break;
 		default:
 			// TODO
@@ -54,6 +58,18 @@ public class FileStream extends Stream {
 			Log.e("Glk/FileStream", "I/O error in close", e);
 		}
 		release();
-		return new int[] { 0, mWritten };
+		return new int[] { mRead, mWritten };
+	}
+
+	@Override
+	int getChar() {
+		try {
+			int res = mFile.read();
+			mRead ++;
+			return res;
+		} catch (IOException e) {
+			Log.e("Glk/FileStream", "I/O error in getChar", e);
+			return -1;
+		}
 	}
 }

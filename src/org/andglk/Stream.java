@@ -36,4 +36,10 @@ public abstract class Stream extends CPointed {
 	 * @return Total number of bytes read[0] and written[1] to the stream.
 	 */
 	abstract int[] close();
+	
+	/** Reads one character from the stream.
+	 * 
+	 * @return The read character (0..255) or -1 if at the end of stream.
+	 */
+	abstract int getChar();
 }

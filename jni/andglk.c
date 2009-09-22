@@ -567,12 +567,14 @@ void glk_set_style_stream(strid_t str, glui32 styl)
 
 glsi32 glk_get_char_stream(strid_t str)
 {
+	if (!str)
+		return;
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "get_char_stream", "(Lorg/andglk/Stream;)I");
+		mid = (*env)->GetMethodID(env, _Stream, "getChar", "()I");
 
-	return (*env)->CallIntMethod(env, _this, mid, str);
+	return (*env)->CallIntMethod(env, *str, mid);
 
 }
 
