@@ -679,13 +679,15 @@ frefid_t glk_fileref_create_from_fileref(glui32 usage, frefid_t fref,
 
 void glk_fileref_destroy(frefid_t fref)
 {
+	if (!fref)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_destroy", "(Lorg/andglk/FileRef;)V");
+		mid = (*env)->GetMethodID(env, _FileRef, "release", "()V");
 
-	(*env)->CallVoidMethod(env, _this, mid, fref);
-
+	(*env)->CallVoidMethod(env, *fref, mid);
 }
 
 frefid_t glk_fileref_iterate(frefid_t fref, glui32 *rockptr)
