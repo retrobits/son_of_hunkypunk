@@ -1,5 +1,6 @@
 package org.andglk;
 
+import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -91,6 +92,7 @@ public class FileRef extends CPointed {
 	private static class NewFileDialog extends AlertDialog implements OnClickListener, OnCancelListener {
 		private EditText mNameEdit;
 		private final NewFilePrompt mNewFilePrompt;
+		private File mBaseDir;
 
 		/** Create a new file prompt. 
 		 * The user will be prompted for a name for a new file 
@@ -109,6 +111,7 @@ public class FileRef extends CPointed {
 			super(Glk.getInstance().getContext());
 			mNewFilePrompt = newFilePrompt;
 			int title = 0, hint = 0;
+			Glk glk = Glk.getInstance();
 			switch (usage & FILEUSAGE_TYPEMASK) {
 			case FILEUSAGE_SAVEDGAME:
 				title = R.string.saved_game;
@@ -120,6 +123,7 @@ public class FileRef extends CPointed {
 				return;
 			}
 			
+			mBaseDir = glk.getFilesDir(usage & FILEUSAGE_TYPEMASK);
 			Context context = Glk.getInstance().getContext();
 			mNameEdit = new EditText(context);
 			mNameEdit.setHint(hint);
@@ -139,7 +143,30 @@ public class FileRef extends CPointed {
 				return;
 			}
 			
-			mNewFilePrompt.publishResult(mNameEdit.getText().toString());
+			File theFile = new File(mBaseDir, mNameEdit.getText().toString());
+			if (!theFile.exists() || dialog != this)
+				mNewFilePrompt.publishResult(mNameEdit.getText().toString());
+			else {
+				show();
+				confirmOverwrite();
+			}
+		}
+
+		private void confirmOverwrite() {
+			new AlertDialog.Builder(getContext())
+				.setCancelable(true)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setMessage(R.string.already_exists)
+				.setNegativeButton(android.R.string.no, new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.cancel();
+						NewFileDialog.this.show();
+					}
+				})
+				.setPositiveButton(android.R.string.yes, this)
+				.setTitle(android.R.string.dialog_alert_title)
+				.show();
 		}
 
 		@Override

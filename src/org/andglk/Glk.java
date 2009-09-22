@@ -1,5 +1,6 @@
 package org.andglk;
 
+import java.io.File;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -176,5 +177,26 @@ public class Glk extends Thread {
 
 	public static Glk getInstance() {
 		return _instance;
+	}
+
+	/** Get directory to place game data in.
+	 * 
+	 * @param usage Usage of files placed in the directory. 
+	 * One of {@link FileRef#FILEUSAGE_DATA}, {@link FileRef#FILEUSAGE_INPUTRECORD}, 
+	 * {@link FileRef#FILEUSAGE_SAVEDGAME}, {@link FileRef#FILEUSAGE_TRANSCRIPT}.
+	 * @return Directory to place the files in. <code>null</code> if this type of files cannot be stored.
+	 */
+	public File getFilesDir(int usage) {
+		String name;
+		switch (usage) {
+		case FileRef.FILEUSAGE_SAVEDGAME:
+			name = "savedgames";
+			break;
+		default:
+			Log.e("Glk", "I don't know where to place files with usage = " + Integer.toString(usage));
+			return null;
+		}
+		
+		return getContext().getDir(name, Context.MODE_PRIVATE);
 	}
 }
