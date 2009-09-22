@@ -33,10 +33,12 @@ public class FileRef extends CPointed {
 	public final static int FILEMODE_READWRITE = 0x03;
 	public final static int FILEMODE_WRITEAPPEND = 0x05;
 	private final File mFile;
+	private final boolean mIsText;
 
-	private FileRef(File file, int rock) {
+	private FileRef(File file, boolean isText, int rock) {
 		super(rock);
 		mFile = file;
+		mIsText = isText;
 	}
 
 	/** A future which asks the user for a new filename.
@@ -218,7 +220,7 @@ public class FileRef extends CPointed {
 			File fname = filename.get();
 			Log.d("FileRef", "got filename: " + fname.getAbsolutePath());
 			if (fname != null)
-				return (new FileRef(fname, rock)).getPointer();
+				return (new FileRef(fname, (usage & ~FILEUSAGE_TYPEMASK) == FILEUSAGE_TEXTMODE, rock)).getPointer();
 			else
 				return 0;
 		} catch (Exception e) {

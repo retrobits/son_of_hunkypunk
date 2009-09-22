@@ -5,7 +5,7 @@
 #include "glk.h"
 
 JavaVM *_jvm;
-jclass _class, _Event, _LineInputEvent, _Window, _FileRef;
+jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream;
 JNIEnv *_env;
 jobject _this;
 char *_line_event_buf;
@@ -36,6 +36,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/FileRef");
 	_FileRef = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/FileStream");
+	_Stream = (*env)->NewGlobalRef(env, cls);
 
 	return GLK_JNI_VERSION;
 }
@@ -353,16 +356,17 @@ void glk_set_window(winid_t win)
 	(*env)->CallVoidMethod(env, _this, mid, win ? *win : NULL);
 }
 
-strid_t glk_stream_open_file(frefid_t fileref, glui32 fmode,
-    glui32 rock)
+strid_t glk_stream_open_file(frefid_t fileref, glui32 fmode, glui32 rock)
 {
+	if (!fileref)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_open_file", "(Lorg/andglk/FileRef;JJ)Lorg/andglk/Stream;");
+		mid = (*env)->GetStaticMethodID(env, _Stream, "openFile", "(Lorg/andglk/FileRef;II)I");
 
-	return (*env)->CallObjectMethod(env, _this, mid, fileref, fmode, rock);
-
+	return (strid_t) (*env)->CallStaticIntMethod(env, _Stream, mid, *fileref, (jint) fmode, (jint) rock);
 }
 
 strid_t glk_stream_open_memory(char *buf, glui32 buflen, glui32 fmode,
