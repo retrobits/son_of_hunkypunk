@@ -356,13 +356,15 @@ void glk_window_set_echo_stream(winid_t win, strid_t str)
 
 strid_t glk_window_get_echo_stream(winid_t win)
 {
+	if (!win)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_echo_stream", "(Lorg/andglk/Window;)Lorg/andglk/Stream;");
+		mid = (*env)->GetMethodID(env, _Window, "getEchoStream", "()I");
 
-	return (*env)->CallObjectMethod(env, _this, mid, win);
-
+	return (strid_t) (*env)->CallIntMethod(env, *win, mid);
 }
 
 void glk_set_window(winid_t win)

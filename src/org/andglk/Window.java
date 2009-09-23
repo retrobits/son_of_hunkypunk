@@ -102,6 +102,12 @@ public abstract class Window extends CPointed {
 	public void setEchoStream(Stream echoStream) {
 		mEchoStream = echoStream;
 	}
+	
+	public int getEchoStream() {
+		if (mEchoStream == null)
+			return 0;
+		return mEchoStream.getPointer();
+	}
 
 	/** Get pixel size from window-specific measurement.
 	 * 
