@@ -165,5 +165,9 @@ public class TextGridWindow extends Window {
 	public int measureWidth(int size) {
 		return Math.round(_view.measureCharacterWidth() * size) + _view.getPaddingLeft() + _view.getPaddingRight();
 	}
-	
+
+	@Override
+	public int getType() {
+		return WINTYPE_TEXTGRID;
+	}
 }

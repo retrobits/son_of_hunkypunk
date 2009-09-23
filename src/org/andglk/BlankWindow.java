@@ -29,4 +29,9 @@ public class BlankWindow extends Window {
 	public int measureWidth(int size) {
 		return 0;
 	}
+
+	@Override
+	public int getType() {
+		return WINTYPE_BLANK;
+	}
 }

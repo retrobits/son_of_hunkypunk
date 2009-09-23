@@ -261,4 +261,9 @@ public class TextBufferWindow extends Window {
 	public int measureWidth(int size) {
 		return Math.round(_view.getPaint().measureText("0") * size) + _view.getCompoundPaddingLeft() + _view.getCompoundPaddingRight();
 	}
+
+	@Override
+	public int getType() {
+		return WINTYPE_TEXTBUFFER;
+	}
 }

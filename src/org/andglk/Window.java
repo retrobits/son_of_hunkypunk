@@ -166,4 +166,6 @@ public abstract class Window extends CPointed {
 	public void echoOff() {
 		mEchoStream = null;
 	}
+	
+	public abstract int getType();
 }

@@ -264,12 +264,7 @@ winid_t glk_window_iterate(winid_t win, glui32 *rockptr)
 glui32 glk_window_get_rock(winid_t win)
 {
 	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_rock", "(Lorg/andglk/Window;)J");
-
-	return (*env)->CallLongMethod(env, _this, mid, win);
-
+	return (*env)->CallIntMethod(env, _this, _getRock);
 }
 
 glui32 glk_window_get_type(winid_t win)
@@ -277,9 +272,9 @@ glui32 glk_window_get_type(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_type", "(Lorg/andglk/Window;)J");
+		mid = (*env)->GetMethodID(env, _Window, "getType", "()I");
 
-	return (*env)->CallLongMethod(env, _this, mid, win);
+	return (*env)->CallIntMethod(env, *win, mid);
 
 }
 
