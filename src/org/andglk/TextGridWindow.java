@@ -120,11 +120,6 @@ public class TextGridWindow extends Window {
 	}
 	
 	@Override
-	public float measureCharacterHeight() {
-		return _view.measureCharacterHeight();
-	}
-
-	@Override
 	public void clear() {
 		_glk.waitForUi(new Runnable() {
 			@Override
@@ -160,5 +155,15 @@ public class TextGridWindow extends Window {
 			// do nothing, we only have one style yet
 			break;
 		}
+	}
+
+	@Override
+	public int measureHeight(int size) {
+		return Math.round(_view.measureCharacterHeight() * size) + _view.getPaddingBottom() + _view.getPaddingTop();
+	}
+
+	@Override
+	public int measureWidth(int size) {
+		return Math.round(_view.measureCharacterWidth() * size) + _view.getPaddingLeft() + _view.getPaddingRight();
 	}
 }

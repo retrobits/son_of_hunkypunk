@@ -92,7 +92,7 @@ public class Glk extends Thread {
 				}
 			});
 		else
-			new PairWindow(this, split, wnd, method, size);
+			new PairWindow(this, split, wnd, (int) method, (int) size);
 		
 		return wnd.getPointer();
 	}

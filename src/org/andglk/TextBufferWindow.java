@@ -236,16 +236,6 @@ public class TextBufferWindow extends Window {
 	}
 	
 	@Override
-	public float measureCharacterHeight() {
-		return _view.getLineHeight();
-	}
-	
-	@Override
-	public float measureCharacterWidth() {
-		return _view.getPaint().measureText("0");
-	}
-
-	@Override
 	public void setStyle(final long styl) {
 		_glk.waitForUi(new Runnable() {
 			@Override
@@ -259,6 +249,16 @@ public class TextBufferWindow extends Window {
 	public long[] getSize() {
 		int w = _view.getWidth() - _view.getCompoundPaddingLeft() - _view.getCompoundPaddingRight();
 		int h = _view.getHeight() - _view.getCompoundPaddingBottom() - _view.getCompoundPaddingTop();
-		return new long[] { (long) (w / measureCharacterWidth()), (long) (h / measureCharacterHeight()) };
+		return new long[] { (long) (w / _view.getPaint().measureText("0")), (long) (h / _view.getLineHeight()) };
+	}
+
+	@Override
+	public int measureHeight(int size) {
+		return _view.getLineHeight() * size + _view.getCompoundPaddingTop() + _view.getCompoundPaddingBottom();
+	}
+
+	@Override
+	public int measureWidth(int size) {
+		return Math.round(_view.getPaint().measureText("0") * size) + _view.getCompoundPaddingLeft() + _view.getCompoundPaddingRight();
 	}
 }

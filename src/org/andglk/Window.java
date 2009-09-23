@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import android.hardware.Camera.Size;
 import android.view.View;
 
 public abstract class Window extends CPointed {
@@ -47,7 +46,7 @@ public abstract class Window extends CPointed {
 	
 	private PairWindow mParent = null;
 	private long _written = 0;
-	protected Stream mEchoStream;
+	protected Stream mEchoStream, mStream;
 
 	/** Writes @param str to the window's output stream.
 	 * 
@@ -58,6 +57,7 @@ public abstract class Window extends CPointed {
 			mEchoStream.putString(str);
 		_written += str.length(); 
 	}
+	
 	public void requestLineEvent(String initial, long maxlen) { throw new RuntimeException(new NoSuchMethodException()); }
 	
 	/** Writes @p c to the window's output stream.
@@ -76,15 +76,16 @@ public abstract class Window extends CPointed {
 	public void move_cursor(long x, long y) { throw new RuntimeException(new NoSuchMethodException()); }
 	
 	public long close() {
-		// TODO fix it
 		PairWindow pair = getParent();
-		if (pair != null)
+		if (pair != null) {
+			pair.notifyGone(this);
 			pair.dissolve(this);
+		}
 		release();
 		_windows.remove(this);
 		return _written;
 	}
-	
+
 	protected void setParent(PairWindow parent) {
 		mParent = parent;
 	}
