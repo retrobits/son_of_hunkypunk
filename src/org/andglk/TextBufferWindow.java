@@ -62,6 +62,7 @@ public class TextBufferWindow extends Window {
 		private int _start;
 		private TextAppearanceSpan mStyleSpan;
 		private int mStyleStart;
+		private boolean mCharEventPending;
 		private class Filter implements InputFilter {
 			private long _maxlen;
 
@@ -220,6 +221,7 @@ public class TextBufferWindow extends Window {
 		public void requestCharEvent() {
 			setOnKeyListener(this);
 			setFocusableInTouchMode(true);
+			mCharEventPending = true;
 		}
 
 		@Override
@@ -231,12 +233,19 @@ public class TextBufferWindow extends Window {
 			if (c < 0 || c > 255)
 				return false;
 			
-			setOnKeyListener(null);
-			setFocusable(false);
-
+			cancelCharEvent();
+			
 			Event e = new CharInputEvent(TextBufferWindow.this, c);
 			_glk.postEvent(e);
 			return true;
+		}
+
+		public void cancelCharEvent() {
+			if (mCharEventPending) {
+				setOnKeyListener(null);
+				setFocusable(false);
+				mCharEventPending = false;
+			}
 		}
 	}
 
@@ -327,5 +336,10 @@ public class TextBufferWindow extends Window {
 				_view.requestCharEvent();
 			}
 		});
+	}
+
+	@Override
+	public void cancelCharEvent() {
+		_view.cancelCharEvent();
 	}
 }

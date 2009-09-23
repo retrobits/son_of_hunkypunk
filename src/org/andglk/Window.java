@@ -83,6 +83,7 @@ public abstract class Window extends CPointed {
 	
 	public abstract void requestLineEvent(String initial, long maxlen);
 	public abstract void requestCharEvent();
+	public abstract void cancelCharEvent();
 	
 	/** Writes @p c to the window's output stream.
 	 * 

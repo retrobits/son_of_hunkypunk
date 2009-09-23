@@ -222,4 +222,8 @@ public class PairWindow extends Window {
 	@Override
 	public void requestLineEvent(String initial, long maxlen) {
 	}
+
+	@Override
+	public void cancelCharEvent() {
+	}
 }

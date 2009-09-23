@@ -943,10 +943,9 @@ void glk_cancel_char_event(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "cancel_char_event", "(Lorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _Window, "cancelCharEvent", "()V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win);
-
+	(*env)->CallVoidMethod(env, *win, mid);
 }
 
 void glk_cancel_mouse_event(winid_t win)

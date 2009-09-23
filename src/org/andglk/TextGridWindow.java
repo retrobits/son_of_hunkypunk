@@ -43,6 +43,7 @@ public class TextGridWindow extends Window {
 		private int _charsH;
 		private char[] _framebuf;
 		private int _pos;
+		private boolean mCharEventPending;
 
 		public View(Context context) {
 			super(context);
@@ -127,6 +128,7 @@ public class TextGridWindow extends Window {
 		public void requestCharEvent() {
 			setOnKeyListener(this);
 			setFocusableInTouchMode(true);
+			mCharEventPending = true;
 		}
 
 		public boolean onKey(android.view.View v, int keyCode, KeyEvent event) {
@@ -137,12 +139,19 @@ public class TextGridWindow extends Window {
 			if (c < 0 || c > 255)
 				return false;
 			
-			setOnKeyListener(null);
-			setFocusable(false);
-
+			cancelCharEvent();
+			
 			Event e = new CharInputEvent(TextGridWindow.this, c);
 			_glk.postEvent(e);
 			return true;
+		}
+
+		public void cancelCharEvent() {
+			if (mCharEventPending) {
+				setOnKeyListener(null);
+				setFocusable(false);
+				mCharEventPending = false;
+			}				
 		}
 	}
 	
@@ -213,5 +222,10 @@ public class TextGridWindow extends Window {
 	public void requestLineEvent(String initial, long maxlen) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void cancelCharEvent() {
+		_view.cancelCharEvent();
 	}
 }
