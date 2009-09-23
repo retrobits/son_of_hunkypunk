@@ -283,10 +283,13 @@ winid_t glk_window_get_parent(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_parent", "(Lorg/andglk/Window;)Lorg/andglk/Window;");
+		mid = (*env)->GetMethodID(env, _Window, "getParent", "()Lorg/andglk/Window;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, win);
-
+	jobject parent = (*env)->CallObjectMethod(env, *win, mid);
+	if (parent)
+		return (winid_t) (*env)->CallIntMethod(env, parent, _getPointer);
+	else
+		return 0;
 }
 
 winid_t glk_window_get_sibling(winid_t win)
