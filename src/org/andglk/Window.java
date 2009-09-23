@@ -11,10 +11,15 @@ public abstract class Window extends CPointed {
 	private static List<Window> _windows = new LinkedList<Window>();
 	private static Iterator<Window> _iterator;
 	private static Window _last;
+	private static Window _root;
 	
 	public Window(int rock) {
 		super(rock);
 		_windows.add(this);
+	}
+	
+	static public Window getRoot() {
+		return _root;
 	}
 	
 	static public Window iterate(Window w) {
@@ -80,7 +85,8 @@ public abstract class Window extends CPointed {
 		if (pair != null) {
 			pair.notifyGone(this);
 			pair.dissolve(this);
-		}
+		} else
+			_root = null;
 		release();
 		_windows.remove(this);
 		return _written;
@@ -92,6 +98,12 @@ public abstract class Window extends CPointed {
 	
 	public PairWindow getParent() {
 		return mParent;
+	}
+	
+	public Window getSibling() {
+		if (mParent == null)
+			return null;
+		return mParent.getSibling(this);
 	}
 	
 	public void setStyle(long styl) {
@@ -150,14 +162,15 @@ public abstract class Window extends CPointed {
 		
 		final Window finalWindow = wnd;
 
-		if (split == null)
+		if (split == null) {
+			_root = finalWindow;
 			glk.waitForUi(new Runnable() {
 				@Override
 				public void run() {
 					glk.getView().addView(finalWindow.getView());
 				}
 			});
-		else
+		} else
 			new PairWindow(glk, split, wnd, (int) method, (int) size);
 		
 		return wnd.getPointer();

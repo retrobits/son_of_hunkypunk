@@ -167,10 +167,14 @@ winid_t glk_window_get_root(void)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_root", "()Lorg/andglk/Window;");
+		mid = (*env)->GetStaticMethodID(env, _Window, "getRoot", "()Lorg/andglk/Window;");
 
-	return (*env)->CallObjectMethod(env, _this, mid);
+	jobject obj = (*env)->CallStaticObjectMethod(env, _Window, mid);
 
+	if (obj)
+		return (winid_t) (*env)->CallIntMethod(env, obj, _getPointer);
+	else
+		return 0;
 }
 
 winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
@@ -297,10 +301,13 @@ winid_t glk_window_get_sibling(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_sibling", "(Lorg/andglk/Window;)Lorg/andglk/Window;");
+		mid = (*env)->GetMethodID(env, _Window, "getSibling", "()Lorg/andglk/Window;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, win);
-
+	jobject sibling = (*env)->CallObjectMethod(env, *win, mid);
+	if (sibling)
+		return (winid_t) (*env)->CallIntMethod(env, sibling, _getPointer);
+	else
+		return 0;
 }
 
 void glk_window_clear(winid_t win)

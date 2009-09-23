@@ -133,7 +133,7 @@ public class PairWindow extends Window {
 		return 0;
 	}
 
-	private Window getSibling(Window die) {
+	Window getSibling(Window die) {
 		if (mChildren[0] == die)
 			return mChildren[1];
 		else return mChildren[0];
