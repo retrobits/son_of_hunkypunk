@@ -81,6 +81,7 @@ public abstract class Window extends CPointed {
 		if (pair != null)
 			pair.dissolve(this);
 		release();
+		_windows.remove(this);
 		return _written;
 	}
 	

@@ -1,6 +1,7 @@
 package org.andglk;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,12 +9,26 @@ import android.util.Log;
 
 public abstract class Stream extends CPointed {
 	private int mWritten;
+	private int mRead;
 	private static List<Stream> _streams = new LinkedList<Stream>();
+	private static Iterator<Stream> _iterator;
+	private static Stream _last;
 
 	protected Stream(int rock) {
 		super(rock);
 		
 		_streams.add(this);
+	}
+	
+	static public Stream iterate(Stream s) {
+		if (s == null)
+			_iterator = _streams.iterator();
+		else if (_last != s) {
+			_iterator = _streams.iterator();
+			while (_iterator.next() != s);
+		}
+		_last = _iterator.next();
+		return _last;
 	}
 
 	/** Opens a stream which reads from or writes to a disk file.
@@ -40,19 +55,52 @@ public abstract class Stream extends CPointed {
 		return (new FileStream(fileref, fmode, rock)).getPointer();
 	}
 	
-	abstract void putChar(char c);
+	public void putChar(char c) {
+		try {
+			doPutChar(c);
+			mWritten++;
+		} catch (IOException e) {
+			Log.e("Glk/Stream", "I/O error in putChar", e);
+		}
+	}
 	
+	abstract protected void doPutChar(char c) throws IOException;
+
 	/** Close the stream.
 	 * 
 	 * @return Total number of bytes read[0] and written[1] to the stream.
 	 */
-	abstract int[] close();
+	int[] close() {
+		try {
+			doClose();
+		} catch (IOException e) {
+			Log.e("Glk/Stream", "I/O error in close", e);
+		} 
+		
+		release();
+		_streams.remove(this);
+			
+		return new int[] { mRead, mWritten };
+	}
 	
+	protected abstract void doClose() throws IOException;
+
 	/** Reads one character from the stream.
 	 * 
 	 * @return The read character (0..255) or -1 if at the end of stream.
 	 */
-	abstract int getChar();
+	int getChar() {
+		try {
+			int res = doGetChar();
+			mRead++;
+			return res;
+		} catch (IOException e) {
+			Log.e("Glk/Stream", "I/O error in getChar", e);
+			return -1;
+		}
+	}
+
+	abstract protected int doGetChar() throws IOException;
 
 	/** Write a string to the stream.
 	 * 

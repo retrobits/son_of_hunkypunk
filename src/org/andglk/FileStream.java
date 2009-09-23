@@ -9,8 +9,6 @@ import android.util.Log;
 
 public class FileStream extends Stream {
 	private RandomAccessFile mFile;
-	private int mWritten = 0;
-	private int mRead = 0;
 
 	public FileStream(FileRef fileref, int fmode, int rock) {
 		super(rock);
@@ -43,39 +41,16 @@ public class FileStream extends Stream {
 		}
 	}
 
-	@Override
-	void putChar(char c) {
-		try {
-			mFile.write(c);
-			mWritten++;
-		} catch (IOException e) {
-			// we don't do error handling, so just log it
-			Log.e("Glk/FileStream", "I/O error in putChar", e);
-		}
+	protected void doPutChar(char c) throws IOException {
+		mFile.write(c);
 	}
 
-	@Override
-	int[] close() {
-		try {
-			mFile.close();
-		} catch (IOException e) {
-			// we don't do error handling
-			Log.e("Glk/FileStream", "I/O error in close", e);
-		}
-		release();
-		return new int[] { mRead, mWritten };
+	protected void doClose() throws IOException {
+		mFile.close();
 	}
 
-	@Override
-	int getChar() {
-		try {
-			int res = mFile.read();
-			mRead++;
-			return res;
-		} catch (IOException e) {
-			Log.e("Glk/FileStream", "I/O error in getChar", e);
-			return -1;
-		}
+	protected int doGetChar() throws IOException {
+		return mFile.read();
 	}
 
 	@Override
