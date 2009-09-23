@@ -5,7 +5,7 @@
 #include "glk.h"
 
 JavaVM *_jvm;
-jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow;
+jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow;
 jmethodID _getRock, _getPointer;
 JNIEnv *_env;
 jobject _this;
@@ -37,6 +37,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/PairWindow");
 	_PairWindow = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/TextGridWindow");
+	_TextGridWindow = (*env)->NewGlobalRef(env, cls);
 
 	cls = (*env)->FindClass(env, "org/andglk/FileRef");
 	_FileRef = (*env)->NewGlobalRef(env, cls);
@@ -323,9 +326,9 @@ void glk_window_move_cursor(winid_t win, glui32 xpos, glui32 ypos)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "move_cursor", "(JJ)V");
+		mid = (*env)->GetMethodID(env, _TextGridWindow, "moveCursor", "(II)V");
 
-	(*env)->CallVoidMethod(env, *win, mid, (jlong) xpos, (jlong)ypos);
+	(*env)->CallVoidMethod(env, *win, mid, (jint) xpos, (jint) ypos);
 }
 
 strid_t glk_window_get_stream(winid_t win)

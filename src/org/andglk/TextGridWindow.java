@@ -71,7 +71,7 @@ public class TextGridWindow extends Window {
 			return new long[] { _charsW, _charsH };
 		}
 
-		public synchronized void move_cursor(long x, long y) {
+		public synchronized void moveCursor(long x, long y) {
 			_pos = (int) (y * _charsW + x);
 		}
 
@@ -134,9 +134,8 @@ public class TextGridWindow extends Window {
 		return _view.getSize();
 	}
 	
-	@Override
-	public void move_cursor(long x, long y) {
-		_view.move_cursor(x, y);
+	public void moveCursor(int x, int y) {
+		_view.moveCursor(x, y);
 	}
 	
 	@Override
@@ -166,4 +165,5 @@ public class TextGridWindow extends Window {
 	public int measureWidth(int size) {
 		return Math.round(_view.measureCharacterWidth() * size) + _view.getPaddingLeft() + _view.getPaddingRight();
 	}
+	
 }

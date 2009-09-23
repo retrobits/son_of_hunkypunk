@@ -74,7 +74,6 @@ public abstract class Window extends CPointed {
 	public abstract View getView();
 	public void clear() { throw new RuntimeException(new NoSuchMethodException()); }
 	public abstract long[] getSize();
-	public void move_cursor(long x, long y) { throw new RuntimeException(new NoSuchMethodException()); }
 	
 	public long close() {
 		PairWindow pair = getParent();
