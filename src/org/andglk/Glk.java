@@ -7,7 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 public class Glk extends Thread {
@@ -67,36 +67,6 @@ public class Glk extends Thread {
 		_context = context;
 	}
 	
-	@SuppressWarnings("unused") // referenced in C
-	private int window_open(Window split, long method, long size, long wintype, int rock) {
-		Window wnd;
-		switch ((int)wintype) {
-		case Window.WINTYPE_TEXTBUFFER:
-			wnd = new TextBufferWindow(this, rock);
-			break;
-		case Window.WINTYPE_TEXTGRID:
-			wnd = new TextGridWindow(this, rock);
-			break;
-		default:
-			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
-			return 0;
-		}
-		
-		final Window finalWindow = wnd;
-
-		if (split == null)
-			waitForUi(new Runnable() {
-				@Override
-				public void run() {
-					_frame.addView(finalWindow.getView());
-				}
-			});
-		else
-			new PairWindow(this, split, wnd, (int) method, (int) size);
-		
-		return wnd.getPointer();
-	}
-	
 	@SuppressWarnings("unused")
 	private void set_window(Window window) {
 		_currentWindow = window;
@@ -138,7 +108,7 @@ public class Glk extends Thread {
 		_currentWindow.putChar(c);
 	}
 	
-	public View getView() {
+	public ViewGroup getView() {
 		return _frame;
 	}
 

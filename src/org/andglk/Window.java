@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import android.util.Log;
 import android.view.View;
 
 public abstract class Window extends CPointed {
@@ -120,4 +121,37 @@ public abstract class Window extends CPointed {
 	 * @return Number of pixels represented by size.
 	 */
 	abstract public int measureHeight(int size);
+
+	public static int open(Window split, int method, int size, int wintype, int rock) {
+		final Glk glk = Glk.getInstance();
+		Window wnd;
+		switch ((int)wintype) {
+		case Window.WINTYPE_TEXTBUFFER:
+			wnd = new TextBufferWindow(glk, rock);
+			break;
+		case Window.WINTYPE_TEXTGRID:
+			wnd = new TextGridWindow(glk, rock);
+			break;
+		case Window.WINTYPE_BLANK:
+			wnd = new BlankWindow(glk, rock);
+			break;
+		default:
+			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
+			return 0;
+		}
+		
+		final Window finalWindow = wnd;
+
+		if (split == null)
+			glk.waitForUi(new Runnable() {
+				@Override
+				public void run() {
+					glk.getView().addView(finalWindow.getView());
+				}
+			});
+		else
+			new PairWindow(glk, split, wnd, (int) method, (int) size);
+		
+		return wnd.getPointer();
+	}
 }

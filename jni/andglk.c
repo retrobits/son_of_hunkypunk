@@ -176,9 +176,9 @@ winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_open", "(Lorg/andglk/Window;JJJI)I");
+		mid = (*env)->GetStaticMethodID(env, _Window, "open", "(Lorg/andglk/Window;IIII)I");
 
-	return (winid_t) (*env)->CallIntMethod(env, _this, mid, split ? *split : 0, (jlong) method, (jlong) size, (jlong) wintype, (jint) rock);
+	return (winid_t) (*env)->CallStaticIntMethod(env, _this, mid, split ? *split : 0, (jint) method, (jint) size, (jint) wintype, (jint) rock);
 }
 
 void glk_window_close(winid_t win, stream_result_t *result)
