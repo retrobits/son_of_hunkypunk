@@ -134,22 +134,6 @@ public class Glk extends Thread {
 	}
 	
 	@SuppressWarnings("unused")
-	private char char_to_lower(char c)
-	{
-		return Character.toLowerCase(c);
-	}
-	
-	@SuppressWarnings("unused")
-	private int fileref_create_by_prompt(long usage, long fmode, long rock)
-	{
-		switch((int) usage) {
-		default:
-			Log.w("Glk", "unimplemented usage in fileref_create_by_prompt: " + Long.toString(usage));
-			return 0;
-		}
-	}
-	
-	@SuppressWarnings("unused")
 	private void put_char(char c) {
 		_currentWindow.putChar(c);
 	}

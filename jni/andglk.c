@@ -5,7 +5,7 @@
 #include "glk.h"
 
 JavaVM *_jvm;
-jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream;
+jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character;
 jmethodID _getRock, _getPointer;
 JNIEnv *_env;
 jobject _this;
@@ -40,6 +40,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/FileStream");
 	_Stream = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "java/lang/Character");
+	_Character = (*env)->NewGlobalRef(env, cls);
 
 	cls = (*env)->FindClass(env, "org/andglk/FileStream");
 	_getRock = (*env)->GetMethodID(env, cls, "getRock", "()I");
@@ -138,10 +141,9 @@ unsigned char glk_char_to_lower(unsigned char ch)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "char_to_lower", "(C)C");
+		mid = (*env)->GetStaticMethodID(env, _Character, "toLowerCase", "(C)C");
 
-	return (*env)->CallCharMethod(env, _this, mid, (jchar) ch);
-
+	return (*env)->CallStaticCharMethod(env, _Character, mid, (jchar) ch);
 }
 
 unsigned char glk_char_to_upper(unsigned char ch)
@@ -149,10 +151,9 @@ unsigned char glk_char_to_upper(unsigned char ch)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "char_to_upper", "(C)C");
+		mid = (*env)->GetStaticMethodID(env, _Character, "toUpperCase", "(C)C");
 
-	return (*env)->CallCharMethod(env, _this, mid, ch);
-
+	return (*env)->CallStaticCharMethod(env, _Character, mid, (jchar) ch);
 }
 
 winid_t glk_window_get_root(void)
