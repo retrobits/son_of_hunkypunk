@@ -34,4 +34,8 @@ public class BlankWindow extends Window {
 	public int getType() {
 		return WINTYPE_BLANK;
 	}
+
+	@Override
+	public void clear() {
+	}
 }

@@ -266,4 +266,26 @@ public class TextBufferWindow extends Window {
 	public int getType() {
 		return WINTYPE_TEXTBUFFER;
 	}
+
+	@Override
+	public void clear() {
+		// TODO perhaps do something nicer
+		
+		// Java is crazy. Is there really no library function for that?
+		int count = (int) (getSize()[1] + 1);
+		StringBuilder sb = new StringBuilder(count);
+		for (int i = 0; i < count; i++)
+			sb.append('\n');
+		
+		// I mean, in normal language it would just 
+		// be "\n" * count for fscks sake
+		final String str = sb.toString();
+		
+		_uiHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				_view.append(str);
+			}
+		});
+	}
 }

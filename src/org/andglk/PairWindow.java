@@ -209,4 +209,8 @@ public class PairWindow extends Window {
 	public int getType() {
 		return WINTYPE_PAIR;
 	}
+
+	@Override
+	public void clear() {
+	}
 }
