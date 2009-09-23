@@ -1,5 +1,6 @@
 package org.andglk;
 
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -90,6 +91,17 @@ public class PairWindow extends Window {
 		mSub = neww;
 		
 		l.addView(first);
+		
+		View divider = new View(_glk.getContext());
+		if (l.getOrientation() == LinearLayout.VERTICAL) {
+			divider.setBackgroundResource(android.R.drawable.divider_horizontal_bright);
+			divider.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, 1));
+		} else {
+			divider.setBackgroundResource(R.drawable.divider_vertical_bright);
+			divider.setLayoutParams(new ViewGroup.LayoutParams(1, ViewGroup.LayoutParams.FILL_PARENT));
+		}
+		l.addView(divider);
+		
 		l.addView(second);
 	}
 
