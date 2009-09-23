@@ -10,6 +10,7 @@ import android.util.Log;
 public abstract class Stream extends CPointed {
 	private int mWritten;
 	private int mRead;
+	private List<Window> mEchoedWindows = new LinkedList<Window>();
 	private static List<Stream> _streams = new LinkedList<Stream>();
 	private static Iterator<Stream> _iterator;
 	private static Stream _last;
@@ -79,6 +80,10 @@ public abstract class Stream extends CPointed {
 		
 		release();
 		_streams.remove(this);
+		
+		Iterator<Window> it = mEchoedWindows.iterator();
+		while (it.hasNext())
+			it.next().echoOff();
 			
 		return new int[] { mRead, mWritten };
 	}
@@ -118,4 +123,12 @@ public abstract class Stream extends CPointed {
 	protected abstract void doPutString(String str) throws IOException;
 
 	public abstract void setStyle(long styl);
+
+	public void echoOff(Window window) {
+		mEchoedWindows.remove(window);
+	}
+
+	public void echoOn(Window window) {
+		mEchoedWindows.add(window);
+	}
 }

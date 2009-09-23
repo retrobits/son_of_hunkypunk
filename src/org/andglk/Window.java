@@ -100,7 +100,10 @@ public abstract class Window extends CPointed {
 	}
 	
 	public void setEchoStream(Stream echoStream) {
+		if (mEchoStream != null)
+			mEchoStream.echoOff(this);
 		mEchoStream = echoStream;
+		echoStream.echoOn(this);
 	}
 	
 	public int getEchoStream() {
@@ -158,5 +161,9 @@ public abstract class Window extends CPointed {
 			new PairWindow(glk, split, wnd, (int) method, (int) size);
 		
 		return wnd.getPointer();
+	}
+
+	public void echoOff() {
+		mEchoStream = null;
 	}
 }
