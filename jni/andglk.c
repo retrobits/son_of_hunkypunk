@@ -715,7 +715,7 @@ void glk_fileref_destroy(frefid_t fref)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _FileRef, "release", "()V");
+		mid = (*env)->GetMethodID(env, _FileRef, "destroy", "()V");
 
 	(*env)->CallVoidMethod(env, *fref, mid);
 }
@@ -725,10 +725,16 @@ frefid_t glk_fileref_iterate(frefid_t fref, glui32 *rockptr)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_iterate", "(Lorg/andglk/FileRef;[FIXME: glui32 *])Lorg/andglk/FileRef;");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "iterate", "(Lorg/andglk/FileRef;)Lorg/andglk/FileRef;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, fref, rockptr);
+	jobject nextfref = (*env)->CallStaticObjectMethod(env, _FileRef, mid, fref ? *fref : 0);
 
+	if (!nextfref)
+		return 0;
+
+	if (rockptr)
+		*rockptr = (*env)->CallIntMethod(env, nextfref, _getRock);
+	return (frefid_t) (*env)->CallIntMethod(env, nextfref, _getPointer);
 }
 
 glui32 glk_fileref_get_rock(frefid_t fref)

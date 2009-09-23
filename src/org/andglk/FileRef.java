@@ -310,4 +310,9 @@ public class FileRef extends CPointed {
 	public boolean isText() {
 		return mIsText;
 	}
+	
+	public void destroy() {
+		_fileRefs.remove(this);
+		release();
+	}
 }
