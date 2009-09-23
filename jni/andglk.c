@@ -407,10 +407,16 @@ strid_t glk_stream_iterate(strid_t str, glui32 *rockptr)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_iterate", "(Lorg/andglk/Stream;[FIXME: glui32 *])Lorg/andglk/Stream;");
+		mid = (*env)->GetStaticMethodID(env, _Stream, "iterate", "(Lorg/andglk/Stream;)Lorg/andglk/Stream;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, str, rockptr);
+	jobject nextstr = (*env)->CallStaticObjectMethod(env, _Stream, mid, str ? *str : 0);
 
+	if (!nextstr)
+		return 0;
+
+	if (rockptr)
+		*rockptr = (*env)->CallIntMethod(env, nextstr, _getRock);
+	return (strid_t) (*env)->CallIntMethod(env, nextstr, _getPointer);
 }
 
 glui32 glk_stream_get_rock(strid_t str)
