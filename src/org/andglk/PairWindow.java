@@ -112,16 +112,21 @@ public class PairWindow extends Window {
 
 	protected void doDissolve(Window die) {
 		Window keep;
+		View v;
+		LayoutParams lp;
 		if (die != mKey) {
 			keep = mKey;
 	
 			// transfer layout parameters back to the key window
-			View v = mKey.getView();
-			LayoutParams lp = getView().getLayoutParams();
-			v.setLayoutParams(lp);
-		} else
-			// we are closing the key, so we don't care about layout parameters
+			v = mKey.getView();
+			lp = getView().getLayoutParams();
+		} else {
+			// we are closing the key, so we reset the sub's parameters
 			keep = mSub;
+			v = mSub.getView();
+			lp = new LinearLayout.LayoutParams(0, 0, 0);
+		}
+		v.setLayoutParams(lp);
 		
 		// first we replace the views
 		View keepv = keep.getView();
