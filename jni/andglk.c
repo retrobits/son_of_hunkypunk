@@ -101,13 +101,7 @@ void glk_tick(void)
 
 glui32 glk_gestalt(glui32 sel, glui32 val)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "gestalt", "(JJ)J");
-
-	return (*env)->CallLongMethod(env, _this, mid, sel, val);
-
+	return glk_gestalt_ext(sel, val, NULL, 0);
 }
 
 glui32 glk_gestalt_ext(glui32 sel, glui32 val, glui32 *arr,
@@ -116,11 +110,26 @@ glui32 glk_gestalt_ext(glui32 sel, glui32 val, glui32 *arr,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "gestalt_ext", "(JJ[JJ)J");
+		mid = (*env)->GetMethodID(env, _class, "gestalt", "(II)[I");
 
-	// FIXME: array translation
-	return (*env)->CallLongMethod(env, _this, mid, sel, val, arr, arrlen);
+	jarray ret = (*env)->CallObjectMethod(env, _this, mid, (jint) sel, (jint) val);
 
+	jint *array = (*env)->GetIntArrayElements(env, ret, NULL);
+	glui32 res = array[0];
+
+	if (arr) {
+		jint len = (*env)->GetArrayLength(env, ret);
+		if (len > arrlen)
+			len = arrlen;
+
+		int i;
+		for (i = 0; i < len; i++)
+			arr[i] = array[i+1];
+	}
+
+	(*env)->ReleaseIntArrayElements(env, ret, array, JNI_ABORT);
+
+	return res;
 }
 
 unsigned char glk_char_to_lower(unsigned char ch)

@@ -24,6 +24,26 @@ public class Glk extends Thread {
 	public final static int STYLE_USER2 = 10;
 	public final static int STYLE_NUMSTYLES = 11;
 	private static Glk _instance;
+	
+	public final static int GESTALT_VERSION = 0;
+	public final static int GESTALT_CHARINPUT = 1;
+	public final static int GESTALT_LINEINPUT = 2;
+	public final static int GESTALT_CHAROUTPUT = 3;
+	public final static int GESTALT_CHAROUTPUT_CANNOTPRINT = 0;
+	public final static int GESTALT_CHAROUTPUT_APPROXPRINT = 1;
+	public final static int GESTALT_CHAROUTPUT_EXACTPRINT = 2;
+	public final static int GESTALT_MOUSEINPUT = 4;
+	public final static int GESTALT_TIMER = 5;
+	public final static int GESTALT_GRAPHICS = 6;
+	public final static int GESTALT_DRAWIMAGE = 7;
+	public final static int GESTALT_SOUND = 8;
+	public final static int GESTALT_SOUNDVOLUME = 9;
+	public final static int GESTALT_SOUNDNOTIFY = 10;
+	public final static int GESTALT_HYPERLINKS = 11;
+	public final static int GESTALT_HYPERLINKINPUT = 12;
+	public final static int GESTALT_SOUNDMUSIC = 13;
+	public final static int GESTALT_GRAPHICSTRANSPARENCY = 14;
+	public final static int GESTALT_UNICODE = 15;
 
 	@SuppressWarnings("unused")
 	private Window _root, _currentWindow;
@@ -201,5 +221,21 @@ public class Glk extends Thread {
 		}
 		
 		return getContext().getDir(name, Context.MODE_PRIVATE);
+	}
+	
+	/** Query Glk capabilities.
+	 * 
+	 * @param sel Selector -- which capability you are requesting information about.
+	 * @param val Parameter for that selector. Optional, pass 0 if not needed.
+	 * @return An array which first element is the main return value and the rest is any additional information pertinent.
+	 */
+	public int[] gestalt(int sel, int val) {
+		switch (sel) {
+		case GESTALT_VERSION:
+			return new int[] { 0x700 };
+		default:
+			Log.w("Glk", "unhandled gestalt selector: " + Integer.toString(sel));
+			return new int[] { 0 };
+		}
 	}
 }
