@@ -1,5 +1,7 @@
 package org.andglk;
 
+import java.io.IOException;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -8,6 +10,30 @@ import android.graphics.Typeface;
 import android.util.Log;
 
 public class TextGridWindow extends Window {
+	private class Stream extends Window.Stream {
+		@Override
+		protected void doPutChar(char c) throws IOException {
+			_view.putString(Character.toString(c));
+		}
+
+		@Override
+		protected void doPutString(String str) throws IOException {
+			_view.putString(str);
+		}
+
+		@Override
+		public void setStyle(long styl) {
+			switch ((int) styl) {
+			default:
+				Log.w("Glk", "TextGridWindow got unimplemented style: " + Long.toString(styl));
+				// fall through, normal is default
+			case Glk.STYLE_NORMAL:
+				// do nothing, we only have one style yet
+				break;
+			}
+		}
+	}
+	
 	private class View extends android.view.View {
 		private int _fontSize;
 		private Paint mPaint;
@@ -102,6 +128,7 @@ public class TextGridWindow extends Window {
 	public TextGridWindow(final Glk glk, int rock) {
 		super(rock);
 		_glk = glk;
+		mStream = new Stream();
 		glk.waitForUi(new Runnable() {
 			@Override
 			public void run() {
@@ -136,24 +163,6 @@ public class TextGridWindow extends Window {
 	
 	public void moveCursor(int x, int y) {
 		_view.moveCursor(x, y);
-	}
-	
-	@Override
-	public void putString(String str) {
-		super.putString(str);
-		_view.putString(str);
-	}
-
-	@Override
-	public void setStyle(long styl) {
-		switch ((int) styl) {
-		default:
-			Log.w("Glk", "TextGridWindow got unimplemented style: " + Long.toString(styl));
-			// fall through, normal is default
-		case Glk.STYLE_NORMAL:
-			// do nothing, we only have one style yet
-			break;
-		}
 	}
 
 	@Override

@@ -341,9 +341,14 @@ strid_t glk_window_get_stream(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_stream", "(Lorg/andglk/Window;)Lorg/andglk/Stream;");
+		mid = (*env)->GetMethodID(env, _Window, "getStream", "()Lorg/andglk/Stream;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, win);
+	jobject obj = (*env)->CallObjectMethod(env, *win, mid);
+
+	if (obj)
+		return (strid_t) (*env)->CallIntMethod(env, obj, _getPointer);
+	else
+		return 0;
 
 }
 

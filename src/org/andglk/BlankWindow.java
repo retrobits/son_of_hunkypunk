@@ -4,10 +4,11 @@ import android.view.View;
 
 public class BlankWindow extends Window {
 	private View mView;
-
+	
 	public BlankWindow(Glk glk, int rock) {
 		super(rock);
 		mView = new View(glk.getContext());
+		mStream = new BlankStream();
 	}
 
 	@Override

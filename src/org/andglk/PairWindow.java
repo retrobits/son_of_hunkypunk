@@ -14,6 +14,7 @@ public class PairWindow extends Window {
 
 	public PairWindow(final Glk glk, final Window oldw, final Window neww, final int method, final int size) {
 		super(0);
+		mStream = new BlankStream();
 		glk.waitForUi(new Runnable() {
 			@Override
 			public void run() {

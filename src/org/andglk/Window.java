@@ -1,5 +1,6 @@
 package org.andglk;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,6 +9,25 @@ import android.util.Log;
 import android.view.View;
 
 public abstract class Window extends CPointed {
+	public class BlankStream extends Stream {
+		@Override
+		protected int doGetChar() throws IOException {
+			return 0;
+		}
+
+		@Override
+		protected void doPutChar(char c) throws IOException {
+		}
+
+		@Override
+		protected void doPutString(String str) throws IOException {
+		}
+
+		@Override
+		public void setStyle(long styl) {
+		}
+	}
+
 	private static List<Window> _windows = new LinkedList<Window>();
 	private static Iterator<Window> _iterator;
 	private static Window _last;
@@ -51,17 +71,14 @@ public abstract class Window extends CPointed {
 	public final static int WINMETHOD_DIVISIONMASK = 0xf0;
 	
 	private PairWindow mParent = null;
-	private long _written = 0;
-	protected Stream mEchoStream, mStream;
+	protected Stream mStream;
 
 	/** Writes @param str to the window's output stream.
 	 * 
 	 * @param str text to print
 	 */
 	public void putString(String str) {
-		if (mEchoStream != null)
-			mEchoStream.putString(str);
-		_written += str.length(); 
+		mStream.putString(str);
 	}
 	
 	public void requestLineEvent(String initial, long maxlen) { throw new RuntimeException(new NoSuchMethodException()); }
@@ -71,9 +88,7 @@ public abstract class Window extends CPointed {
 	 * @param c
 	 */
 	public void putChar(char c) {
-		if (mEchoStream != null)
-			mEchoStream.putChar(c);
-		_written++;
+		mStream.putChar(c);
 	}
 	
 	public abstract View getView();
@@ -89,7 +104,7 @@ public abstract class Window extends CPointed {
 			_root = null;
 		release();
 		_windows.remove(this);
-		return _written;
+		return mStream.windowClosed();
 	}
 
 	protected void setParent(PairWindow parent) {
@@ -107,21 +122,15 @@ public abstract class Window extends CPointed {
 	}
 	
 	public void setStyle(long styl) {
-		if (mEchoStream != null)
-			mEchoStream.setStyle(styl);
+		mStream.setStyle(styl);
 	}
 	
-	public void setEchoStream(Stream echoStream) {
-		if (mEchoStream != null)
-			mEchoStream.echoOff(this);
-		mEchoStream = echoStream;
-		echoStream.echoOn(this);
+	public void setEchoStream(org.andglk.Stream echoStream) {
+		mStream.setEchoStream(echoStream);
 	}
 	
 	public int getEchoStream() {
-		if (mEchoStream == null)
-			return 0;
-		return mEchoStream.getPointer();
+		return mStream.getEchoStream();
 	}
 
 	/** Get pixel size from window-specific measurement.
@@ -177,8 +186,74 @@ public abstract class Window extends CPointed {
 	}
 
 	public void echoOff() {
-		mEchoStream = null;
+		mStream.echoOff();
 	}
 	
 	public abstract int getType();
+	
+	public org.andglk.Stream getStream() {
+		return mStream;
+	}
+	
+	public abstract class Stream extends org.andglk.Stream {
+		protected org.andglk.Stream mEchoStream;
+
+		protected Stream() {
+			super(0);
+		}
+
+		public void echoOff() {
+			mEchoStream = null;
+		}
+
+		public int getEchoStream() {
+			if (mEchoStream != null)
+				return mEchoStream.getPointer();
+			else
+				return 0;
+		}
+
+		public void setEchoStream(org.andglk.Stream echoStream) {
+			if (mEchoStream != null)
+				mEchoStream.echoOff(this);
+			mEchoStream = echoStream;
+			echoStream.echoOn(this);
+		}
+
+		public long windowClosed() {
+			release();
+			return mWritten;
+		}
+		
+		@Override
+		int[] close() {
+			// can only be closed by closing its window
+			_streams.remove(this);
+			return new int[] { 0, 0 };
+		}
+		
+		@Override
+		protected void doClose() throws IOException {
+			// noop
+		}
+		
+		@Override
+		public void putChar(char c) {
+			if (mEchoStream != null)
+				mEchoStream.putChar(c);
+			super.putChar(c);
+		}
+		
+		@Override
+		public void putString(String str) {
+			if (mEchoStream != null)
+				mEchoStream.putString(str);
+			super.putString(str);
+		}
+		
+		@Override
+		protected int doGetChar() throws IOException {
+			return 0;
+		}
+	}
 }

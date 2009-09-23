@@ -1,5 +1,7 @@
 package org.andglk;
 
+import java.io.IOException;
+
 import android.content.Context;
 import android.os.Handler;
 import android.text.Editable;
@@ -18,6 +20,43 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
 public class TextBufferWindow extends Window {
+	private class Stream extends Window.Stream {
+		@Override
+		protected void doPutChar(final char c) throws IOException {
+			_uiHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					_view.append(Character.toString(c));
+				}
+			});
+		}
+
+		@Override
+		protected void doPutString(final String str) throws IOException {
+			_uiHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					_view.append(str);
+				}
+			});
+		}
+
+		@Override
+		public void setStyle(final long styl) {
+			_glk.waitForUi(new Runnable() {
+				@Override
+				public void run() {
+					_view.setStyle(styl);
+				}
+			});
+		}
+
+		public void echo(String s) {
+			if (mEchoStream != null)
+				mEchoStream.putString(s);
+		}
+	}
+	
 	private class View extends TextView implements OnEditorActionListener {
 		private int _start;
 		private TextAppearanceSpan mStyleSpan;
@@ -114,10 +153,9 @@ public class TextBufferWindow extends Window {
 			
 			String s = getLineInput();
 			
-			if (mEchoStream != null) {
-				mEchoStream.putString(s);
-				mEchoStream.putChar('\n');
-			}
+			Stream stream = (Stream) mStream;
+			stream.echo(s);
+			stream.echo("\n");
 			
 			Event e = new LineInputEvent(TextBufferWindow.this, s);
 			Editable ed = getEditableText();
@@ -189,6 +227,7 @@ public class TextBufferWindow extends Window {
 		super(rock);
 		_glk = glk;
 		_uiHandler = glk.getUiHandler();
+		mStream = new Stream();
 
 		glk.waitForUi(new Runnable() {
 			@Override
@@ -198,17 +237,6 @@ public class TextBufferWindow extends Window {
 		});
 	}
 	
-	@Override
-	public synchronized void putString(final String str) {
-		super.putString(str);
-		_uiHandler.post(new Runnable() {
-			@Override
-			public void run() {
-				_view.append(str);
-			}
-		});
-	}
-
 	@Override
 	public synchronized void requestLineEvent(final String initial, final long maxlen) {
 		_uiHandler.post(new Runnable() {
@@ -220,31 +248,10 @@ public class TextBufferWindow extends Window {
 	}
 
 	@Override
-	public void putChar(final char c) {
-		super.putChar(c);
-		_uiHandler.post(new Runnable() {
-			@Override
-			public void run() {
-				_view.append(Character.toString(c));
-			}
-		});
-	}
-
-	@Override
 	public android.view.View getView() {
 		return _view;
 	}
 	
-	@Override
-	public void setStyle(final long styl) {
-		_glk.waitForUi(new Runnable() {
-			@Override
-			public void run() {
-				_view.setStyle(styl);
-			}
-		});
-	}
-
 	@Override
 	public long[] getSize() {
 		int w = _view.getWidth() - _view.getCompoundPaddingLeft() - _view.getCompoundPaddingRight();
