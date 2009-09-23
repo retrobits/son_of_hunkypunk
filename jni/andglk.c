@@ -51,6 +51,7 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
 {
 	_this = (*env)->NewGlobalRef(env, this);
+
 	if (!setjmp(_quit_env))
 		glk_main();
 }

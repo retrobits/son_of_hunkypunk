@@ -230,12 +230,38 @@ public class Glk extends Thread {
 	 * @return An array which first element is the main return value and the rest is any additional information pertinent.
 	 */
 	public int[] gestalt(int sel, int val) {
+		final int[] zero = { 0 };
+		
 		switch (sel) {
 		case GESTALT_VERSION:
 			return new int[] { 0x700 };
+		case GESTALT_CHAROUTPUT:
+			if (isPrintable((char) val)) // we only do latin-1 ATM
+				return new int[] { GESTALT_CHAROUTPUT_EXACTPRINT, 1 };
+			else
+				return new int[] { GESTALT_CHAROUTPUT_CANNOTPRINT, 0 };
+		case GESTALT_LINEINPUT:
+			if (isPrintable((char) val) && val != 10)
+				return new int[] { 1 };
+			else
+				return new int[] { 0 };
+		case GESTALT_CHARINPUT:
+			// TODO: handle special characters; this needs getChar support too.
+			if (val > 0 && isPrintable((char) val) && val != 10)
+				return new int[] { 1 };
+			else
+				return new int[] { 0 };
 		default:
-			Log.w("Glk", "unhandled gestalt selector: " + Integer.toString(sel));
-			return new int[] { 0 };
+			Log.w("Glk", "unhandled gestalt selector: " + Integer.toString(sel) + " (value " + val + ")");
+		case GESTALT_UNICODE:
+			return zero; // TODO (implement unicode, right)
 		}
+	}
+
+	private static boolean isPrintable(char val) {
+		if ((val >= 0 && val < 10) || (val > 10 && val < 32) || (val > 126 && val < 160) || val > 255)
+			return false;
+		else
+			return true;
 	}
 }
