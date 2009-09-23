@@ -73,7 +73,7 @@ public abstract class Window extends CPointed {
 	public float measureCharacterWidth() { throw new RuntimeException(new NoSuchMethodException()); }
 	public float measureCharacterHeight() { throw new RuntimeException(new NoSuchMethodException()); }
 	public void clear() { throw new RuntimeException(new NoSuchMethodException()); }
-	public long[] get_size() { throw new RuntimeException(new NoSuchMethodException()); }
+	public abstract long[] getSize();
 	public void move_cursor(long x, long y) { throw new RuntimeException(new NoSuchMethodException()); }
 	
 	public long close() {

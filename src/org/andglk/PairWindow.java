@@ -155,4 +155,9 @@ public class PairWindow extends Window {
 	public void setStyle(long styl) {
 		// noop
 	}
+
+	@Override
+	public long[] getSize() {
+		return new long[] { 0, 0 }; // no meaningful measurement
+	}
 }

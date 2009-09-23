@@ -254,4 +254,11 @@ public class TextBufferWindow extends Window {
 			}
 		});
 	}
+
+	@Override
+	public long[] getSize() {
+		int w = _view.getWidth() - _view.getCompoundPaddingLeft() - _view.getCompoundPaddingRight();
+		int h = _view.getHeight() - _view.getCompoundPaddingBottom() - _view.getCompoundPaddingTop();
+		return new long[] { (long) (w / measureCharacterWidth()), (long) (h / measureCharacterHeight()) };
+	}
 }

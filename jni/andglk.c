@@ -203,12 +203,12 @@ void glk_window_get_size(winid_t win, glui32 *widthptr, glui32 *heightptr)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "get_size", "()[J");
+		mid = (*env)->GetMethodID(env, _Window, "getSize", "()[J");
 
 	jlongArray res = (*env)->CallObjectMethod(env, *win, mid);
 	jlong *arr = (*env)->GetLongArrayElements(env, res, NULL);
-	*widthptr = arr[0];
-	*heightptr = arr[1];
+	if (widthptr) *widthptr = arr[0];
+	if (heightptr) *heightptr = arr[1];
 	(*env)->ReleaseLongArrayElements(env, res, arr, JNI_ABORT);
 }
 

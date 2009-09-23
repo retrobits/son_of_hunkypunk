@@ -45,6 +45,8 @@ public class TextGridWindow extends Window {
 		protected synchronized void onSizeChanged(int w, int h, int oldw, int oldh) {
 			oldw = _charsW;
 			oldh = _charsH;
+			w -= getPaddingLeft() + getPaddingRight();
+			h -= getPaddingBottom() + getPaddingTop();
 			_charsW = (int) (w / measureCharacterWidth());
 			_charsH = (int) (h / measureCharacterHeight());
 			
@@ -133,7 +135,7 @@ public class TextGridWindow extends Window {
 	}
 	
 	@Override
-	public long[] get_size() {
+	public long[] getSize() {
 		return _view.getSize();
 	}
 	
