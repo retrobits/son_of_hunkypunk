@@ -382,7 +382,7 @@ void glk_set_window(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "set_window", "(Lorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _class, "setWindow", "(Lorg/andglk/Window;)V");
 
 	(*env)->CallVoidMethod(env, _this, mid, win ? *win : NULL);
 }
@@ -510,10 +510,9 @@ void glk_put_char(unsigned char ch)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "put_char", "(C)V");
+		mid = (*env)->GetMethodID(env, _class, "putChar", "(C)V");
 
 	(*env)->CallVoidMethod(env, _this, mid, (jchar) ch);
-
 }
 
 void glk_put_char_stream(strid_t str, unsigned char ch)
@@ -534,7 +533,7 @@ void glk_put_string(char *s)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "put_string", "(Ljava/lang/String;)V");
+		mid = (*env)->GetMethodID(env, _class, "putString", "(Ljava/lang/String;)V");
 
 	jchar buf[1024];
 	char *it = s;
@@ -595,7 +594,7 @@ void glk_set_style(glui32 styl)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "set_style", "(J)V");
+		mid = (*env)->GetMethodID(env, _class, "setStyle", "(J)V");
 
 	(*env)->CallVoidMethod(env, _this, mid, (jlong) styl);
 

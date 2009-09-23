@@ -46,7 +46,8 @@ public class Glk extends Thread {
 	public final static int GESTALT_UNICODE = 15;
 
 	@SuppressWarnings("unused")
-	private Window _root, _currentWindow;
+	private Window _root;
+	private Stream _currentStream;
 	private FrameLayout _frame;
 	private Handler _uiHandler = new Handler();
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
@@ -67,19 +68,16 @@ public class Glk extends Thread {
 		_context = context;
 	}
 	
-	@SuppressWarnings("unused")
-	private void set_window(Window window) {
-		_currentWindow = window;
+	public void setWindow(Window window) {
+		_currentStream = window.getStream();
 	}
 	
-	@SuppressWarnings("unused")
-	private void put_string(final String str) {
-		_currentWindow.putString(str);
+	public void putString(final String str) {
+		_currentStream.putString(str);
 	}
 	
-	@SuppressWarnings("unused")
-	private void set_style(long styl) {
-		_currentWindow.setStyle(styl);
+	public void setStyle(long styl) {
+		_currentStream.setStyle(styl);
 	}
 	
 	@SuppressWarnings("unused")
@@ -103,9 +101,8 @@ public class Glk extends Thread {
 		}
 	}
 	
-	@SuppressWarnings("unused")
-	private void put_char(char c) {
-		_currentWindow.putChar(c);
+	public void putChar(char c) {
+		_currentStream.putChar(c);
 	}
 	
 	public ViewGroup getView() {
