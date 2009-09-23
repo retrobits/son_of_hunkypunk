@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import android.hardware.Camera.Size;
 import android.view.View;
 
 public abstract class Window extends CPointed {
@@ -70,13 +71,12 @@ public abstract class Window extends CPointed {
 	}
 	
 	public abstract View getView();
-	public float measureCharacterWidth() { throw new RuntimeException(new NoSuchMethodException()); }
-	public float measureCharacterHeight() { throw new RuntimeException(new NoSuchMethodException()); }
 	public void clear() { throw new RuntimeException(new NoSuchMethodException()); }
 	public abstract long[] getSize();
 	public void move_cursor(long x, long y) { throw new RuntimeException(new NoSuchMethodException()); }
 	
 	public long close() {
+		// TODO fix it
 		PairWindow pair = getParent();
 		if (pair != null)
 			pair.dissolve(this);
@@ -101,4 +101,22 @@ public abstract class Window extends CPointed {
 	public void setEchoStream(Stream echoStream) {
 		mEchoStream = echoStream;
 	}
+
+	/** Get pixel size from window-specific measurement.
+	 * 
+	 * @note This value can change.
+	 * 
+	 * @param size Width in window-specific units.
+	 * @return Number of pixels represented by size.
+	 */
+	abstract public int measureWidth(int size);
+
+	/** Get pixel size from window-specific measurement.
+	 * 
+	 * @note This value can change.
+	 * 
+	 * @param size Height in window-specific units.
+	 * @return Number of pixels represented by size.
+	 */
+	abstract public int measureHeight(int size);
 }

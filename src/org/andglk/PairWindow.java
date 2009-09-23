@@ -1,6 +1,5 @@
 package org.andglk;
 
-import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -11,8 +10,11 @@ public class PairWindow extends Window {
 	private Window mKey;
 	private Window mSub;
 	private Glk _glk;
+	private Window mKeyWindow;
+	private int mMethod;
+	private int mSize;
 
-	public PairWindow(final Glk glk, final Window oldw, final Window neww, final long method, final long size) {
+	public PairWindow(final Glk glk, final Window oldw, final Window neww, final int method, final int size) {
 		super(0);
 		glk.waitForUi(new Runnable() {
 			@Override
@@ -23,8 +25,7 @@ public class PairWindow extends Window {
 	}
 
 	/* this must run in the main thread */
-	protected void init(Glk glk, Window oldw, Window neww, long method,
-			long size) {
+	protected void init(Glk glk, Window oldw, Window neww, int method, int size) {
 		_glk = glk;
 		LinearLayout l = _view = new LinearLayout(glk.getContext());
 		l.setWeightSum(100);
@@ -57,21 +58,6 @@ public class PairWindow extends Window {
 			second = oldv;
 		}
 		
-		int division = (int) method & Window.WINMETHOD_DIVISIONMASK;
-		LinearLayout.LayoutParams lp;
-
-		if (division == WINMETHOD_FIXED) {
-			boolean horiz = l.getOrientation() == LinearLayout.HORIZONTAL; 
-			float zeroSize =  horiz ?
-					neww.measureCharacterWidth() :
-						neww.measureCharacterHeight();
-			int total = Math.round(zeroSize * size);
-			lp = new LinearLayout.LayoutParams(horiz ? total : LayoutParams.FILL_PARENT, horiz ? LayoutParams.FILL_PARENT : total);
-		} else
-			lp = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, size);
-		
-		newv.setLayoutParams(lp);
-
 		// transfer layout params of the split window to the pair
 		l.setLayoutParams(oldv.getLayoutParams());
 		oldv.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
@@ -80,15 +66,12 @@ public class PairWindow extends Window {
 		assert(oldParent != null);
 		
 		// swap the pair in
-		int parentIndex = (oldParent.getChildAt(0) == oldv) ? 0 : 1;
+		int parentIndex = (oldParent.getChildAt(0) == oldv) ? 0 : 2; // 2 because of the divider
 		oldParent.removeView(oldv);
 		oldParent.addView(l, parentIndex);
 		
 		oldw.setParent(this);
 		neww.setParent(this);
-		
-		mKey = oldw;
-		mSub = neww;
 		
 		l.addView(first);
 		
@@ -101,8 +84,9 @@ public class PairWindow extends Window {
 			divider.setLayoutParams(new ViewGroup.LayoutParams(1, ViewGroup.LayoutParams.FILL_PARENT));
 		}
 		l.addView(divider);
-		
 		l.addView(second);
+		
+		setArrangement(method, size, neww);
 	}
 
 	@Override
@@ -171,5 +155,43 @@ public class PairWindow extends Window {
 	@Override
 	public long[] getSize() {
 		return new long[] { 0, 0 }; // no meaningful measurement
+	}
+	
+	public void setArrangement(int method, int size, Window keyWindow) {
+		int division = (int) method & Window.WINMETHOD_DIVISIONMASK;
+		int dir = method & Window.WINMETHOD_DIRMASK;
+
+		if (keyWindow != null) mKeyWindow = keyWindow;
+		mMethod = method;
+		mSize = size;
+		
+		View free = null, constrained = null;
+		switch (dir) {
+		case WINMETHOD_ABOVE:
+		case WINMETHOD_LEFT:
+			constrained = _view.getChildAt(0);
+			free = _view.getChildAt(1);
+			break;
+		case WINMETHOD_BELOW:
+		case WINMETHOD_RIGHT:
+			free = _view.getChildAt(0);
+			constrained = _view.getChildAt(1);
+			break;
+		default:
+			assert(false);
+		}
+		free.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.FILL_PARENT, android.widget.LinearLayout.LayoutParams.FILL_PARENT, 0));
+
+		switch (division) {
+		case WINMETHOD_PROPORTIONAL:
+			constrained.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.FILL_PARENT, android.widget.LinearLayout.LayoutParams.FILL_PARENT, size));
+			break;
+		case WINMETHOD_FIXED:
+			boolean horiz = (dir == WINMETHOD_LEFT) || (dir == WINMETHOD_RIGHT);
+			int measure = 0;
+			if (mKeyWindow != null)
+				measure = horiz ? mKeyWindow.measureWidth(size) : mKeyWindow.measureHeight(size);
+			constrained.setLayoutParams(new LinearLayout.LayoutParams(horiz ? measure : LinearLayout.LayoutParams.FILL_PARENT, horiz ? LinearLayout.LayoutParams.FILL_PARENT : measure));
+		}
 	}
 }

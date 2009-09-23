@@ -5,7 +5,7 @@
 #include "glk.h"
 
 JavaVM *_jvm;
-jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character;
+jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow;
 jmethodID _getRock, _getPointer;
 JNIEnv *_env;
 jobject _this;
@@ -34,6 +34,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/Window");
 	_Window = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/PairWindow");
+	_PairWindow = (*env)->NewGlobalRef(env, cls);
 
 	cls = (*env)->FindClass(env, "org/andglk/FileRef");
 	_FileRef = (*env)->NewGlobalRef(env, cls);
@@ -215,13 +218,15 @@ void glk_window_get_size(winid_t win, glui32 *widthptr, glui32 *heightptr)
 void glk_window_set_arrangement(winid_t win, glui32 method,
     glui32 size, winid_t keywin)
 {
+	if (!win)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_set_arrangement", "()V");
+		mid = (*env)->GetMethodID(env, _PairWindow, "setArrangement", "(IILorg/andglk/Window;)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win, method, size, keywin);
-
+	(*env)->CallVoidMethod(env, *win, mid, (jint) method, (jint) size, keywin ? *keywin : 0);
 }
 
 void glk_window_get_arrangement(winid_t win, glui32 *methodptr,
