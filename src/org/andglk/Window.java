@@ -81,7 +81,8 @@ public abstract class Window extends CPointed {
 		mStream.putString(str);
 	}
 	
-	public void requestLineEvent(String initial, long maxlen) { throw new RuntimeException(new NoSuchMethodException()); }
+	public abstract void requestLineEvent(String initial, long maxlen);
+	public abstract void requestCharEvent();
 	
 	/** Writes @p c to the window's output stream.
 	 * 

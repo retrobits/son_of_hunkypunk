@@ -39,4 +39,12 @@ public class BlankWindow extends Window {
 	@Override
 	public void clear() {
 	}
+
+	@Override
+	public void requestCharEvent() {
+	}
+
+	@Override
+	public void requestLineEvent(String initial, long maxlen) {
+	}
 }

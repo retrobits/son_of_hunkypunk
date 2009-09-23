@@ -15,6 +15,7 @@ import android.text.method.ArrowKeyMovementMethod;
 import android.text.style.TextAppearanceSpan;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View.OnKeyListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -57,7 +58,7 @@ public class TextBufferWindow extends Window {
 		}
 	}
 	
-	private class View extends TextView implements OnEditorActionListener {
+	private class View extends TextView implements OnEditorActionListener, OnKeyListener {
 		private int _start;
 		private TextAppearanceSpan mStyleSpan;
 		private int mStyleStart;
@@ -215,6 +216,28 @@ public class TextBufferWindow extends Window {
 				mStyleSpan = null;
 			}
 		}
+
+		public void requestCharEvent() {
+			setOnKeyListener(this);
+			setFocusableInTouchMode(true);
+		}
+
+		@Override
+		public boolean onKey(android.view.View v, int keyCode, KeyEvent event) {
+			if (event.getAction() != KeyEvent.ACTION_UP || !event.isPrintingKey())
+				return false;
+			
+			int c = event.getUnicodeChar();
+			if (c < 0 || c > 255)
+				return false;
+			
+			setOnKeyListener(null);
+			setFocusable(false);
+
+			Event e = new CharInputEvent(TextBufferWindow.this, c);
+			_glk.postEvent(e);
+			return true;
+		}
 	}
 
 	@SuppressWarnings("unused")
@@ -292,6 +315,16 @@ public class TextBufferWindow extends Window {
 			@Override
 			public void run() {
 				_view.append(str);
+			}
+		});
+	}
+
+	@Override
+	public void requestCharEvent() {
+		_uiHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				_view.requestCharEvent();
 			}
 		});
 	}

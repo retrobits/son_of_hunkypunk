@@ -8,6 +8,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View.OnKeyListener;
 
 public class TextGridWindow extends Window {
 	private class Stream extends Window.Stream {
@@ -34,7 +36,7 @@ public class TextGridWindow extends Window {
 		}
 	}
 	
-	private class View extends android.view.View {
+	private class View extends android.view.View implements OnKeyListener {
 		private int _fontSize;
 		private Paint mPaint;
 		private int _charsW;
@@ -121,7 +123,29 @@ public class TextGridWindow extends Window {
 				for (int x = 0; x < _charsW; x++)
 					canvas.drawText(_framebuf, y * _charsW + x, 1, cw * x, ch * (y + 1), mPaint);
 		}
+
+		public void requestCharEvent() {
+			setOnKeyListener(this);
+			setFocusableInTouchMode(true);
+		}
+
+		public boolean onKey(android.view.View v, int keyCode, KeyEvent event) {
+			if (event.getAction() != KeyEvent.ACTION_UP || !event.isPrintingKey())
+				return false;
+			
+			int c = event.getUnicodeChar();
+			if (c < 0 || c > 255)
+				return false;
+			
+			setOnKeyListener(null);
+			setFocusable(false);
+
+			Event e = new CharInputEvent(TextGridWindow.this, c);
+			_glk.postEvent(e);
+			return true;
+		}
 	}
+	
 	private View _view;
 	private Glk _glk;
 
@@ -178,5 +202,16 @@ public class TextGridWindow extends Window {
 	@Override
 	public int getType() {
 		return WINTYPE_TEXTGRID;
+	}
+
+	@Override
+	public void requestCharEvent() {
+		_view.requestCharEvent();
+	}
+
+	@Override
+	public void requestLineEvent(String initial, long maxlen) {
+		// TODO Auto-generated method stub
+		
 	}
 }

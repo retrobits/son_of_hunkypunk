@@ -5,7 +5,8 @@
 #include "glk.h"
 
 JavaVM *_jvm;
-jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow;
+jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow,
+	_CharInputEvent;
 jmethodID _getRock, _getPointer;
 JNIEnv *_env;
 jobject _this;
@@ -31,6 +32,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/LineInputEvent");
 	_LineInputEvent = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/CharInputEvent");
+	_CharInputEvent = (*env)->NewGlobalRef(env, cls);
 
 	cls = (*env)->FindClass(env, "org/andglk/Window");
 	_Window = (*env)->NewGlobalRef(env, cls);
@@ -825,7 +829,6 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 
 	if ((*env)->IsInstanceOf(env, ev, _LineInputEvent)) {
 		event->type = evtype_LineInput;
-
 		{
 			static jfieldID line_id = 0;
 			if (0 == line_id)
@@ -837,6 +840,16 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 			__android_log_print(ANDROID_LOG_DEBUG, "andglk.c", "got line: \"%s\"\n", _line_event_buf);
 			event->val2 = 0;
 		}
+	} else if ((*env)->IsInstanceOf(env, ev, _CharInputEvent)) {
+		event->type = evtype_CharInput;
+		{
+			static jfieldID char_id = 0;
+			if (0 == char_id)
+				char_id = (*env)->GetFieldID(env, _CharInputEvent, "mChar", "I");
+
+			event->val1 = (*env)->GetIntField(env, ev, char_id);
+		}
+		event->val2 = 0;
 	}
 }
 
@@ -853,13 +866,8 @@ void glk_select(event_t *event)
 
 void glk_select_poll(event_t *event)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "select_poll", "([FIXME: event_t *])V");
-
-	(*env)->CallVoidMethod(env, _this, mid, event);
-
+	/* we don't use that ATM (TODO?) */
+	event->type = evtype_None;
 }
 
 void glk_request_timer_events(glui32 millisecs)
@@ -903,10 +911,9 @@ void glk_request_char_event(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "request_char_event", "(Lorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _Window, "requestCharEvent", "()V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win);
-
+	(*env)->CallVoidMethod(env, *win, mid);
 }
 
 void glk_request_mouse_event(winid_t win)
