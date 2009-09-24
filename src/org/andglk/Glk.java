@@ -5,6 +5,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Handler;
 import android.util.Log;
 import android.view.ViewGroup;
@@ -64,7 +65,14 @@ public class Glk extends Thread {
 	public Glk(Context context) {
 		assert (_instance == null);
 		_instance = this;
-		_frame = new FrameLayout(context);
+		_frame = new FrameLayout(context) {
+			@Override
+			protected void onLayout(boolean changed, int left, int top,
+					int right, int bottom) {
+				super.onLayout(changed, left, top, right, bottom);
+				postEvent(new ArrangeEvent());
+			}
+		};
 		_context = context;
 	}
 	
@@ -210,5 +218,9 @@ public class Glk extends Thread {
 			return false;
 		else
 			return true;
+	}
+
+	public void onConfigurationChanged(Configuration newConfig) {
+		_frame.requestLayout();
 	}
 }

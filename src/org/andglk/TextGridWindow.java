@@ -85,7 +85,7 @@ public class TextGridWindow extends Window {
 			_framebuf = new char[_charsW * _charsH];
 			
 			for (int y = 0; y < Math.min(oldh, _charsH); ++y)
-				for (int x = 0; x < Math.min(oldw, _charsW); ++y)
+				for (int x = 0; x < Math.min(oldw, _charsW); ++x)
 					_framebuf[y * _charsW + x] = oldfb[y * oldw + x];
 		}
 

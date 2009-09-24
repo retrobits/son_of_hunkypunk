@@ -6,7 +6,7 @@
 
 JavaVM *_jvm;
 jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow,
-	_CharInputEvent;
+	_CharInputEvent, _ArrangeEvent;
 jmethodID _getRock, _getPointer;
 JNIEnv *_env;
 jobject _this;
@@ -33,6 +33,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
 	cls = (*env)->FindClass(env, "org/andglk/CharInputEvent");
 	_CharInputEvent = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/ArrangeEvent");
+	_ArrangeEvent = (*env)->NewGlobalRef(env, cls);
 
 	cls = (*env)->FindClass(env, "org/andglk/Window");
 	_Window = (*env)->NewGlobalRef(env, cls);
@@ -859,6 +862,9 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 			event->val1 = (*env)->GetIntField(env, ev, char_id);
 		}
 		event->val2 = 0;
+	} else if ((*env)->IsInstanceOf(env, ev, _ArrangeEvent)) {
+		event->type = evtype_Arrange;
+		event->val1 = event->val2 = 0;
 	}
 }
 
