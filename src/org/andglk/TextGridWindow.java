@@ -180,24 +180,7 @@ public class TextGridWindow extends Window {
 		}
 
 		private void doneLineInput() {
-			if (!mLineEventPending)
-				return;
-			
-			final String result = String.copyValueOf(_framebuf, mLineInputStart, _pos - mLineInputStart);
-			_pos = _pos + _charsW;
-			_pos -= _pos % _charsW;
-			mLineEventPending = false;
-			setFocusable(false);
-			
-			Event e = new LineInputEvent(TextGridWindow.this, result, mLineBuffer, mMaxLen);
-			_glk.postEvent(e);
-		}
-
-		public void cancelCharEvent() {
-			if (mCharEventPending) {
-				setFocusable(false);
-				mCharEventPending = false;
-			}				
+			_glk.postEvent(cancelLineEvent());
 		}
 
 		public void requestLineEvent(String initial) {
@@ -210,6 +193,26 @@ public class TextGridWindow extends Window {
 				mLineInputEnd = mLineInputStart + mMaxLen;
 			
 			setFocusableInTouchMode(true);
+		}
+
+		public LineInputEvent cancelLineEvent() {
+			if (!mLineEventPending)
+				return null;
+			
+			final String result = String.copyValueOf(_framebuf, mLineInputStart, _pos - mLineInputStart);
+			_pos = _pos + _charsW;
+			_pos -= _pos % _charsW;
+			mLineEventPending = false;
+			setFocusable(false);
+			
+			return new LineInputEvent(TextGridWindow.this, result, mLineBuffer, mMaxLen);
+		}
+
+		public void cancelCharEvent() {
+			if (mCharEventPending) {
+				setFocusable(false);
+				mCharEventPending = false;
+			}				
 		}
 	}
 	
@@ -288,5 +291,10 @@ public class TextGridWindow extends Window {
 	@Override
 	public void cancelCharEvent() {
 		_view.cancelCharEvent();
+	}
+
+	@Override
+	public LineInputEvent cancelLineEvent() {
+		return _view.cancelLineEvent();
 	}
 }

@@ -63,6 +63,7 @@ public class TextBufferWindow extends Window {
 		private TextAppearanceSpan mStyleSpan;
 		private int mStyleStart;
 		private boolean mCharEventPending;
+		private boolean mLineInputPending;
 		private class Filter implements InputFilter {
 			private long _maxlen;
 
@@ -135,6 +136,7 @@ public class TextBufferWindow extends Window {
 			setMovementMethod(ArrowKeyMovementMethod.getInstance());
 			setFocusableInTouchMode(true);
 			setOnEditorActionListener(this);
+			mLineInputPending = true;
 
 			final Editable e = getEditableText();
 			_start = e.length();
@@ -153,24 +155,7 @@ public class TextBufferWindow extends Window {
 			if (actionId != EditorInfo.IME_NULL || event.getAction() != KeyEvent.ACTION_DOWN)
 				return false;
 			
-			String s = getLineInput();
-			
-			Stream stream = (Stream) mStream;
-			stream.echo(s);
-			stream.echo("\n");
-			
-			Event e = new LineInputEvent(TextBufferWindow.this, s, mLineBuffer, mMaxLen);
-			Editable ed = getEditableText();
-			setStyle(Glk.STYLE_NORMAL);
-			ed.setFilters(new InputFilter[]{});
-			
-			append("\n");
-			setOnEditorActionListener(null);
-			setRawInputType(InputType.TYPE_NULL);
-			setMovementMethod(getDefaultMovementMethod());
-			setFocusable(false);
-			
-			_glk.postEvent(e);
+			_glk.postEvent(cancelLineEvent());
 			return true;
 		}
 
@@ -246,6 +231,32 @@ public class TextBufferWindow extends Window {
 				setFocusable(false);
 				mCharEventPending = false;
 			}
+		}
+
+		public LineInputEvent cancelLineEvent() {
+			if (!mLineInputPending)
+				return null;
+			
+			mLineInputPending = false;
+			
+			String s = getLineInput();
+			
+			Stream stream = (Stream) mStream;
+			stream.echo(s);
+			stream.echo("\n");
+			
+			LineInputEvent e = new LineInputEvent(TextBufferWindow.this, s, mLineBuffer, mMaxLen);
+			Editable ed = getEditableText();
+			setStyle(Glk.STYLE_NORMAL);
+			ed.setFilters(new InputFilter[]{});
+			
+			append("\n");
+			setOnEditorActionListener(null);
+			setRawInputType(InputType.TYPE_NULL);
+			setMovementMethod(getDefaultMovementMethod());
+			setFocusable(false);
+
+			return e;
 		}
 	}
 
@@ -345,5 +356,10 @@ public class TextBufferWindow extends Window {
 	@Override
 	public void cancelCharEvent() {
 		_view.cancelCharEvent();
+	}
+
+	@Override
+	public LineInputEvent cancelLineEvent() {
+		return _view.cancelLineEvent();
 	}
 }

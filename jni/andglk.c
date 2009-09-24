@@ -819,6 +819,12 @@ static glui32 jstring2latin1(JNIEnv *env, jstring str, char *buf, glui32 maxlen)
 
 static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 {
+	if (!ev) {
+		event->win = NULL;
+		event->val1 = event->val2 = event->type = 0;
+		return;
+	}
+
 	static jfieldID window = 0;
 	if (window == 0)
 		window = (*env)->GetFieldID(env, _Event, "windowPointer", "I");
@@ -932,10 +938,11 @@ void glk_cancel_line_event(winid_t win, event_t *event)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "cancel_line_event", "(Lorg/andglk/Window;[FIXME: event_t *])V");
+		mid = (*env)->GetMethodID(env, _Window, "cancelLineEvent", "()org/andglk/LineInputEvent;");
 
-	(*env)->CallVoidMethod(env, _this, mid, win, event);
-
+	jobject ev = (*env)->CallObjectMethod(env, *win, mid);
+	if (event)
+		event2glk(env, ev, event);
 }
 
 void glk_cancel_char_event(winid_t win)
