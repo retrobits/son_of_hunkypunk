@@ -493,10 +493,9 @@ void glk_stream_set_current(strid_t str)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_set_current", "(Lorg/andglk/Stream;)V");
+		mid = (*env)->GetStaticMethodID(env, _Stream, "setCurrent", "(Lorg/andglk/Stream;)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, str);
-
+	(*env)->CallStaticVoidMethod(env, _Stream, mid, str ? *str : 0);
 }
 
 strid_t glk_stream_get_current(void)
@@ -504,10 +503,14 @@ strid_t glk_stream_get_current(void)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_get_current", "()Lorg/andglk/Stream;");
+		mid = (*env)->GetStaticMethodID(env, _Stream, "getCurrent", "()Lorg/andglk/Stream;");
 
-	return (*env)->CallObjectMethod(env, _this, mid);
+	jobject str = (*env)->CallStaticObjectMethod(env, _Stream, mid);
 
+	if (str)
+		return (strid_t) (*env)->CallIntMethod(env, str, _getPointer);
+	else
+		return 0;
 }
 
 void glk_put_char(unsigned char ch)

@@ -48,7 +48,7 @@ public class Glk extends Thread {
 
 	@SuppressWarnings("unused")
 	private Window _root;
-	private Stream _currentStream;
+	private Stream mCurrentStream;
 	private FrameLayout _frame;
 	private Handler _uiHandler = new Handler();
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
@@ -77,15 +77,17 @@ public class Glk extends Thread {
 	}
 	
 	public void setWindow(Window window) {
-		_currentStream = window.getStream();
+		mCurrentStream = window.getStream();
 	}
 	
 	public void putString(final String str) {
-		_currentStream.putString(str);
+		if (mCurrentStream != null)
+			mCurrentStream.putString(str);
 	}
 	
 	public void setStyle(long styl) {
-		_currentStream.setStyle(styl);
+		if (mCurrentStream != null)
+			mCurrentStream.setStyle(styl);
 	}
 	
 	@SuppressWarnings("unused")
@@ -104,7 +106,8 @@ public class Glk extends Thread {
 	}
 	
 	public void putChar(char c) {
-		_currentStream.putChar(c);
+		if (mCurrentStream != null)
+			mCurrentStream.putChar(c);
 	}
 	
 	public ViewGroup getView() {
@@ -222,5 +225,13 @@ public class Glk extends Thread {
 
 	public void onConfigurationChanged(Configuration newConfig) {
 		_frame.requestLayout();
+	}
+
+	public void setCurrentStream(Stream stream) {
+		mCurrentStream = stream;
+	}
+
+	public Stream getCurrentStream() {
+		return mCurrentStream;
 	}
 }

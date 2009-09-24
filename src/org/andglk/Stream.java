@@ -130,4 +130,12 @@ public abstract class Stream extends CPointed {
 	public void echoOn(Window.Stream stream) {
 		mEchoedWindows.add(stream);
 	}
+	
+	public static void setCurrent(Stream stream) {
+		Glk.getInstance().setCurrentStream(stream);
+	}
+	
+	public static Stream getCurrent() {
+		return Glk.getInstance().getCurrentStream();
+	}
 }
