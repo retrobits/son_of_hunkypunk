@@ -327,4 +327,10 @@ public class TextGridWindow extends Window {
 	public LineInputEvent cancelLineEvent() {
 		return _view.cancelLineEvent();
 	}
+
+	@Override
+	boolean styleDistinguish(int style1, int style2) {
+		// TODO fix when styles implemented
+		return false;
+	}
 }

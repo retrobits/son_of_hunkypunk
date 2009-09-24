@@ -310,4 +310,6 @@ public abstract class Window extends CPointed {
 			return 0;
 		}
 	}
+	
+	abstract boolean styleDistinguish(int style1, int style2);
 }

@@ -231,4 +231,9 @@ public class PairWindow extends Window {
 	public LineInputEvent cancelLineEvent() {
 		return null;
 	}
+
+	@Override
+	boolean styleDistinguish(int style1, int style2) {
+		return false;
+	}
 }

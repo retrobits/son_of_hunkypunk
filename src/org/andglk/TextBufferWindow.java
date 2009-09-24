@@ -1,8 +1,10 @@
 package org.andglk;
 
 import java.io.IOException;
+import java.security.spec.MGF1ParameterSpec;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -13,7 +15,6 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
 import android.text.style.TextAppearanceSpan;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View.OnKeyListener;
 import android.view.inputmethod.EditorInfo;
@@ -186,7 +187,7 @@ public class TextBufferWindow extends Window {
 			if (id == 0)
 				mStyleSpan = null;
 			else
-				mStyleSpan = new TextAppearanceSpan(getContext(), id);
+				mStyleSpan = new TextAppearanceSpan(mContext, id);
 		}
 
 		public void requestCharEvent() {
@@ -253,17 +254,19 @@ public class TextBufferWindow extends Window {
 	private Glk _glk;
 	private int mLineBuffer;
 	private long mMaxLen;
+	private Context mContext;
 
 	public TextBufferWindow(final Glk glk, int rock) {
 		super(rock);
 		_glk = glk;
 		_uiHandler = glk.getUiHandler();
 		mStream = new Stream();
+		mContext = glk.getContext();
 
 		glk.waitForUi(new Runnable() {
 			@Override
 			public void run() {
-				_view = new View(glk.getContext());
+				_view = new View(mContext);
 			}
 		});
 	}
@@ -347,5 +350,25 @@ public class TextBufferWindow extends Window {
 	@Override
 	public LineInputEvent cancelLineEvent() {
 		return _view.cancelLineEvent();
+	}
+
+	@Override
+	boolean styleDistinguish(int style1, int style2) {
+		if (style1 == style2)
+			return false;
+		
+		int res1 = getTextAppearanceId(style1), res2 = getTextAppearanceId(style2);
+		if (res1 == 0)
+			res1 = R.style.TextBufferWindow;
+		if (res2 == 0)
+			res2 = R.style.TextBufferWindow;
+		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor, android.R.attr.typeface, android.R.attr.textStyle };
+		TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
+		TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);
+		
+		return (ta1.getDimension(0, 0) != ta2.getDimension(0, 0)) ||
+			(ta1.getColor(1, 0) != ta2.getColor(1, 0)) ||
+			(ta1.getString(2) != ta2.getString(2)) ||
+			(ta1.getString(3) != ta2.getString(3));
 	}
 }

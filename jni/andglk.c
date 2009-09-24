@@ -665,27 +665,14 @@ glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 	return count;
 }
 
-void glk_stylehint_set(glui32 wintype, glui32 styl, glui32 hint,
-    glsi32 val)
+void glk_stylehint_set(glui32 wintype, glui32 styl, glui32 hint, glsi32 val)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stylehint_set", "(JJJI)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, wintype, styl, hint, val);
-
+	/* we don't currently support stylehints (TODO) */
 }
 
 void glk_stylehint_clear(glui32 wintype, glui32 styl, glui32 hint)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stylehint_clear", "(JJJ)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, wintype, styl, hint);
-
+	/* we don't currently support stylehints (TODO) */
 }
 
 glui32 glk_style_distinguish(winid_t win, glui32 styl1, glui32 styl2)
@@ -693,10 +680,9 @@ glui32 glk_style_distinguish(winid_t win, glui32 styl1, glui32 styl2)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "style_distinguish", "(Lorg/andglk/Window;JJ)J");
+		mid = (*env)->GetMethodID(env, _Window, "styleDistinguish", "(II)Z");
 
-	return (*env)->CallLongMethod(env, _this, mid, win, styl1, styl2);
-
+	return (*env)->CallBooleanMethod(env, *win, mid, styl1, styl2);
 }
 
 glui32 glk_style_measure(winid_t win, glui32 styl, glui32 hint,
