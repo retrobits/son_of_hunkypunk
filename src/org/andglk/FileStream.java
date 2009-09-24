@@ -19,6 +19,8 @@ public class FileStream extends Stream {
 			case FileRef.FILEMODE_WRITE:
 				if (file.exists())
 					file.delete();
+				// fall through
+			case FileRef.FILEMODE_READWRITE:
 				mFile = new RandomAccessFile(fileref.getFile(), "rw");
 				break;
 			case FileRef.FILEMODE_READ:

@@ -495,12 +495,8 @@ strid_t glk_stream_iterate(strid_t str, glui32 *rockptr)
 glui32 glk_stream_get_rock(strid_t str)
 {
 	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_get_rock", "(Lorg/andglk/Stream;)J");
 
-	return (*env)->CallLongMethod(env, _this, mid, str);
-
+	return (*env)->CallIntMethod(env, *str, _getRock);
 }
 
 void glk_stream_set_position(strid_t str, glsi32 pos, glui32 seekmode)
