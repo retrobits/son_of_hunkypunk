@@ -486,10 +486,9 @@ void glk_stream_set_position(strid_t str, glsi32 pos, glui32 seekmode)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_set_position", "(Lorg/andglk/Stream;IJ)V");
+		mid = (*env)->GetMethodID(env, _Stream, "setPosition", "(II)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, str, pos, seekmode);
-
+	(*env)->CallVoidMethod(env, *str, mid, (jint) pos, (jint) seekmode);
 }
 
 glui32 glk_stream_get_position(strid_t str)
@@ -497,9 +496,9 @@ glui32 glk_stream_get_position(strid_t str)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_get_position", "(Lorg/andglk/Stream;)J");
+		mid = (*env)->GetMethodID(env, _Stream, "getPosition", "()I");
 
-	return (*env)->CallLongMethod(env, _this, mid, str);
+	return (*env)->CallIntMethod(env, *str, mid);
 
 }
 

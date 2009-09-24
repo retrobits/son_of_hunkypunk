@@ -13,6 +13,16 @@ import android.view.KeyEvent;
 public class TextGridWindow extends Window {
 	private class Stream extends Window.Stream {
 		@Override
+		public int getPosition() {
+			return _view.getPosition();
+		}
+		
+		@Override
+		public void setPosition(int pos, int seekMode) {
+			_view.setPosition(pos, seekMode);
+		}
+		
+		@Override
 		protected void doPutChar(char c) throws IOException {
 			_view.putString(Character.toString(c));
 		}
@@ -62,6 +72,26 @@ public class TextGridWindow extends Window {
 			mPaint.setColor(ta.getColor(1, 0xffffffff));
 			
 			_charsW = _charsH = 0;
+		}
+
+		public void setPosition(int pos, int seekMode) {
+			switch (seekMode) {
+			case Stream.SEEKMODE_CURRENT:
+				pos += _pos;
+				break;
+			case Stream.SEEKMODE_END:
+				pos += _charsH * _charsW;
+				break;
+			case Stream.SEEKMODE_START:
+			default:
+				// we're ok
+			}
+			
+			_pos = pos;
+		}
+
+		public int getPosition() {
+			return _pos;
 		}
 
 		public float measureCharacterHeight() {

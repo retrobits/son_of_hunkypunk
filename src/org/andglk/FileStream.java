@@ -89,4 +89,35 @@ public class FileStream extends Stream {
 			}
 		return sb.toString();
 	}
+
+	@Override
+	public int getPosition() {
+		try {
+			return (int) mFile.getFilePointer();
+		} catch (IOException e) {
+			Log.e("Glk/FileStream", "I/O when getting position", e);
+			return 0;
+		}
+	}
+
+	@Override
+	public void setPosition(int pos, int seekMode) {
+		try {
+			switch (seekMode) {
+			case SEEKMODE_CURRENT:
+				pos += mFile.getFilePointer();
+				break;
+			case SEEKMODE_END:
+				pos += mFile.length();
+				break;
+			case SEEKMODE_START:
+			default:
+				// we're ok
+			}
+			
+			mFile.seek(pos);
+		} catch (IOException e) {
+			Log.e("Glk/FileStream", "I/O when seeking", e);
+		}
+	}
 }

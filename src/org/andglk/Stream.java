@@ -7,6 +7,10 @@ import java.util.List;
 import android.util.Log;
 
 public abstract class Stream extends CPointed {
+	public final static int SEEKMODE_START = 0;
+	public final static int SEEKMODE_CURRENT = 1;
+	public final static int SEEKMODE_END = 2;
+
 	protected int mWritten;
 	private int mRead;
 	private List<Window.Stream> mEchoedWindows = new LinkedList<Window.Stream>();
@@ -174,4 +178,7 @@ public abstract class Stream extends CPointed {
 	}
 
 	protected abstract String doGetBuffer(int maxLen) throws IOException;
+	
+	public abstract int getPosition();
+	public abstract void setPosition(int pos, int seekMode);
 }

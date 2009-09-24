@@ -270,5 +270,14 @@ public abstract class Window extends CPointed {
 		protected String doGetLine(int maxLen) throws IOException {
 			return null;
 		}
+		
+		@Override
+		public int getPosition() {
+			return mWritten;
+		}
+		
+		@Override
+		public void setPosition(int pos, int seekMode) {
+		}
 	}
 }
