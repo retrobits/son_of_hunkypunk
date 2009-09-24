@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.View.OnKeyListener;
 
 public class TextGridWindow extends Window {
 	private class Stream extends Window.Stream {
@@ -36,7 +35,7 @@ public class TextGridWindow extends Window {
 		}
 	}
 	
-	private class View extends android.view.View implements OnKeyListener {
+	private class View extends android.view.View {
 		private int _fontSize;
 		private Paint mPaint;
 		private int _charsW;
@@ -44,6 +43,9 @@ public class TextGridWindow extends Window {
 		private char[] _framebuf;
 		private int _pos;
 		private boolean mCharEventPending;
+		private boolean mLineEventPending;
+		private int mLineInputEnd;
+		private int mLineInputStart;
 
 		public View(Context context) {
 			super(context);
@@ -126,37 +128,95 @@ public class TextGridWindow extends Window {
 		}
 
 		public void requestCharEvent() {
-			setOnKeyListener(this);
 			setFocusableInTouchMode(true);
 			mCharEventPending = true;
 		}
+		
+		@Override
+		public boolean onKeyUp(int keyCode, KeyEvent event) {
+			do {
+				if (mCharEventPending && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+					doneLineInput();
+					return true;
+				}
+				if (mLineEventPending && event.getKeyCode() == KeyEvent.KEYCODE_DEL) {
+					backspace();
+					return true;
+				}
+				if ((!mCharEventPending && !mLineEventPending) || !event.isPrintingKey())
+					break;
+	
+				int c = event.getUnicodeChar();
+				if (c < 0 || c > 255)
+					break;
+				
+				if (mCharEventPending) {
+					cancelCharEvent();
+					
+					Event e = new CharInputEvent(TextGridWindow.this, c);
+					_glk.postEvent(e);
+				} else {
+					addToLine(c);
+				}
+				return true;
+			} while (false);
+			return super.onKeyUp(keyCode, event);
+		}
 
-		public boolean onKey(android.view.View v, int keyCode, KeyEvent event) {
-			if (event.getAction() != KeyEvent.ACTION_UP || !event.isPrintingKey())
-				return false;
+		private void backspace() {
+			if (_pos == mLineInputStart)
+				return;
 			
-			int c = event.getUnicodeChar();
-			if (c < 0 || c > 255)
-				return false;
+			_framebuf[--_pos] = ' ';
+			invalidate();
+		}
+
+		private void addToLine(int c) {
+			if (_pos == mLineInputEnd)
+				return;
 			
-			cancelCharEvent();
+			_framebuf[_pos++] = (char) c;
+			invalidate();
+		}
+
+		private void doneLineInput() {
+			if (!mLineEventPending)
+				return;
 			
-			Event e = new CharInputEvent(TextGridWindow.this, c);
+			final String result = String.copyValueOf(_framebuf, mLineInputStart, _pos - mLineInputStart);
+			_pos = _pos + _charsW;
+			_pos -= _pos % _charsW;
+			mLineEventPending = false;
+			setFocusable(false);
+			
+			Event e = new LineInputEvent(TextGridWindow.this, result, mLineBuffer, mMaxLen);
 			_glk.postEvent(e);
-			return true;
 		}
 
 		public void cancelCharEvent() {
 			if (mCharEventPending) {
-				setOnKeyListener(null);
 				setFocusable(false);
 				mCharEventPending = false;
 			}				
+		}
+
+		public void requestLineEvent(String initial) {
+			mLineEventPending = true;
+			mLineInputStart = _pos;
+			mLineInputEnd = _pos + _charsW;
+			mLineInputEnd -= mLineInputEnd % _charsW;
+			
+			if (mLineInputEnd - mLineInputStart > mMaxLen)
+				mLineInputEnd = mLineInputStart + mMaxLen;
+			
+			setFocusableInTouchMode(true);
 		}
 	}
 	
 	private View _view;
 	private Glk _glk;
+	private int mLineBuffer;
+	private int mMaxLen;
 
 	public TextGridWindow(final Glk glk, int rock) {
 		super(rock);
@@ -219,9 +279,10 @@ public class TextGridWindow extends Window {
 	}
 
 	@Override
-	public void requestLineEvent(String initial, long maxlen) {
-		// TODO Auto-generated method stub
-		
+	public void requestLineEvent(String initial, long maxlen, int buffer) {
+		mLineBuffer = buffer;
+		mMaxLen = (int) maxlen;
+		_view.requestLineEvent(initial);
 	}
 
 	@Override

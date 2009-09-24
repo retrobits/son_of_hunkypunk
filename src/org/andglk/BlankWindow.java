@@ -45,10 +45,10 @@ public class BlankWindow extends Window {
 	}
 
 	@Override
-	public void requestLineEvent(String initial, long maxlen) {
+	public void cancelCharEvent() {
 	}
 
 	@Override
-	public void cancelCharEvent() {
+	public void requestLineEvent(String initial, long maxlen, int buffer) {
 	}
 }

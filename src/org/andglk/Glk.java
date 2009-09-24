@@ -81,12 +81,6 @@ public class Glk extends Thread {
 	}
 	
 	@SuppressWarnings("unused")
-	private void request_line_event(Window win, final String initial, long maxlen)
-	{
-		win.requestLineEvent(initial, maxlen);
-	}
-	
-	@SuppressWarnings("unused")
 	private Event select()
 	{
 		Log.d("Glk", "select()");

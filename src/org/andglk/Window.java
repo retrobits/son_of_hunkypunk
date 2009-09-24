@@ -81,7 +81,7 @@ public abstract class Window extends CPointed {
 		mStream.putString(str);
 	}
 	
-	public abstract void requestLineEvent(String initial, long maxlen);
+	public abstract void requestLineEvent(String initial, long maxlen, int buffer);
 	public abstract void requestCharEvent();
 	public abstract void cancelCharEvent();
 	

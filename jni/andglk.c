@@ -10,8 +10,6 @@ jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, 
 jmethodID _getRock, _getPointer;
 JNIEnv *_env;
 jobject _this;
-char *_line_event_buf;
-glui32 _line_event_buf_len;
 jmp_buf _quit_env;
 
 #define GLK_JNI_VERSION JNI_VERSION_1_2
@@ -830,14 +828,19 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 	if ((*env)->IsInstanceOf(env, ev, _LineInputEvent)) {
 		event->type = evtype_LineInput;
 		{
-			static jfieldID line_id = 0;
-			if (0 == line_id)
+			static jfieldID line_id = 0, buf_id, len_id;
+			if (0 == line_id) {
 				line_id = (*env)->GetFieldID(env, _LineInputEvent, "line", "Ljava/lang/String;");
+				buf_id = (*env)->GetFieldID(env, _LineInputEvent, "buffer", "I");
+				len_id = (*env)->GetFieldID(env, _LineInputEvent, "len", "J");
+			}
 
 			jstring line = (*env)->GetObjectField(env, ev, line_id);
-			event->val1 = jstring2latin1(env, line, _line_event_buf, _line_event_buf_len);
-			_line_event_buf[event->val1] = 0;
-			__android_log_print(ANDROID_LOG_DEBUG, "andglk.c", "got line: \"%s\"\n", _line_event_buf);
+			char * buf = (char *) (*env)->GetIntField(env, ev, buf_id);
+			jlong len = (*env)->GetIntField(env, ev, len_id);
+			event->val1 = jstring2latin1(env, line, buf, len);
+			buf[event->val1] = 0;
+			__android_log_print(ANDROID_LOG_DEBUG, "andglk.c", "got line: \"%s\"\n", buf);
 			event->val2 = 0;
 		}
 	} else if ((*env)->IsInstanceOf(env, ev, _CharInputEvent)) {
@@ -886,10 +889,7 @@ void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initle
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "request_line_event", "(Lorg/andglk/Window;Ljava/lang/String;J)V");
-
-	_line_event_buf = buf;
-	_line_event_buf_len = maxlen;
+		mid = (*env)->GetMethodID(env, _Window, "requestLineEvent", "(Ljava/lang/String;JI)V");
 
 	jstring str = 0;
 	jchar jbuf[initlen];
@@ -903,7 +903,7 @@ void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initle
 		str = (*env)->NewString(env, jbuf, maxlen);
 	}
 
-	(*env)->CallVoidMethod(env, _this, mid, win ? *win : 0, str, (jlong) maxlen);
+	(*env)->CallVoidMethod(env, *win, mid, str, (jlong) maxlen, (jint) buf);
 }
 
 void glk_request_char_event(winid_t win)
