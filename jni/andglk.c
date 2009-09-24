@@ -881,13 +881,7 @@ void glk_select_poll(event_t *event)
 
 void glk_request_timer_events(glui32 millisecs)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "request_timer_events", "(J)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, millisecs);
-
+	/* TODO */
 }
 
 void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initlen)
@@ -924,13 +918,7 @@ void glk_request_char_event(winid_t win)
 
 void glk_request_mouse_event(winid_t win)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "request_mouse_event", "(Lorg/andglk/Window;)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, win);
-
+	/* TODO */
 }
 
 void glk_cancel_line_event(winid_t win, event_t *event)
@@ -957,11 +945,5 @@ void glk_cancel_char_event(winid_t win)
 
 void glk_cancel_mouse_event(winid_t win)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "cancel_mouse_event", "(Lorg/andglk/Window;)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, win);
-
+	/* TODO */
 }
