@@ -163,13 +163,13 @@ public abstract class Stream extends CPointed {
 	
 	protected abstract String doGetLine(int maxLen) throws IOException;
 
-	public String getBuffer(int maxLen) {
-		String result;
+	public byte[] getBuffer(int maxLen) {
+		byte[] result;
 		try {
 			result = doGetBuffer(maxLen);
 			if (result == null)
 				return result;
-			mRead += result.length();
+			mRead += result.length;
 			return result;
 		} catch (IOException e) {
 			Log.e("Glk/Stream", "I/O error in getBuffer", e);
@@ -177,7 +177,7 @@ public abstract class Stream extends CPointed {
 		}
 	}
 
-	protected abstract String doGetBuffer(int maxLen) throws IOException;
+	protected abstract byte[] doGetBuffer(int maxLen) throws IOException;
 	
 	public abstract int getPosition();
 	public abstract void setPosition(int pos, int seekMode);

@@ -262,7 +262,7 @@ public abstract class Window extends CPointed {
 		}
 		
 		@Override
-		protected String doGetBuffer(int maxLen) throws IOException {
+		protected byte[] doGetBuffer(int maxLen) throws IOException {
 			return null;
 		}
 		

@@ -6,7 +6,7 @@
 
 JavaVM *_jvm;
 jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow,
-	_CharInputEvent, _ArrangeEvent;
+	_CharInputEvent, _ArrangeEvent, _MemoryStream;
 jmethodID _getRock, _getPointer;
 JNIEnv *_env;
 jobject _this;
@@ -49,8 +49,11 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 	cls = (*env)->FindClass(env, "org/andglk/FileRef");
 	_FileRef = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/FileStream");
+	cls = (*env)->FindClass(env, "org/andglk/Stream");
 	_Stream = (*env)->NewGlobalRef(env, cls);
+
+	cls = (*env)->FindClass(env, "org/andglk/MemoryStream");
+	_MemoryStream = (*env)->NewGlobalRef(env, cls);
 
 	cls = (*env)->FindClass(env, "java/lang/Character");
 	_Character = (*env)->NewGlobalRef(env, cls);
@@ -100,6 +103,16 @@ void Java_org_andglk_CPointed_releasePoint(JNIEnv *env, jobject this, jint point
 	jobject *ptr = (jobject *) point;
 	(*env)->DeleteGlobalRef(env, *ptr);
 	free(ptr);
+}
+
+void Java_org_andglk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativeBuf, jarray jbuf)
+{
+	char *nbuf = (char *)nativeBuf;
+	int len = (*env)->GetArrayLength(env, jbuf);
+
+	jbyte *jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, jbuf, NULL);
+	memcpy(nbuf, jbufcontents, len);
+	(*env)->ReleasePrimitiveArrayCritical(env, jbuf, jbufcontents, JNI_ABORT);
 }
 
 JNIEnv *JNU_GetEnv()
@@ -420,16 +433,25 @@ strid_t glk_stream_open_file(frefid_t fileref, glui32 fmode, glui32 rock)
 	return (strid_t) (*env)->CallStaticIntMethod(env, _Stream, mid, *fileref, (jint) fmode, (jint) rock);
 }
 
-strid_t glk_stream_open_memory(char *buf, glui32 buflen, glui32 fmode,
-    glui32 rock)
+strid_t glk_stream_open_memory(char *buf, glui32 buflen, glui32 fmode, glui32 rock)
 {
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "stream_open_memory", "(JJJ)Lorg/andglk/Stream;");
+		mid = (*env)->GetMethodID(env, _MemoryStream, "<init>", "(I[BII)V");
 
-	return (*env)->CallObjectMethod(env, _this, mid, buf, buflen, fmode, rock);
+	jarray jbuf = (*env)->NewByteArray(env, buflen);
+	if (fmode != filemode_Write && buf) {
+		jbyte *jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, jbuf, NULL);
+		memcpy(jbufcontents, buf, buflen);
+		(*env)->ReleasePrimitiveArrayCritical(env, jbuf, jbufcontents, 0);
+	}
 
+	jobject str = (*env)->NewObject(env, _MemoryStream, mid, (jint) buf, jbuf, (jint) fmode, (jint) rock);
+	if (!str)
+		return 0;
+	else
+		return (strid_t) (*env)->CallIntMethod(env, str, _getPointer);
 }
 
 void glk_stream_close(strid_t str, stream_result_t *result)
@@ -653,14 +675,19 @@ glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Stream, "getBuffer", "(I)Ljava/lang/String;");
+		mid = (*env)->GetMethodID(env, _Stream, "getBuffer", "(I)[B");
 
-	jstring result = (*env)->CallObjectMethod(env, *str, mid, len);
+	jarray result = (*env)->CallObjectMethod(env, *str, mid, len);
 	if (!result)
 		return 0;
 
-	int count = jstring2latin1(env, result, buf, len);
-	buf[count] = 0;
+	int count = (*env)->GetArrayLength(env, result);
+	if (count > len - 1)
+		count = len - 1;
+
+	jbyte *jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, result, NULL);
+	memcpy(buf, jbufcontents, count);
+	(*env)->ReleasePrimitiveArrayCritical(env, result, jbufcontents, 0);
 
 	return count;
 }
@@ -685,16 +712,9 @@ glui32 glk_style_distinguish(winid_t win, glui32 styl1, glui32 styl2)
 	return (*env)->CallBooleanMethod(env, *win, mid, styl1, styl2);
 }
 
-glui32 glk_style_measure(winid_t win, glui32 styl, glui32 hint,
-    glui32 *result)
+glui32 glk_style_measure(winid_t win, glui32 styl, glui32 hint, glui32 *result)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "style_measure", "(Lorg/andglk/Window;JJ[FIXME: glui32 *])J");
-
-	return (*env)->CallLongMethod(env, _this, mid, win, styl, hint, result);
-
+	/* not implemented (TODO) */
 }
 
 frefid_t glk_fileref_create_temp(glui32 usage, glui32 rock)

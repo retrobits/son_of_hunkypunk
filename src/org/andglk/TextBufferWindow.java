@@ -1,7 +1,6 @@
 package org.andglk;
 
 import java.io.IOException;
-import java.security.spec.MGF1ParameterSpec;
 
 import android.content.Context;
 import android.content.res.TypedArray;

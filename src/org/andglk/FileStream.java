@@ -64,15 +64,18 @@ public class FileStream extends Stream {
 	}
 
 	@Override
-	protected String doGetBuffer(int maxLen) {
-		StringBuilder sb = new StringBuilder(maxLen);
-		for (; maxLen > 0; maxLen--)
-			try {
-				sb.append(mFile.readByte());
-			} catch (IOException e) {
-				break;
-			}
-		return sb.toString();
+	protected byte[] doGetBuffer(int maxLen) throws IOException {
+		if (mFile.getFilePointer() == mFile.length())
+			return null;
+		
+		final byte[] buffer = new byte[maxLen];
+		final int count = mFile.read(buffer);
+		if (count != maxLen) {
+			final byte[] res = new byte[count];
+			System.arraycopy(buffer, 0, res, 0, count);
+			return res;
+		}
+		return buffer;
 	}
 
 	@Override
