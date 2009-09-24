@@ -13,11 +13,13 @@ public abstract class Stream extends CPointed {
 	protected static List<Stream> _streams = new LinkedList<Stream>();
 	private static Iterator<Stream> _iterator;
 	private static Stream _last;
+	protected Glk mGlk;
 
 	protected Stream(int rock) {
 		super(rock);
 		
 		_streams.add(this);
+		mGlk = Glk.getInstance();
 	}
 	
 	static public Stream iterate(Stream s) {
@@ -79,6 +81,8 @@ public abstract class Stream extends CPointed {
 		
 		release();
 		_streams.remove(this);
+		if (mGlk.getCurrentStream() == this)
+			mGlk.setCurrentStream(null);
 		
 		Iterator<Window.Stream> it = mEchoedWindows.iterator();
 		while (it.hasNext())

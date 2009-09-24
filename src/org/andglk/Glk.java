@@ -80,16 +80,6 @@ public class Glk extends Thread {
 		mCurrentStream = window.getStream();
 	}
 	
-	public void putString(final String str) {
-		if (mCurrentStream != null)
-			mCurrentStream.putString(str);
-	}
-	
-	public void setStyle(long styl) {
-		if (mCurrentStream != null)
-			mCurrentStream.setStyle(styl);
-	}
-	
 	@SuppressWarnings("unused")
 	private Event select()
 	{
@@ -103,11 +93,6 @@ public class Glk extends Thread {
 			} catch (InterruptedException e) {
 			}
 		}
-	}
-	
-	public void putChar(char c) {
-		if (mCurrentStream != null)
-			mCurrentStream.putChar(c);
 	}
 	
 	public ViewGroup getView() {

@@ -515,12 +515,7 @@ strid_t glk_stream_get_current(void)
 
 void glk_put_char(unsigned char ch)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "putChar", "(C)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, (jchar) ch);
+	glk_put_char_stream(glk_stream_get_current(), ch);
 }
 
 void glk_put_char_stream(strid_t str, unsigned char ch)
@@ -538,25 +533,12 @@ void glk_put_char_stream(strid_t str, unsigned char ch)
 
 void glk_put_string(char *s)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "putString", "(Ljava/lang/String;)V");
-
-	jchar buf[1024];
-	char *it = s;
-	jchar *jt = buf;
-	while (jt - buf < 1024 && *it)
-		*(jt++) = *(it++);
-
-	jstring str = (*env)->NewString(env, buf, it - s);
-
-	(*env)->CallVoidMethod(env, _this, mid, str);
+	glk_put_string_stream(glk_stream_get_current(), s);
 }
 
-void glk_put_string_stream(strid_t str, char *s)
+void glk_put_string_stream(strid_t stream, char *s)
 {
-	if (!str)
+	if (!stream || !s)
 		return;
 
 	JNIEnv *env = JNU_GetEnv();
@@ -570,17 +552,25 @@ void glk_put_string_stream(strid_t str, char *s)
 	while (jt - buf < 1024 && *it)
 		*(jt++) = *(it++);
 
-	jstring string = (*env)->NewString(env, buf, it - s);
+	jstring str = (*env)->NewString(env, buf, it - s);
 
-	(*env)->CallVoidMethod(env, *str, mid, string);
+	(*env)->CallVoidMethod(env, *stream, mid, str);
 }
 
 void glk_put_buffer(char *s, glui32 len)
 {
+	glk_put_buffer_stream(glk_stream_get_current(), s, len);
+}
+
+void glk_put_buffer_stream(strid_t stream, char *s, glui32 len)
+{
+	if (!stream || !s)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "putString", "(Ljava/lang/String;)V");
+		mid = (*env)->GetMethodID(env, _Stream, "putString", "(Ljava/lang/String;)V");
 
 	jchar buf[len];
 	char *it = s;
@@ -590,40 +580,25 @@ void glk_put_buffer(char *s, glui32 len)
 
 	jstring str = (*env)->NewString(env, buf, len);
 
-	(*env)->CallVoidMethod(env, _this, mid, str);
-}
-
-void glk_put_buffer_stream(strid_t str, char *buf, glui32 len)
-{
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "put_buffer_stream", "(Lorg/andglk/Stream;[FIXME: char *]J)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, str, buf, len);
-
+	(*env)->CallVoidMethod(env, *stream, mid, str);
 }
 
 void glk_set_style(glui32 styl)
 {
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "setStyle", "(J)V");
-
-	(*env)->CallVoidMethod(env, _this, mid, (jlong) styl);
-
+	glk_set_style_stream(glk_stream_get_current(), styl);
 }
 
 void glk_set_style_stream(strid_t str, glui32 styl)
 {
+	if (!str)
+		return;
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "set_style_stream", "(Lorg/andglk/Stream;J)V");
+		mid = (*env)->GetMethodID(env, _Stream, "setStyle", "(J)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, str, styl);
-
+	(*env)->CallVoidMethod(env, *str, mid, (jlong) styl);
 }
 
 glsi32 glk_get_char_stream(strid_t str)

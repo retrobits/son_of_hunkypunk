@@ -232,6 +232,8 @@ public abstract class Window extends CPointed {
 		int[] close() {
 			// can only be closed by closing its window
 			_streams.remove(this);
+			if (mGlk.getCurrentStream() == this)
+				mGlk.setCurrentStream(null);
 			return new int[] { 0, 0 };
 		}
 		
