@@ -575,15 +575,22 @@ void glk_put_string_stream(strid_t str, char *s)
 	(*env)->CallVoidMethod(env, *str, mid, string);
 }
 
-void glk_put_buffer(char *buf, glui32 len)
+void glk_put_buffer(char *s, glui32 len)
 {
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "put_buffer", "([FIXME: char *]J)V");
+		mid = (*env)->GetMethodID(env, _class, "putString", "(Ljava/lang/String;)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, buf, len);
+	jchar buf[len];
+	char *it = s;
+	jchar *jt = buf;
+	while (jt - buf < len)
+		*(jt++) = *(it++);
 
+	jstring str = (*env)->NewString(env, buf, len);
+
+	(*env)->CallVoidMethod(env, _this, mid, str);
 }
 
 void glk_put_buffer_stream(strid_t str, char *buf, glui32 len)
