@@ -62,6 +62,21 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 	return GLK_JNI_VERSION;
 }
 
+static glui32 jstring2latin1(JNIEnv *env, jstring str, char *buf, glui32 maxlen)
+{
+	glui32 len = (*env)->GetStringLength(env, str);
+	if (len > maxlen)
+		len = maxlen;
+
+	const jchar * jbuf = (*env)->GetStringChars(env, str, NULL);
+	int i;
+	for (i = 0; i < len; ++i)
+		buf[i] = jbuf[i];
+
+	(*env)->ReleaseStringChars(env, str, jbuf);
+	return len;
+}
+
 void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
 {
 	_this = (*env)->NewGlobalRef(env, this);
@@ -611,29 +626,44 @@ glsi32 glk_get_char_stream(strid_t str)
 		mid = (*env)->GetMethodID(env, _Stream, "getChar", "()I");
 
 	return (*env)->CallIntMethod(env, *str, mid);
-
 }
 
 glui32 glk_get_line_stream(strid_t str, char *buf, glui32 len)
 {
+	if (!str)
+		return;
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "get_line_stream", "(Lorg/andglk/Stream;[FIXME: char *]J)J");
+		mid = (*env)->GetMethodID(env, _Stream, "getLine", "(I)Ljava/lang/String;");
 
-	return (*env)->CallLongMethod(env, _this, mid, str, buf, len);
+	jstring result = (*env)->CallObjectMethod(env, *str, mid, len - 1);
+	if (!result)
+		return 0;
 
+	int count = jstring2latin1(env, result, buf, len - 1);
+	buf[count] = 0;
+
+	return count;
 }
 
 glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 {
+	if (!str)
+		return;
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "get_buffer_stream", "(Lorg/andglk/Stream;[FIXME: char *]J)J");
+		mid = (*env)->GetMethodID(env, _Stream, "getBuffer", "(I)Ljava/lang/String;");
 
-	return (*env)->CallLongMethod(env, _this, mid, str, buf, len);
+	jstring result = (*env)->CallObjectMethod(env, *str, mid, len);
+	if (!result)
+		return 0;
 
+	int count = jstring2latin1(env, result, buf, len);
+	buf[count] = 0;
+
+	return count;
 }
 
 void glk_stylehint_set(glui32 wintype, glui32 styl, glui32 hint,
@@ -788,21 +818,6 @@ glui32 glk_fileref_does_file_exist(frefid_t fref)
 
 	return (*env)->CallLongMethod(env, _this, mid, fref);
 
-}
-
-static glui32 jstring2latin1(JNIEnv *env, jstring str, char *buf, glui32 maxlen)
-{
-	glui32 len = (*env)->GetStringLength(env, str);
-	if (len > maxlen)
-		len = maxlen;
-
-	const jchar * jbuf = (*env)->GetStringChars(env, str, NULL);
-	int i;
-	for (i = 0; i < len; ++i)
-		buf[i] = jbuf[i];
-
-	(*env)->ReleaseStringChars(env, str, jbuf);
-	return len;
 }
 
 static void event2glk(JNIEnv *env, jobject ev, event_t *event)

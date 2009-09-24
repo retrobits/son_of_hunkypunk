@@ -142,4 +142,36 @@ public abstract class Stream extends CPointed {
 	public static Stream getCurrent() {
 		return Glk.getInstance().getCurrentStream();
 	}
+	
+	public String getLine(int maxLen) {
+		String result;
+		try {
+			result = doGetLine(maxLen);
+			if (result == null)
+				return result;
+			mRead += result.length();
+			return result;
+		} catch (IOException e) {
+			Log.e("Glk/Stream", "I/O error in getLine", e);
+			return null;
+		}
+	}
+	
+	protected abstract String doGetLine(int maxLen) throws IOException;
+
+	public String getBuffer(int maxLen) {
+		String result;
+		try {
+			result = doGetBuffer(maxLen);
+			if (result == null)
+				return result;
+			mRead += result.length();
+			return result;
+		} catch (IOException e) {
+			Log.e("Glk/Stream", "I/O error in getBuffer", e);
+			return null;
+		}
+	}
+
+	protected abstract String doGetBuffer(int maxLen) throws IOException;
 }

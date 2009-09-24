@@ -62,4 +62,31 @@ public class FileStream extends Stream {
 	protected void doPutString(String str) throws IOException {
 		mFile.writeBytes(str);
 	}
+
+	@Override
+	protected String doGetBuffer(int maxLen) {
+		StringBuilder sb = new StringBuilder(maxLen);
+		for (; maxLen > 0; maxLen--)
+			try {
+				sb.append(mFile.readByte());
+			} catch (IOException e) {
+				break;
+			}
+		return sb.toString();
+	}
+
+	@Override
+	protected String doGetLine(int maxLen) {
+		StringBuilder sb = new StringBuilder(maxLen);
+		byte b;
+		for (; maxLen > 0; maxLen--)
+			try {
+				sb.append(b = mFile.readByte());
+				if (b == '\n')
+					break;
+			} catch (IOException e) {
+				break;
+			}
+		return sb.toString();
+	}
 }
