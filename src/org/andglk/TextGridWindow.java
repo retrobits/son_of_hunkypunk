@@ -34,14 +34,7 @@ public class TextGridWindow extends Window {
 
 		@Override
 		public void setStyle(long styl) {
-			switch ((int) styl) {
-			default:
-				Log.w("Glk", "TextGridWindow got unimplemented style: " + Long.toString(styl));
-				// fall through, normal is default
-			case Glk.STYLE_NORMAL:
-				// do nothing, we only have one style yet
-				break;
-			}
+			_view.setStyle((int) styl);
 		}
 	}
 	
@@ -56,6 +49,7 @@ public class TextGridWindow extends Window {
 		private boolean mLineEventPending;
 		private int mLineInputEnd;
 		private int mLineInputStart;
+		private int mDefaultColor;
 
 		public View(Context context) {
 			super(context);
@@ -64,14 +58,20 @@ public class TextGridWindow extends Window {
 			int res = ta.getResourceId(0, -1);
 			ta = context.obtainStyledAttributes(res, new int[] { android.R.attr.textSize, android.R.attr.textColor });
 			_fontSize = ta.getDimensionPixelSize(0, -1);
+			mDefaultColor = ta.getColor(1, 0xffffffff);
 			
 			mPaint = new Paint();
 			mPaint.setTypeface(Typeface.MONOSPACE);
 			mPaint.setAntiAlias(true);
 			mPaint.setTextSize(_fontSize);
-			mPaint.setColor(ta.getColor(1, 0xffffffff));
+			mPaint.setColor(mDefaultColor);
 			
 			_charsW = _charsH = 0;
+		}
+
+		public void setStyle(int styl) {
+			Log.w("Glk/TextGridWindow", "style requested but not supported in text grid window");
+			// TODO
 		}
 
 		public void setPosition(int pos, int seekMode) {

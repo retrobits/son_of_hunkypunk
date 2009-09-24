@@ -181,26 +181,12 @@ public class TextBufferWindow extends Window {
 			}
 			
 			mStyleStart = e.length(); 
-			
-			switch((int) styl) {
-			case Glk.STYLE_HEADER:
-				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.header);
-				break;
-			case Glk.STYLE_SUBHEADER:
-				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.subheader);
-				break;
-			case Glk.STYLE_INPUT:
-				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.input);
-				break;
-			case Glk.STYLE_BLOCKQUOTE:
-				mStyleSpan = new TextAppearanceSpan(getContext(), R.style.blockquote);
-				break;
-			default:
-				Log.w("Glk", "TextBufferWindow doesn't know style " + Long.toString(styl));
-				// fall through, normal is default
-			case Glk.STYLE_NORMAL:
+
+			final int id = getTextAppearanceId((int) styl);
+			if (id == 0)
 				mStyleSpan = null;
-			}
+			else
+				mStyleSpan = new TextAppearanceSpan(getContext(), id);
 		}
 
 		public void requestCharEvent() {

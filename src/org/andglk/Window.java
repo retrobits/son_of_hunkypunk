@@ -280,4 +280,34 @@ public abstract class Window extends CPointed {
 		public void setPosition(int pos, int seekMode) {
 		}
 	}
+	
+	static int getTextAppearanceId(int style) {
+		switch(style) {
+		case Glk.STYLE_NORMAL:
+			return 0;
+		case Glk.STYLE_EMPHASIZED:
+			return R.style.emphasized;
+		case Glk.STYLE_PREFORMATTED:
+			return R.style.preformatted;
+		case Glk.STYLE_HEADER:
+			return R.style.header;
+		case Glk.STYLE_SUBHEADER:
+			return R.style.subheader;
+		case Glk.STYLE_ALERT:
+			return R.style.alert;
+		case Glk.STYLE_NOTE:
+			return R.style.note;
+		case Glk.STYLE_BLOCKQUOTE:
+			return R.style.blockquote;
+		case Glk.STYLE_INPUT:
+			return R.style.input;
+		case Glk.STYLE_USER1:
+			return R.style.user1;
+		case Glk.STYLE_USER2:
+			return R.style.user2;
+		default:
+			Log.w("Glk/Window", "unknown style: " + Integer.toString(style));
+			return 0;
+		}
+	}
 }
