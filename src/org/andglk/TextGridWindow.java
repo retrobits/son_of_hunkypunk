@@ -301,12 +301,12 @@ public class TextGridWindow extends Window {
 
 	@Override
 	public int measureHeight(int size) {
-		return Math.round(_view.measureCharacterHeight() * size) + _view.getPaddingBottom() + _view.getPaddingTop();
+		return ((int) Math.ceil(_view.measureCharacterHeight())) * size + _view.getPaddingBottom() + _view.getPaddingTop();
 	}
 
 	@Override
 	public int measureWidth(int size) {
-		return Math.round(_view.measureCharacterWidth() * size) + _view.getPaddingLeft() + _view.getPaddingRight();
+		return ((int) Math.ceil(_view.measureCharacterWidth())) * size + _view.getPaddingLeft() + _view.getPaddingRight();
 	}
 
 	@Override
