@@ -221,7 +221,6 @@ public class TextBufferWindow extends Window {
 				return null;
 			
 			mLineInputPending = false;
-			
 			String s = getLineInput();
 			
 			Stream stream = (Stream) mStream;
@@ -229,16 +228,21 @@ public class TextBufferWindow extends Window {
 			stream.echo("\n");
 			
 			LineInputEvent e = new LineInputEvent(TextBufferWindow.this, s, mLineBuffer, mMaxLen, mDispatchRock);
-			Editable ed = getEditableText();
-			setStyle(Glk.STYLE_NORMAL);
-			ed.setFilters(new InputFilter[]{});
 			
-			append("\n");
-			setOnEditorActionListener(null);
-			setRawInputType(InputType.TYPE_NULL);
-			setMovementMethod(getDefaultMovementMethod());
-			setFocusable(false);
-
+			_glk.waitForUi(new Runnable() {
+				@Override
+				public void run() {
+					Editable ed = getEditableText();
+					setStyle(Glk.STYLE_NORMAL);
+					ed.setFilters(new InputFilter[]{});
+					
+					append("\n");
+					setOnEditorActionListener(null);
+					setRawInputType(InputType.TYPE_NULL);
+					setMovementMethod(getDefaultMovementMethod());
+					setFocusable(false);
+				}
+			});
 			return e;
 		}
 	}

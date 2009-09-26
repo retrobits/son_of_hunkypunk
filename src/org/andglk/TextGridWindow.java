@@ -210,7 +210,9 @@ public class TextGridWindow extends Window {
 		}
 
 		private void doneLineInput() {
-			_glk.postEvent(cancelLineEvent());
+			final Event e = cancelLineEvent();
+			if (null != e)
+				_glk.postEvent(e);
 		}
 
 		public void requestLineEvent(String initial) {
