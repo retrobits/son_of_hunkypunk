@@ -235,7 +235,7 @@ public class TextGridWindow extends Window {
 			mLineEventPending = false;
 			setFocusable(false);
 			
-			return new LineInputEvent(TextGridWindow.this, result, mLineBuffer, mMaxLen);
+			return new LineInputEvent(TextGridWindow.this, result, mLineBuffer, mMaxLen, mDispatchRock);
 		}
 
 		public void cancelCharEvent() {
@@ -250,6 +250,7 @@ public class TextGridWindow extends Window {
 	private Glk _glk;
 	private int mLineBuffer;
 	private int mMaxLen;
+	private int mDispatchRock;
 
 	public TextGridWindow(final Glk glk, int rock) {
 		super(rock);
@@ -315,6 +316,7 @@ public class TextGridWindow extends Window {
 	public void requestLineEvent(String initial, long maxlen, int buffer) {
 		mLineBuffer = buffer;
 		mMaxLen = (int) maxlen;
+		mDispatchRock = retainVmArray(buffer, maxlen);
 		_view.requestLineEvent(initial);
 	}
 

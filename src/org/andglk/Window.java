@@ -82,6 +82,10 @@ public abstract class Window extends CPointed {
 	}
 	
 	public abstract void requestLineEvent(String initial, long maxlen, int buffer);
+	protected native int retainVmArray(int buffer, long length);
+	/* release is in the C function to convert event since we can't release 
+	 * until we've copied it back
+	 */
 	public abstract LineInputEvent cancelLineEvent();
 	public abstract void requestCharEvent();
 	public abstract void cancelCharEvent();
@@ -312,4 +316,9 @@ public abstract class Window extends CPointed {
 	}
 	
 	abstract boolean styleDistinguish(int style1, int style2);
+	
+	@Override
+	public int getDispatchClass() {
+		return GIDISP_CLASS_WINDOW;
+	}
 }

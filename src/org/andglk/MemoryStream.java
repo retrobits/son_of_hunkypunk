@@ -7,6 +7,7 @@ public class MemoryStream extends Stream {
 	private final byte[] mBuffer;
 	private final int mMode;
 	private int mPos;
+	private int mDispatchRock;
 
 	public MemoryStream(int cBuffer, byte[] buffer, int mode, int rock) {
 		super(rock);
@@ -14,14 +15,21 @@ public class MemoryStream extends Stream {
 		mBuffer = buffer;
 		mMode = mode;
 		mPos = 0;
+		if (mode != FileRef.FILEMODE_READ && cBuffer != 0) // we already copied it
+			mDispatchRock = retainVmArray(cBuffer, buffer.length);
 	}
+	
 	
 	@Override
 	protected void doClose() throws IOException {
-		if (mMode != FileRef.FILEMODE_READ && mCBuffer != 0)
+		if (mMode != FileRef.FILEMODE_READ && mCBuffer != 0) {
 			writeOut(mCBuffer, mBuffer);
+			releaseVmArray(mCBuffer, mBuffer.length, mDispatchRock);
+		}
 	}
 
+	protected native int retainVmArray(int buffer, long len);
+	protected native void releaseVmArray(int buffer, int length, int dispatchRock);
 	private native void writeOut(int buffer, byte[] buffer2);
 
 	@Override

@@ -181,4 +181,9 @@ public abstract class Stream extends CPointed {
 	
 	public abstract int getPosition();
 	public abstract void setPosition(int pos, int seekMode);
+
+	@Override
+	public int getDispatchClass() {
+		return GIDISP_CLASS_STREAM;
+	}
 }

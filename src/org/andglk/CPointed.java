@@ -1,9 +1,15 @@
 package org.andglk;
 
 
-public class CPointed {
+public abstract class CPointed {
+	public final static int GIDISP_CLASS_WINDOW = 0;
+	public final static int GIDISP_CLASS_STREAM = 1;
+	public final static int GIDISP_CLASS_FILEREF = 2;
+	public final static int GIDISP_CLASS_SCHANNEL = 3;
+
 	protected int mPointer;
 	private int mRock;
+	private int mDispatchRock;
 	
 	public CPointed(int rock) {
 		mPointer = makePoint();
@@ -30,4 +36,14 @@ public class CPointed {
 	public int getRock() {
 		return mRock;
 	}
+	
+	public void setDispatchRock(int rock) {
+		mDispatchRock = rock;
+	}
+
+	public int getDispatchRock() {
+		return mDispatchRock;
+	}
+	
+	public abstract int getDispatchClass();
 }

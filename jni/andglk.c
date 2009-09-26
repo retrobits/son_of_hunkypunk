@@ -5,14 +5,21 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include "glk.h"
+#include "gi_dispa.h"
 
-JavaVM *_jvm;
-jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow,
-	_CharInputEvent, _ArrangeEvent, _MemoryStream;
-jmethodID _getRock, _getPointer;
-JNIEnv *_env;
-jobject _this;
-jmp_buf _quit_env;
+static JavaVM *_jvm;
+static jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow,
+	_CharInputEvent, _ArrangeEvent, _MemoryStream, _CPointed;
+static jmethodID _getRock, _getPointer, _getDispatchRock, _getDispatchClass;
+static JNIEnv *_env;
+static jobject _this;
+static jmp_buf _quit_env;
+
+static gidispatch_rock_t (*_vm_reg_object)(void *obj, glui32 objclass) = 0;
+static void (*_vm_unreg_object)(void *obj, glui32 objclass, gidispatch_rock_t objrock) = 0;
+static gidispatch_rock_t (*_vm_reg_array)(void *array, glui32 len, char *typecode) = 0;
+static void (*_vm_unreg_array)(void *array, glui32 len, char *typecode, gidispatch_rock_t objrock) = 0;
+static char* gidispatch_char_array = "&+#!Cn";
 
 #define GLK_JNI_VERSION JNI_VERSION_1_2
 
@@ -60,9 +67,13 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 	cls = (*env)->FindClass(env, "java/lang/Character");
 	_Character = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/FileStream");
+	cls = (*env)->FindClass(env, "org/andglk/CPointed");
+	_CPointed = (*env)->NewGlobalRef(env, cls);
+
 	_getRock = (*env)->GetMethodID(env, cls, "getRock", "()I");
 	_getPointer = (*env)->GetMethodID(env, cls, "getPointer", "()I");
+	_getDispatchRock = (*env)->GetMethodID(env, cls, "getDispatchRock", "()I");
+	_getDispatchClass = (*env)->GetMethodID(env, cls, "getDispatchClass", "()I");
 
 	return GLK_JNI_VERSION;
 }
@@ -90,12 +101,34 @@ void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
 		glk_main();
 }
 
+#define GDROCK2INT(a) *((glui32 *) &(a))
+
+int Java_org_andglk_Window_retainVmArray(JNIEnv *env, jobject this, int buffer, long length)
+{
+	if (_vm_reg_array) {
+		gidispatch_rock_t rock = _vm_reg_array((void *)buffer, length, gidispatch_char_array);
+		return GDROCK2INT(rock);
+	}
+}
+
 jint Java_org_andglk_CPointed_makePoint(JNIEnv *env, jobject this)
 {
+
 	jobject *ptr = malloc(sizeof(jobject));
 	*ptr = (*env)->NewGlobalRef(env, this);
+	if (_vm_reg_object) {
+		static jmethodID setDispatchRock;
+		if (setDispatchRock == 0)
+			setDispatchRock = (*env)->GetMethodID(env, _CPointed, "setDispatchRock", "(I)V");
+
+		glui32 objclass = (*env)->CallIntMethod(env, this, _getDispatchClass);
+		gidispatch_rock_t rock = _vm_reg_object(*ptr, objclass);
+		(*env)->CallVoidMethod(env, this, setDispatchRock, (jint) GDROCK2INT(rock));
+	}
 	return (jint) ptr;
 }
+
+#define INT2GDROCK(a) (*(gidispatch_rock_t *) &(a))
 
 void Java_org_andglk_CPointed_releasePoint(JNIEnv *env, jobject this, jint point)
 {
@@ -104,6 +137,12 @@ void Java_org_andglk_CPointed_releasePoint(JNIEnv *env, jobject this, jint point
 
 	jobject *ptr = (jobject *) point;
 	(*env)->DeleteGlobalRef(env, *ptr);
+	if (_vm_unreg_object) {
+		glui32 rock = (*env)->CallIntMethod(env, this, _getDispatchRock);
+		glui32 objclass = (*env)->CallIntMethod(env, this, _getDispatchClass);
+
+		_vm_unreg_object(*ptr, objclass, INT2GDROCK(rock));
+	}
 	free(ptr);
 }
 
@@ -115,6 +154,15 @@ void Java_org_andglk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativ
 	jbyte *jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, jbuf, NULL);
 	memcpy(nbuf, jbufcontents, len);
 	(*env)->ReleasePrimitiveArrayCritical(env, jbuf, jbufcontents, JNI_ABORT);
+}
+
+int (*Java_org_andglk_MemoryStream_retainVmArray)(JNIEnv *env, jobject this, int buffer, long len) =
+	&Java_org_andglk_Window_retainVmArray;
+
+void Java_org_andglk_MemoryStream_releaseVmArray(JNIEnv *env, jobject this, int buffer, int length, int dispatchRock)
+{
+	if (_vm_unreg_array)
+		_vm_unreg_array((void *)buffer, length, gidispatch_char_array, INT2GDROCK(dispatchRock));
 }
 
 JNIEnv *JNU_GetEnv()
@@ -850,18 +898,25 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 	if ((*env)->IsInstanceOf(env, ev, _LineInputEvent)) {
 		event->type = evtype_LineInput;
 		{
-			static jfieldID line_id = 0, buf_id, len_id;
+			static jfieldID line_id = 0, buf_id, len_id, rock_id;
 			if (0 == line_id) {
 				line_id = (*env)->GetFieldID(env, _LineInputEvent, "line", "Ljava/lang/String;");
 				buf_id = (*env)->GetFieldID(env, _LineInputEvent, "buffer", "I");
 				len_id = (*env)->GetFieldID(env, _LineInputEvent, "len", "J");
+				rock_id = (*env)->GetFieldID(env, _LineInputEvent, "rock", "I");
 			}
 
 			jstring line = (*env)->GetObjectField(env, ev, line_id);
 			char * buf = (char *) (*env)->GetIntField(env, ev, buf_id);
-			jlong len = (*env)->GetIntField(env, ev, len_id);
+			jlong len = (*env)->GetLongField(env, ev, len_id);
+			glui32 rock = (*env)->GetIntField(env, ev, rock_id);
 			event->val1 = jstring2latin1(env, line, buf, len);
-			buf[event->val1] = 0;
+			if (event->val1 != len)
+				buf[event->val1] = 0;
+
+			if (_vm_unreg_array)
+				_vm_unreg_array(buf, len, gidispatch_char_array, INT2GDROCK(rock));
+
 			__android_log_print(ANDROID_LOG_DEBUG, "andglk.c", "got line: \"%s\"\n", buf);
 			event->val2 = 0;
 		}
@@ -907,6 +962,7 @@ void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initle
 {
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
+
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "requestLineEvent", "(Ljava/lang/String;JI)V");
 
@@ -965,4 +1021,25 @@ void glk_cancel_char_event(winid_t win)
 void glk_cancel_mouse_event(winid_t win)
 {
 	/* TODO */
+}
+
+void gidispatch_set_object_registry(gidispatch_rock_t (*regi)(void *obj, glui32 objclass),
+		void (*unregi)(void *obj, glui32 objclass, gidispatch_rock_t objrock))
+{
+	_vm_reg_object = regi;
+	_vm_unreg_object = unregi;
+}
+
+gidispatch_rock_t gidispatch_get_objrock(void *obj, glui32 objclass)
+{
+	JNIEnv *env = JNU_GetEnv();
+	glui32 rock = (*env)->CallIntMethod(env, obj, _getDispatchRock);
+	return INT2GDROCK(rock);
+}
+
+void gidispatch_set_retained_registry(gidispatch_rock_t (*regi)(void *array, glui32 len, char *typecode),
+		void (*unregi)(void *array, glui32 len, char *typecode, gidispatch_rock_t objrock))
+{
+	_vm_reg_array = regi;
+	_vm_unreg_array = unregi;
 }

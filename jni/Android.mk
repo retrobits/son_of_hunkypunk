@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := andglk
-LOCAL_SRC_FILES := andglk.c
+LOCAL_SRC_FILES := andglk.c gi_dispa.c
 
 include $(BUILD_STATIC_LIBRARY)
 

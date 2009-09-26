@@ -386,4 +386,9 @@ public class FileRef extends CPointed {
 	public boolean doesFileExist() {
 		return mFile.exists();
 	}
+
+	@Override
+	public int getDispatchClass() {
+		return GIDISP_CLASS_FILEREF;
+	}
 }

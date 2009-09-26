@@ -231,7 +231,7 @@ public class TextBufferWindow extends Window {
 			stream.echo(s);
 			stream.echo("\n");
 			
-			LineInputEvent e = new LineInputEvent(TextBufferWindow.this, s, mLineBuffer, mMaxLen);
+			LineInputEvent e = new LineInputEvent(TextBufferWindow.this, s, mLineBuffer, mMaxLen, mDispatchRock);
 			Editable ed = getEditableText();
 			setStyle(Glk.STYLE_NORMAL);
 			ed.setFilters(new InputFilter[]{});
@@ -254,6 +254,7 @@ public class TextBufferWindow extends Window {
 	private int mLineBuffer;
 	private long mMaxLen;
 	private Context mContext;
+	private int mDispatchRock;
 
 	public TextBufferWindow(final Glk glk, int rock) {
 		super(rock);
@@ -272,6 +273,8 @@ public class TextBufferWindow extends Window {
 	
 	@Override
 	public synchronized void requestLineEvent(final String initial, final long maxlen, int buffer) {
+		mDispatchRock = retainVmArray(buffer, maxlen);
+		
 		mLineBuffer = buffer;
 		mMaxLen = maxlen;
 		_uiHandler.post(new Runnable() {
