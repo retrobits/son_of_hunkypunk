@@ -109,6 +109,10 @@ public class TextGridWindow extends Window {
 			oldh = _charsH;
 			w -= getPaddingLeft() + getPaddingRight();
 			h -= getPaddingBottom() + getPaddingTop();
+			if (w < 0)
+				w = 0;
+			if (h < 0)
+				h = 0;
 			_charsW = (int) (w / measureCharacterWidth());
 			_charsH = (int) (h / measureCharacterHeight());
 			
