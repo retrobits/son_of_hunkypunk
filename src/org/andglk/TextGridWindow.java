@@ -158,8 +158,13 @@ public class TextGridWindow extends Window {
 		}
 
 		public void requestCharEvent() {
-			setFocusableInTouchMode(true);
-			mCharEventPending = true;
+			_glk.waitForUi(new Runnable() {
+				@Override
+				public void run() {
+					setFocusableInTouchMode(true);
+					mCharEventPending = true;
+				}
+			});
 		}
 		
 		@Override
