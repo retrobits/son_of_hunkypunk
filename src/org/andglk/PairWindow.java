@@ -27,7 +27,6 @@ public class PairWindow extends Window {
 	protected void init(Glk glk, Window oldw, Window neww, int method, int size) {
 		_glk = glk;
 		LinearLayout l = _view = new LinearLayout(glk.getContext());
-		l.setWeightSum(100);
 
 		int dir = (int) method & Window.WINMETHOD_DIRMASK; 
 		
@@ -173,7 +172,7 @@ public class PairWindow extends Window {
 		default:
 			assert(false);
 		}
-		free.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.FILL_PARENT, android.widget.LinearLayout.LayoutParams.FILL_PARENT, 0));
+		free.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.FILL_PARENT, android.widget.LinearLayout.LayoutParams.FILL_PARENT, 100 - size));
 
 		switch (division) {
 		case WINMETHOD_PROPORTIONAL:
