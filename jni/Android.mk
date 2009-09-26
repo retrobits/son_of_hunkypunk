@@ -8,7 +8,7 @@ LOCAL_SRC_FILES := andglk.c gi_dispa.c
 include $(BUILD_STATIC_LIBRARY)
 
 LOCAL_MODULE    := model
-LOCAL_SRC_FILES := model.c
+LOCAL_SRC_FILES := multiwin.c
 LOCAL_STATIC_LIBRARIES := andglk
 LOCAL_LDLIBS = -L./build/platforms/android-1.5/arch-arm/usr/lib -llog
 

@@ -49,7 +49,10 @@ public abstract class Window extends CPointed {
 			_iterator = _windows.iterator();
 			while (_iterator.next() != w);
 		}
-		_last = _iterator.next();
+		if (_iterator.hasNext())
+			_last = _iterator.next();
+		else
+			_last = null;
 		return _last;
 	}
 

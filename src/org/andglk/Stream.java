@@ -33,7 +33,10 @@ public abstract class Stream extends CPointed {
 			_iterator = _streams.iterator();
 			while (_iterator.next() != s);
 		}
-		_last = _iterator.next();
+		if (_iterator.hasNext())
+			_last = _iterator.next();
+		else
+			_last = null;
 		return _last;
 	}
 

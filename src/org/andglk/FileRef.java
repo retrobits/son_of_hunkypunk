@@ -375,7 +375,10 @@ public class FileRef extends CPointed {
 			_iterator = _fileRefs.iterator();
 			while (_iterator.next() != w);
 		}
-		_last = _iterator.next();
+		if (_iterator.hasNext())
+			_last = _iterator.next();
+		else
+			_last = null;
 		return _last;
 	}
 	
