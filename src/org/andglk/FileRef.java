@@ -382,4 +382,8 @@ public class FileRef extends CPointed {
 	public void deleteFile() {
 		mFile.delete();
 	}
+	
+	public boolean doesFileExist() {
+		return mFile.exists();
+	}
 }

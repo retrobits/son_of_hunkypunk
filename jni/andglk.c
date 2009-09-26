@@ -828,10 +828,9 @@ glui32 glk_fileref_does_file_exist(frefid_t fref)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_does_file_exist", "(Lorg/andglk/FileRef;)J");
+		mid = (*env)->GetMethodID(env, _FileRef, "doesFileExist", "()Z");
 
-	return (*env)->CallLongMethod(env, _this, mid, fref);
-
+	return (*env)->CallBooleanMethod(env, *fref, mid);
 }
 
 static void event2glk(JNIEnv *env, jobject ev, event_t *event)
