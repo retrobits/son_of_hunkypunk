@@ -125,10 +125,7 @@ public class TextBufferWindow extends Window {
 		}
 
 		public View(Context context) {
-			super(context);
-			setTextAppearance(context, R.style.TextBufferWindow);
-			setSingleLine(false);
-			setText("", BufferType.EDITABLE);
+			super(context, null, R.attr.textBufferWindowStyle);
 		}
 		
 		public void requestLineEvent(String initial, long maxlen) {

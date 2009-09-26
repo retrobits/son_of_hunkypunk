@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<style name="TextBufferWindow" parent="@android:attr/textViewStyle">
+	<style name="TextBufferWindow" parent="@android:style/Widget.TextView">
 		<item name="android:typeface">serif</item>
+<!--		<item name="android:scrollbars">vertical</item>-->
+		<item name="android:fadingEdge">vertical</item>
+		<item name="android:padding">5sp</item>
+	</style>
+	
+	<style name="theme" parent="@android:style/Theme.Light.NoTitleBar">
+		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
 	</style>
 	
 	<style name="emphasized">

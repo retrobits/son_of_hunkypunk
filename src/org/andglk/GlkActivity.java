@@ -10,7 +10,7 @@ public class GlkActivity extends Activity {
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	setTheme(android.R.style.Theme_Light_NoTitleBar);
+    	setTheme(R.style.theme);
     	System.loadLibrary("model");
     	glk = new Glk(this);
         setContentView(glk.getView());
