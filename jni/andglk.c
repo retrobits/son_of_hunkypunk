@@ -718,10 +718,14 @@ frefid_t glk_fileref_create_temp(glui32 usage, glui32 rock)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_create_temp", "(JJ)Lorg/andglk/FileRef;");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "createTemp", "(II)Lorg/andglk/FileRef;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, usage, rock);
+	jobject fref = (*env)->CallObjectMethod(env, _FileRef, mid, (jint) usage, (jint) rock);
 
+	if (!fref)
+		return 0;
+
+	return (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
 }
 
 frefid_t glk_fileref_create_by_name(glui32 usage, char *name,

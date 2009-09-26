@@ -1,6 +1,7 @@
 package org.andglk;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -342,5 +343,15 @@ public class FileRef extends CPointed {
 	public void destroy() {
 		_fileRefs.remove(this);
 		release();
+	}
+	
+	static public FileRef createTemp(int usage, int rock) {
+		try {
+			final File file = File.createTempFile("", "");
+			return new FileRef(file, (usage & ~FILEUSAGE_TYPEMASK) != FILEUSAGE_BINARYMODE, rock);
+		} catch (IOException e) {
+			Log.e("Glk/FileRef", "I/O error when creating temporary fileref", e);
+			return null;
+		}
 	}
 }
