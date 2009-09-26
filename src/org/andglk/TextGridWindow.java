@@ -134,15 +134,22 @@ public class TextGridWindow extends Window {
 
 		public synchronized void moveCursor(long x, long y) {
 			_pos = (int) (y * _charsW + x);
+			if (_pos < 0)
+				_pos = 0;
 		}
 
 		public synchronized void putString(String str) {
+			if (_pos >= _framebuf.length)
+				return;
+			
 			int end = str.length();
 			if (end > _charsW * _charsH - _pos)
 				end = _charsW * _charsH - _pos;
 			
+			if (end == 0)
+				return;
 			str.getChars(0, end, _framebuf, _pos);
-			_pos = end;
+			_pos += end;
 			
 			postInvalidate();
 		}
