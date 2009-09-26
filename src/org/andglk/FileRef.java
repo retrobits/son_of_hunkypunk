@@ -54,56 +54,37 @@ public class FileRef extends CPointed {
 		private File mFile;
 		private boolean mDone = false;
 		private Handler mUiHandler;
+		private AlertDialog mChooser;
+		private Glk mGlk;
+		private Context mContext;
+		private File mBaseDir;
 		
 		public FilePrompt(final int usage, final int mode) throws NoSuchMethodException {
-			mUiHandler = Glk.getInstance().getUiHandler();
+			mGlk = Glk.getInstance();
+			mContext = mGlk.getContext();
+			mUiHandler = mGlk.getUiHandler();
 			
-			switch (mode) {
-			case FILEMODE_WRITE:
-			case FILEMODE_READ:
-			case FILEMODE_WRITEAPPEND:
-				break;
-			default:
-				throw new NoSuchMethodException("filemode not implemented: " + Integer.toString(mode));
-			}
-
 			mUiHandler.post(new Runnable() {
 				@Override
 				public void run() {
-					switch (mode) {
-					case FILEMODE_WRITE:
+					if (mode == FILEMODE_WRITE)
 						new NewFileDialog(FilePrompt.this, usage);
-						break;
-					case FILEMODE_READ:
-						try {
-								buildExistingFileDialog(usage, false);
-							} catch (NoSuchMethodException e) {
-								publishResult(null);
-							}
-						break;
-					case FILEMODE_WRITEAPPEND:
-						try {
-							buildExistingFileDialog(usage, true);
-						} catch (NoSuchMethodException e) {
-							publishResult(null);
-						}
-					break;
-					}
+					else
+						buildExistingFileDialog(usage, mode != FILEMODE_READ);
 				}
 			});
 		}
 		
-		protected void buildExistingFileDialog(final int usage, final boolean allowNew) throws NoSuchMethodException {
-			Glk glk = Glk.getInstance();
-			final File baseDir = glk.getFilesDir(usage);
+		protected void buildExistingFileDialog(final int usage, final boolean allowNew) {
+			mBaseDir = mGlk.getFilesDir(usage);
 			
-			String[] filelist = baseDir.list();
+			String[] filelist = mBaseDir.list();
 			final int shift = (allowNew ? 1 : 0);
 			final String[] list = new String[shift + filelist.length];
 			for (int i = 0; i < filelist.length; i++)
 				list[shift + i] = filelist[i];
 			if (allowNew)
-				list[0] = glk.getContext().getString(R.string.create_new_file);
+				list[0] = mContext.getString(R.string.create_new_file);
 			
 			int theTitle;
 			switch (usage) {
@@ -111,23 +92,29 @@ public class FileRef extends CPointed {
 				theTitle = R.string.pick_saved_game;
 				break;
 			case FILEUSAGE_TRANSCRIPT:
-				theTitle = R.string.pick_transcript_append;
-				// TODO when not appending
+				theTitle = R.string.pick_transcript;
+				break;
+			case FILEUSAGE_INPUTRECORD:
+				theTitle = R.string.pick_input_record;
+				break;
+			case FILEUSAGE_DATA:
+				theTitle = R.string.pick_data;
 				break;
 			default:
-				// TODO
-				throw new NoSuchMethodException("picking file of not implemented usage: ");
+				Log.e("Glk/FileRef", "not implemented file usage: " + Integer.toString(usage));
+				publishResult(null);
+				return;
 			}
 			final int title = theTitle;
 			
-			new AlertDialog.Builder(glk.getContext())
+			mChooser = new AlertDialog.Builder(mContext)
 				.setItems(list, new OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						if (allowNew && which == 0)
 							new NewFileDialog(FilePrompt.this, usage);
 						else
-							publishResult(new File(baseDir, list[which]));
+							makeSure(list[which]);
 					}})
 				.setOnCancelListener(new OnCancelListener() {
 					@Override
@@ -135,8 +122,40 @@ public class FileRef extends CPointed {
 						publishResult(null);
 					}})
 				.setCancelable(true)
-				.setTitle(title)
-				.show();
+				.setTitle(title).create();
+			mChooser.show();
+		}
+
+		protected void makeSure(String string) {
+			final File f = new File(mBaseDir, string);
+			if (f.exists()) {
+				new AlertDialog.Builder(mContext)
+					.setMessage(R.string.modify_warning)
+					.setPositiveButton(android.R.string.yes, new OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							mChooser.dismiss();
+							publishResult(f);
+						}
+					})
+					.setNegativeButton(android.R.string.no, new OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.cancel();
+						}
+					})
+					.setTitle(android.R.string.dialog_alert_title)
+					.setIcon(android.R.drawable.ic_dialog_alert)
+					.setOnCancelListener(new OnCancelListener() {
+						@Override
+						public void onCancel(DialogInterface dialog) {
+							mChooser.show();
+						}
+					})
+					.show();
+			} else {
+				publishResult(f);
+			}
 		}
 
 		@Override
@@ -197,19 +216,23 @@ public class FileRef extends CPointed {
 		protected NewFileDialog(FilePrompt newFilePrompt, final int usage) {
 			super(Glk.getInstance().getContext());
 			mNewFilePrompt = newFilePrompt;
-			int title = 0, hint = 0;
+			int title = 0;
 			Glk glk = Glk.getInstance();
 			switch (usage & FILEUSAGE_TYPEMASK) {
 			case FILEUSAGE_SAVEDGAME:
-				title = R.string.saved_game;
-				hint = R.string.new_saved_game_hint;
+				title = R.string.new_saved_game;
 				break;
 			case FILEUSAGE_TRANSCRIPT:
 				title = R.string.new_transcript;
-				hint = R.string.name;
+				break;
+			case FILEUSAGE_DATA:
+				title = R.string.new_data;
+				break;
+			case FILEUSAGE_INPUTRECORD:
+				title = R.string.new_input_record;
 				break;
 			default:
-				Log.w("Glk", "unimplemented FileRef.createByPrompt usage " + Integer.toString(usage));
+				Log.e("Glk", "unimplemented FileRef.createByPrompt usage " + Integer.toString(usage));
 				mNewFilePrompt.publishResult(null);
 				return;
 			}
@@ -217,7 +240,7 @@ public class FileRef extends CPointed {
 			mBaseDir = glk.getFilesDir(usage & FILEUSAGE_TYPEMASK);
 			Context context = Glk.getInstance().getContext();
 			mNameEdit = new EditText(context);
-			mNameEdit.setHint(hint);
+			mNameEdit.setHint(R.string.name);
 			mNameEdit.setSingleLine(true);
 			mNameEdit.setOnEditorActionListener(new OnEditorActionListener() {
 				@Override
@@ -261,15 +284,20 @@ public class FileRef extends CPointed {
 			new AlertDialog.Builder(getContext())
 				.setCancelable(true)
 				.setIcon(android.R.drawable.ic_dialog_alert)
-				.setMessage(R.string.already_exists)
+				.setMessage(R.string.replace_warning)
 				.setNegativeButton(android.R.string.no, new OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.cancel();
-						NewFileDialog.this.show();
 					}
 				})
 				.setPositiveButton(android.R.string.yes, this)
+				.setOnCancelListener(new OnCancelListener() {
+					@Override
+					public void onCancel(DialogInterface dialog) {
+						NewFileDialog.this.show();
+					}
+				})
 				.setTitle(android.R.string.dialog_alert_title)
 				.show();
 		}
