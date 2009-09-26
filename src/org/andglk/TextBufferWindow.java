@@ -100,6 +100,21 @@ public class TextBufferWindow extends Window {
 		}
 		
 		@Override
+		public boolean onKeyDown(int keyCode, KeyEvent event) {
+			if (mLineInputPending && event.isPrintingKey()) {
+				Spannable text = getEditableText();
+				if (Selection.getSelectionStart(text) < _start) {
+					int stop = Selection.getSelectionEnd(text);
+					if (stop < _start)
+						stop = _start;
+					Selection.setSelection(text, _start, stop);
+				}
+			}
+			
+			return super.onKeyDown(keyCode, event);
+		}
+		
+		@Override
 		protected void onTextChanged(CharSequence text, int start, int before,
 				int after) {
 			if (mStyleSpan == null)
@@ -243,6 +258,7 @@ public class TextBufferWindow extends Window {
 					setFocusable(false);
 				}
 			});
+			
 			return e;
 		}
 	}
