@@ -194,10 +194,20 @@ public class Glk extends Thread {
 				return new int[] { 0 };
 		default:
 			Log.w("Glk", "unhandled gestalt selector: " + Integer.toString(sel) + " (value " + val + ")");
-		case GESTALT_MOUSEINPUT: // TODO
-		case GESTALT_TIMER: // TODO
+		// all below are TODO
+		case GESTALT_MOUSEINPUT:
+		case GESTALT_TIMER:
 		case GESTALT_UNICODE:
-			return zero; // TODO (implement unicode, right)
+		case GESTALT_GRAPHICS:
+		case GESTALT_DRAWIMAGE:
+		case GESTALT_GRAPHICSTRANSPARENCY:
+		case GESTALT_SOUND:
+		case GESTALT_SOUNDMUSIC:
+		case GESTALT_SOUNDVOLUME:
+		case GESTALT_SOUNDNOTIFY:
+		case GESTALT_HYPERLINKS:
+		case GESTALT_HYPERLINKINPUT:
+			return zero;
 		}
 	}
 
