@@ -1,9 +1,6 @@
 package org.andglk;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import android.util.Log;
 import android.view.View;
@@ -28,14 +25,10 @@ public abstract class Window extends CPointed {
 		}
 	}
 
-	private static List<Window> _windows = new LinkedList<Window>();
-	private static Iterator<Window> _iterator;
-	private static Window _last;
 	private static Window _root;
 	
 	public Window(int rock) {
 		super(rock);
-		_windows.add(this);
 	}
 	
 	static public Window getRoot() {
@@ -44,16 +37,23 @@ public abstract class Window extends CPointed {
 	
 	static public Window iterate(Window w) {
 		if (w == null)
-			_iterator = _windows.iterator();
-		else if (_last != w) {
-			_iterator = _windows.iterator();
-			while (_iterator.next() != w);
+			return _root;
+
+		PairWindow pw;
+		if (w instanceof PairWindow) {
+			pw = (PairWindow) w;
+			if (pw != null)
+				return pw.getLeftChild();
 		}
-		if (_iterator.hasNext())
-			_last = _iterator.next();
-		else
-			_last = null;
-		return _last;
+
+		while ((pw = w.getParent()) != null) {
+			if (pw.getLeftChild() == w)
+				return pw.getRightChild();
+			else
+				w = pw;
+		}
+		
+		return null;
 	}
 
 	public final static int WINTYPE_ALLTYPES = 0;
@@ -113,7 +113,6 @@ public abstract class Window extends CPointed {
 		} else
 			_root = null;
 		release();
-		_windows.remove(this);
 		return mStream.windowClosed();
 	}
 
@@ -189,8 +188,11 @@ public abstract class Window extends CPointed {
 					glk.getView().addView(finalWindow.getView());
 				}
 			});
-		} else
-			new PairWindow(glk, split, wnd, (int) method, (int) size);
+		} else {
+			PairWindow w = new PairWindow(glk, split, wnd, (int) method, (int) size);
+			if (_root == split)
+				_root = w;
+		}
 		
 		return wnd.getPointer();
 	}

@@ -239,4 +239,12 @@ public class PairWindow extends Window {
 	boolean styleDistinguish(int style1, int style2) {
 		return false;
 	}
+
+	public Window getLeftChild() {
+		return mChildren[0];
+	}
+
+	public Window getRightChild() {
+		return mChildren[1];
+	}
 }
