@@ -27,7 +27,10 @@ public class PairWindow extends Window {
 	protected void init(Glk glk, Window oldw, Window neww, int method, int size) {
 		_glk = glk;
 		LinearLayout l = _view = new LinearLayout(glk.getContext());
-		setParent(oldw.getParent());
+		final PairWindow parent = oldw.getParent();
+		setParent(parent);
+		if (parent != null)
+			parent.mChildren[parent.mChildren[0] == oldw ? 0 : 1] = this;
 
 		int dir = (int) method & Window.WINMETHOD_DIRMASK; 
 		
