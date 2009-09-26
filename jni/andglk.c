@@ -254,10 +254,14 @@ winid_t glk_window_get_root(void)
 
 	jobject obj = (*env)->CallStaticObjectMethod(env, _Window, mid);
 
+	winid_t ret;
 	if (obj)
-		return (winid_t) (*env)->CallIntMethod(env, obj, _getPointer);
+		ret = (winid_t) (*env)->CallIntMethod(env, obj, _getPointer);
 	else
 		return 0;
+
+	(*env)->DeleteLocalRef(env, obj);
+	return ret;
 }
 
 winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
@@ -340,12 +344,17 @@ winid_t glk_window_iterate(winid_t win, glui32 *rockptr)
 
 	jobject nextwin = (*env)->CallStaticObjectMethod(env, _Window, mid, win ? *win : 0);
 
+	winid_t ret;
 	if (!nextwin)
 		return 0;
 
 	if (rockptr)
 		*rockptr = (*env)->CallIntMethod(env, nextwin, _getRock);
-	return (winid_t) (*env)->CallIntMethod(env, nextwin, _getPointer);
+	ret = (winid_t) (*env)->CallIntMethod(env, nextwin, _getPointer);
+
+	(*env)->DeleteLocalRef(env, nextwin);
+
+	return ret;
 }
 
 glui32 glk_window_get_rock(winid_t win)
@@ -373,10 +382,15 @@ winid_t glk_window_get_parent(winid_t win)
 		mid = (*env)->GetMethodID(env, _Window, "getParent", "()Lorg/andglk/Window;");
 
 	jobject parent = (*env)->CallObjectMethod(env, *win, mid);
+	winid_t ret;
 	if (parent)
-		return (winid_t) (*env)->CallIntMethod(env, parent, _getPointer);
+		ret = (winid_t) (*env)->CallIntMethod(env, parent, _getPointer);
 	else
 		return 0;
+
+	(*env)->DeleteLocalRef(env, parent);
+
+	return ret;
 }
 
 winid_t glk_window_get_sibling(winid_t win)
@@ -387,10 +401,15 @@ winid_t glk_window_get_sibling(winid_t win)
 		mid = (*env)->GetMethodID(env, _Window, "getSibling", "()Lorg/andglk/Window;");
 
 	jobject sibling = (*env)->CallObjectMethod(env, *win, mid);
+	winid_t ret;
+
 	if (sibling)
-		return (winid_t) (*env)->CallIntMethod(env, sibling, _getPointer);
+		ret = (winid_t) (*env)->CallIntMethod(env, sibling, _getPointer);
 	else
 		return 0;
+
+	(*env)->DeleteLocalRef(env, sibling);
+	return 0;
 }
 
 void glk_window_clear(winid_t win)
@@ -428,11 +447,14 @@ strid_t glk_window_get_stream(winid_t win)
 
 	jobject obj = (*env)->CallObjectMethod(env, *win, mid);
 
+	strid_t ret;
 	if (obj)
-		return (strid_t) (*env)->CallIntMethod(env, obj, _getPointer);
+		ret = (strid_t) (*env)->CallIntMethod(env, obj, _getPointer);
 	else
 		return 0;
 
+	(*env)->DeleteLocalRef(env, obj);
+	return ret;
 }
 
 void glk_window_set_echo_stream(winid_t win, strid_t str)
@@ -498,10 +520,14 @@ strid_t glk_stream_open_memory(char *buf, glui32 buflen, glui32 fmode, glui32 ro
 	}
 
 	jobject str = (*env)->NewObject(env, _MemoryStream, mid, (jint) buf, jbuf, (jint) fmode, (jint) rock);
+	strid_t ret;
 	if (!str)
 		return 0;
 	else
-		return (strid_t) (*env)->CallIntMethod(env, str, _getPointer);
+		ret = (strid_t) (*env)->CallIntMethod(env, str, _getPointer);
+
+	(*env)->DeleteLocalRef(env, str);
+	return ret;
 }
 
 void glk_stream_close(strid_t str, stream_result_t *result)
@@ -539,7 +565,11 @@ strid_t glk_stream_iterate(strid_t str, glui32 *rockptr)
 
 	if (rockptr)
 		*rockptr = (*env)->CallIntMethod(env, nextstr, _getRock);
-	return (strid_t) (*env)->CallIntMethod(env, nextstr, _getPointer);
+
+	strid_t ret = (strid_t) (*env)->CallIntMethod(env, nextstr, _getPointer);
+
+	(*env)->DeleteLocalRef(env, nextstr);
+	return ret;
 }
 
 glui32 glk_stream_get_rock(strid_t str)
@@ -589,10 +619,14 @@ strid_t glk_stream_get_current(void)
 
 	jobject str = (*env)->CallStaticObjectMethod(env, _Stream, mid);
 
+	strid_t ret;
 	if (str)
-		return (strid_t) (*env)->CallIntMethod(env, str, _getPointer);
+		ret = (strid_t) (*env)->CallIntMethod(env, str, _getPointer);
 	else
 		return 0;
+
+	(*env)->DeleteLocalRef(env, str);
+	return ret;
 }
 
 void glk_put_char(unsigned char ch)
@@ -637,6 +671,8 @@ void glk_put_string_stream(strid_t stream, char *s)
 	jstring str = (*env)->NewString(env, buf, it - s);
 
 	(*env)->CallVoidMethod(env, *stream, mid, str);
+
+	(*env)->DeleteLocalRef(env, str);
 }
 
 void glk_put_buffer(char *s, glui32 len)
@@ -663,6 +699,8 @@ void glk_put_buffer_stream(strid_t stream, char *s, glui32 len)
 	jstring str = (*env)->NewString(env, buf, len);
 
 	(*env)->CallVoidMethod(env, *stream, mid, str);
+
+	(*env)->DeleteLocalRef(env, str);
 }
 
 void glk_set_style(glui32 styl)
@@ -710,6 +748,9 @@ glui32 glk_get_line_stream(strid_t str, char *buf, glui32 len)
 
 	int count = jstring2latin1(env, result, buf, len - 1);
 	buf[count] = 0;
+
+
+	(*env)->DeleteLocalRef(env, result);
 
 	return count;
 }
@@ -775,7 +816,10 @@ frefid_t glk_fileref_create_temp(glui32 usage, glui32 rock)
 	if (!fref)
 		return 0;
 
-	return (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
+	frefid_t ret = (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
+
+	(*env)->DeleteLocalRef(env, fref);
+	return ret;
 }
 
 frefid_t glk_fileref_create_by_name(glui32 usage, char *name, glui32 rock)
@@ -795,10 +839,15 @@ frefid_t glk_fileref_create_by_name(glui32 usage, char *name, glui32 rock)
 
 	jobject fref = (*env)->CallStaticObjectMethod(env, _FileRef, mid, (jint) usage, name, (jint) rock);
 
+	(*env)->DeleteLocalRef(env, jname);
+
 	if (!fref)
 		return 0;
 
-	return (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
+	frefid_t ret = (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
+
+	(*env)->DeleteLocalRef(env, fref);
+	return ret;
 }
 
 frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
@@ -822,7 +871,10 @@ frefid_t glk_fileref_create_from_fileref(glui32 usage, frefid_t fileref, glui32 
 	if (!fref)
 		return 0;
 
-	return (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
+	frefid_t ret = (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
+
+	(*env)->DeleteLocalRef(env, fref);
+	return ret;
 }
 
 void glk_fileref_destroy(frefid_t fref)
@@ -852,7 +904,12 @@ frefid_t glk_fileref_iterate(frefid_t fref, glui32 *rockptr)
 
 	if (rockptr)
 		*rockptr = (*env)->CallIntMethod(env, nextfref, _getRock);
-	return (frefid_t) (*env)->CallIntMethod(env, nextfref, _getPointer);
+
+	frefid_t ret = (frefid_t) (*env)->CallIntMethod(env, nextfref, _getPointer);
+
+	(*env)->DeleteLocalRef(env, nextfref);
+
+	return ret;
 }
 
 glui32 glk_fileref_get_rock(frefid_t fref)
@@ -917,6 +974,8 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 			if (_vm_unreg_array)
 				_vm_unreg_array(buf, len, gidispatch_char_array, INT2GDROCK(rock));
 
+			(*env)->DeleteLocalRef(env, line);
+
 			__android_log_print(ANDROID_LOG_DEBUG, "andglk.c", "got line: \"%s\"\n", buf);
 			event->val2 = 0;
 		}
@@ -945,6 +1004,8 @@ void glk_select(event_t *event)
 
 	jobject ev = (*env)->CallObjectMethod(env, _this, mid, event);
 	event2glk(env, ev, event);
+
+	(*env)->DeleteLocalRef(env, ev);
 }
 
 void glk_select_poll(event_t *event)
@@ -979,6 +1040,9 @@ void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initle
 	}
 
 	(*env)->CallVoidMethod(env, *win, mid, str, (jlong) maxlen, (jint) buf);
+
+	if (str)
+		(*env)->DeleteLocalRef(env, str);
 }
 
 void glk_request_char_event(winid_t win)
@@ -1006,6 +1070,8 @@ void glk_cancel_line_event(winid_t win, event_t *event)
 	jobject ev = (*env)->CallObjectMethod(env, *win, mid);
 	if (event)
 		event2glk(env, ev, event);
+
+	(*env)->DeleteLocalRef(env, ev);
 }
 
 void glk_cancel_char_event(winid_t win)
