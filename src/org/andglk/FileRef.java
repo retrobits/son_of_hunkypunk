@@ -378,4 +378,8 @@ public class FileRef extends CPointed {
 		_last = _iterator.next();
 		return _last;
 	}
+	
+	public void deleteFile() {
+		mFile.delete();
+	}
 }

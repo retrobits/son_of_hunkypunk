@@ -810,12 +810,7 @@ frefid_t glk_fileref_iterate(frefid_t fref, glui32 *rockptr)
 glui32 glk_fileref_get_rock(frefid_t fref)
 {
 	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_get_rock", "(Lorg/andglk/FileRef;)J");
-
-	return (*env)->CallLongMethod(env, _this, mid, fref);
-
+	return (*env)->CallIntMethod(env, *fref, _getRock);
 }
 
 void glk_fileref_delete_file(frefid_t fref)
@@ -823,10 +818,9 @@ void glk_fileref_delete_file(frefid_t fref)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_delete_file", "(Lorg/andglk/FileRef;)V");
+		mid = (*env)->GetMethodID(env, _FileRef, "deleteFile", "()V");
 
-	(*env)->CallVoidMethod(env, _this, mid, fref);
-
+	(*env)->CallVoidMethod(env, *fref, mid);
 }
 
 glui32 glk_fileref_does_file_exist(frefid_t fref)
