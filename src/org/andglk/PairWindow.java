@@ -112,7 +112,7 @@ public class PairWindow extends Window {
 		
 		int idx = parentv.getChildAt(0) == _view ? 0 : 2;
 		parentv.removeView(_view);
-		parentv.addView(keepv);
+		parentv.addView(keepv, idx);
 		
 		keepv.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT, 0));
 		
