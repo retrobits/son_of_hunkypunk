@@ -359,4 +359,9 @@ public class FileRef extends CPointed {
 		return new FileRef(new File(Glk.getInstance().getFilesDir(usage & FILEUSAGE_TYPEMASK), name),
 				(usage & ~FILEUSAGE_TYPEMASK) != FILEUSAGE_BINARYMODE, rock);
 	}
+	
+	static public FileRef createFromFileRef(int usage, FileRef ref, int rock) {
+		return new FileRef(new File(Glk.getInstance().getFilesDir(usage & FILEUSAGE_TYPEMASK), ref.getFile().getName()),
+				(usage & ~FILEUSAGE_TYPEMASK) != FILEUSAGE_BINARYMODE, rock);
+	}
 }

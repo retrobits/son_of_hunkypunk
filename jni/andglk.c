@@ -722,7 +722,7 @@ frefid_t glk_fileref_create_temp(glui32 usage, glui32 rock)
 	if (mid == 0)
 		mid = (*env)->GetStaticMethodID(env, _FileRef, "createTemp", "(II)Lorg/andglk/FileRef;");
 
-	jobject fref = (*env)->CallObjectMethod(env, _FileRef, mid, (jint) usage, (jint) rock);
+	jobject fref = (*env)->CallStaticObjectMethod(env, _FileRef, mid, (jint) usage, (jint) rock);
 
 	if (!fref)
 		return 0;
@@ -745,7 +745,7 @@ frefid_t glk_fileref_create_by_name(glui32 usage, char *name, glui32 rock)
 
 	jstring jname = (*env)->NewString(env, jnamechars, len);
 
-	jobject fref = (*env)->CallObjectMethod(env, _FileRef, mid, (jint) usage, name, (jint) rock);
+	jobject fref = (*env)->CallStaticObjectMethod(env, _FileRef, mid, (jint) usage, name, (jint) rock);
 
 	if (!fref)
 		return 0;
@@ -763,16 +763,18 @@ frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
 	return (frefid_t) (*env)->CallStaticIntMethod(env, _FileRef, mid, (jint) usage, (jint) fmode, (jint) rock);
 }
 
-frefid_t glk_fileref_create_from_fileref(glui32 usage, frefid_t fref,
-    glui32 rock)
+frefid_t glk_fileref_create_from_fileref(glui32 usage, frefid_t fileref, glui32 rock)
 {
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_create_from_fileref", "(JLorg/andglk/FileRef;J)Lorg/andglk/FileRef;");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "createFromFileRef", "(ILorg/andglk/FileRef;I)Lorg/andglk/FileRef;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, usage, fref, rock);
+	jobject fref = (*env)->CallStaticObjectMethod(env, _FileRef, mid, (jint) usage, *fileref, (jint) rock);
+	if (!fref)
+		return 0;
 
+	return (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
 }
 
 void glk_fileref_destroy(frefid_t fref)
