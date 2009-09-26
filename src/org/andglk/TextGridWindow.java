@@ -53,6 +53,7 @@ public class TextGridWindow extends Window {
 
 		public View(Context context) {
 			super(context);
+			setBackgroundResource(android.R.drawable.edit_text);
 			TypedArray ta = context.obtainStyledAttributes(null, new int[] { android.R.attr.textAppearance }, 
 					android.R.attr.textViewStyle, 0);
 			int res = ta.getResourceId(0, -1);
