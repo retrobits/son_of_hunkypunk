@@ -2,6 +2,7 @@ package org.andglk;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -39,6 +40,8 @@ public class FileRef extends CPointed {
 	private final boolean mIsText;
 	
 	static List<FileRef> _fileRefs = new LinkedList<FileRef>();
+	private static Iterator<FileRef> _iterator;
+	private static FileRef _last;
 
 	private FileRef(File file, boolean isText, int rock) {
 		super(rock);
@@ -363,5 +366,16 @@ public class FileRef extends CPointed {
 	static public FileRef createFromFileRef(int usage, FileRef ref, int rock) {
 		return new FileRef(new File(Glk.getInstance().getFilesDir(usage & FILEUSAGE_TYPEMASK), ref.getFile().getName()),
 				(usage & ~FILEUSAGE_TYPEMASK) != FILEUSAGE_BINARYMODE, rock);
+	}
+
+	static public FileRef iterate(FileRef w) {
+		if (w == null)
+			_iterator = _fileRefs.iterator();
+		else if (_last != w) {
+			_iterator = _fileRefs.iterator();
+			while (_iterator.next() != w);
+		}
+		_last = _iterator.next();
+		return _last;
 	}
 }
