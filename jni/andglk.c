@@ -1065,7 +1065,7 @@ void glk_cancel_line_event(winid_t win, event_t *event)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "cancelLineEvent", "()org/andglk/LineInputEvent;");
+		mid = (*env)->GetMethodID(env, _Window, "cancelLineEvent", "()Lorg/andglk/LineInputEvent;");
 
 	jobject ev = (*env)->CallObjectMethod(env, *win, mid);
 	if (event)
