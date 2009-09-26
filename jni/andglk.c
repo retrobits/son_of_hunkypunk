@@ -1,3 +1,5 @@
+#define _GNU_SOURCE // for strnlen
+
 #include <jni.h>
 #include <android/log.h>
 #include <stdlib.h>
@@ -728,16 +730,27 @@ frefid_t glk_fileref_create_temp(glui32 usage, glui32 rock)
 	return (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
 }
 
-frefid_t glk_fileref_create_by_name(glui32 usage, char *name,
-    glui32 rock)
+frefid_t glk_fileref_create_by_name(glui32 usage, char *name, glui32 rock)
 {
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "fileref_create_by_name", "(J[FIXME: char *]J)Lorg/andglk/FileRef;");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "createByName", "(ILjava/lang/string;I)Lorg/andglk/FileRef;");
 
-	return (*env)->CallObjectMethod(env, _this, mid, usage, name, rock);
+	int len = strnlen(name, 255);
+	jchar jnamechars[len];
+	int i;
+	for (i = 0; i < len; i++)
+		jnamechars[i] = (jchar) name[i];
 
+	jstring jname = (*env)->NewString(env, jnamechars, len);
+
+	jobject fref = (*env)->CallObjectMethod(env, _FileRef, mid, (jint) usage, name, (jint) rock);
+
+	if (!fref)
+		return 0;
+
+	return (frefid_t) (*env)->CallIntMethod(env, fref, _getPointer);
 }
 
 frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
