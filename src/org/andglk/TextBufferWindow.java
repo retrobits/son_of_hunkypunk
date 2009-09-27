@@ -13,6 +13,8 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.ArrowKeyMovementMethod;
+import android.text.method.MovementMethod;
+import android.text.method.ScrollingMovementMethod;
 import android.text.style.TextAppearanceSpan;
 import android.view.KeyEvent;
 import android.view.View.OnKeyListener;
@@ -27,7 +29,7 @@ public class TextBufferWindow extends Window {
 			_uiHandler.post(new Runnable() {
 				@Override
 				public void run() {
-					_view.append(Character.toString(c));
+					_view.print(Character.toString(c));
 				}
 			});
 		}
@@ -37,7 +39,7 @@ public class TextBufferWindow extends Window {
 			_uiHandler.post(new Runnable() {
 				@Override
 				public void run() {
-					_view.append(str);
+					_view.print(str);
 				}
 			});
 		}
@@ -59,6 +61,31 @@ public class TextBufferWindow extends Window {
 	}
 	
 	private class View extends TextView implements OnEditorActionListener, OnKeyListener {
+		public class _MovementMethod extends ScrollingMovementMethod {
+			@Override
+			protected boolean left(TextView widget, Spannable buffer) {
+				int selStart;
+				
+				if (mLineInputPending && ((selStart = Selection.getSelectionStart(buffer)) > _start)) {
+					Selection.setSelection(buffer, selStart - 1);
+					return true;
+				}
+
+				return super.left(widget, buffer);
+			}
+
+			protected boolean right(TextView widget, Spannable buffer) {
+				int selEnd;
+				
+				if (mLineInputPending && ((selEnd = Selection.getSelectionEnd(buffer)) < buffer.length())) {
+					Selection.setSelection(buffer, selEnd + 1);
+					return true;
+				}
+
+				return super.left(widget, buffer);
+			}
+		}
+
 		private int _start;
 		private TextAppearanceSpan mStyleSpan;
 		private int mStyleStart;
@@ -114,6 +141,13 @@ public class TextBufferWindow extends Window {
 			return super.onKeyDown(keyCode, event);
 		}
 		
+		public void print(String str) {
+			append(str);
+//			final Layout layout = getLayout();
+//            scrollTo(getScrollX(), layout.getLineTop(getLineCount()));
+//            Touch.scrollTo(this, layout, getScrollX(), getScrollY());
+		}
+
 		@Override
 		protected void onTextChanged(CharSequence text, int start, int before,
 				int after) {
@@ -131,7 +165,7 @@ public class TextBufferWindow extends Window {
 			
 			// span is missing and we can put it in
 			if (sstart == -1 && elen > mStyleStart)
-				e.setSpan(mStyleSpan, mStyleStart, elen, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+				e.setSpan(mStyleSpan, mStyleStart, elen, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 			// span is there but shrank to 0
 			else if (sstart != -1 && sstart == e.getSpanEnd(mStyleSpan)) {
 				mStyleStart = sstart;
@@ -142,11 +176,11 @@ public class TextBufferWindow extends Window {
 		public View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setBackgroundResource(android.R.drawable.edit_text);
+			setMovementMethod(new _MovementMethod());
 		}
 		
 		public void requestLineEvent(String initial, long maxlen) {
 			setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-			setMovementMethod(ArrowKeyMovementMethod.getInstance());
 			setFocusableInTouchMode(true);
 			setOnEditorActionListener(this);
 			mLineInputPending = true;
@@ -158,7 +192,7 @@ public class TextBufferWindow extends Window {
 
 			e.setFilters(new InputFilter[] { filter });
 			if (initial != null)
-				e.append(initial);
+				print(initial);
 			Selection.setSelection(e, e.length());
 			requestFocus();
 		}
@@ -252,10 +286,9 @@ public class TextBufferWindow extends Window {
 					setStyle(Glk.STYLE_NORMAL);
 					ed.setFilters(new InputFilter[]{});
 					
-					append("\n");
+					print("\n");
 					setOnEditorActionListener(null);
 					setRawInputType(InputType.TYPE_NULL);
-					setMovementMethod(getDefaultMovementMethod());
 					setFocusable(false);
 				}
 			});
@@ -347,7 +380,7 @@ public class TextBufferWindow extends Window {
 		_uiHandler.post(new Runnable() {
 			@Override
 			public void run() {
-				_view.append(str);
+				_view.print(str);
 			}
 		});
 	}
