@@ -12,8 +12,6 @@ import android.text.Selection;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.method.ArrowKeyMovementMethod;
-import android.text.method.MovementMethod;
 import android.text.method.ScrollingMovementMethod;
 import android.text.style.TextAppearanceSpan;
 import android.view.KeyEvent;

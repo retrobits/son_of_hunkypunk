@@ -182,7 +182,7 @@ public class TextGridWindow extends Window {
 		}
 		
 		@Override
-		public boolean onKeyUp(int keyCode, KeyEvent event) {
+		public boolean onKeyDown(int keyCode, KeyEvent event) {
 			do {
 				if (mCharEventPending && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
 					doneLineInput();
