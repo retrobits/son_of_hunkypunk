@@ -55,6 +55,7 @@ public class TextGridWindow extends Window {
 			super(context, null, R.attr.textGridWindowStyle);
 			setClickable(true);
 			setEnabled(false);
+			setDrawingCacheEnabled(true);
 			TypedArray ta = context.obtainStyledAttributes(null, new int[] { android.R.attr.textAppearance }, 
 					R.attr.textGridWindowStyle, 0);
 			int res = ta.getResourceId(0, -1);

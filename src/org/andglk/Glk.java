@@ -71,7 +71,8 @@ public class Glk extends Thread {
 			protected void onLayout(boolean changed, int left, int top,
 					int right, int bottom) {
 				super.onLayout(changed, left, top, right, bottom);
-				postEvent(new ArrangeEvent());
+				if (changed)
+					postEvent(new ArrangeEvent());
 			}
 		};
 		_context = context;
