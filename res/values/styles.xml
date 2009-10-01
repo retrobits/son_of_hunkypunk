@@ -2,13 +2,19 @@
 <resources>
 	<style name="TextBufferWindow" parent="@android:style/Widget.TextView">
 		<item name="android:typeface">serif</item>
-<!--		<item name="android:scrollbars">vertical</item>-->
 		<item name="android:fadingEdge">vertical</item>
 		<item name="android:padding">5sp</item>
+		<item name="android:background">@android:drawable/edit_text</item>
+	</style>
+	
+	<style name="TextGridWindow" parent="@android:style/Widget.TextView">
+		<item name="android:typeface">monospace</item> <!-- we don't use this, only here for completeness -->
+		<item name="android:background">@android:drawable/edit_text</item>
 	</style>
 	
 	<style name="theme" parent="@android:style/Theme.Light.NoTitleBar">
 		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
+		<item name="textGridWindowStyle">@style/TextGridWindow</item>
 	</style>
 	
 	<style name="emphasized">

@@ -173,7 +173,6 @@ public class TextBufferWindow extends Window {
 
 		public View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
-			setBackgroundResource(android.R.drawable.edit_text);
 			setMovementMethod(new _MovementMethod());
 		}
 		

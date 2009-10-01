@@ -52,10 +52,9 @@ public class TextGridWindow extends Window {
 		private int mDefaultColor;
 
 		public View(Context context) {
-			super(context);
-			setBackgroundResource(android.R.drawable.edit_text);
+			super(context, null, R.attr.textGridWindowStyle);
 			TypedArray ta = context.obtainStyledAttributes(null, new int[] { android.R.attr.textAppearance }, 
-					android.R.attr.textViewStyle, 0);
+					R.attr.textGridWindowStyle, 0);
 			int res = ta.getResourceId(0, -1);
 			ta = context.obtainStyledAttributes(res, new int[] { android.R.attr.textSize, android.R.attr.textColor });
 			_fontSize = ta.getDimensionPixelSize(0, -1);
