@@ -84,9 +84,11 @@ int game_use_file(strid_t file)
   return FALSE;
 }
 
+extern strid_t glkandroid_stream_open_pathname(char *pathname, glui32 usage, glui32 rock);
 
 void glk_main(void)
 {
+	set_zfile(glkandroid_stream_open_pathname("/sdcard/download/gostak.z5", filemode_Read, 0));
   if(!current_zfile)
   {
     winid_t tempwin;

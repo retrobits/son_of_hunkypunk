@@ -11,7 +11,7 @@ public class GlkActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	setTheme(R.style.theme);
-    	System.loadLibrary("model");
+    	System.loadLibrary("nitfol");
     	glk = new Glk(this);
         setContentView(glk.getView());
     	glk.start();

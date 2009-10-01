@@ -12,8 +12,15 @@ public class FileStream extends Stream {
 
 	public FileStream(FileRef fileref, int fmode, int rock) {
 		super(rock);
+		doOpen(fileref.getFile(), fmode, rock);
+	}
 
-		File file = fileref.getFile();
+	public FileStream(String path, int fmode, int rock) {
+		super(rock);
+		doOpen(new File(path), fmode, rock);
+	}
+	
+	private void doOpen(File file, int fmode, int rock) {
 		try {
 			switch (fmode) {
 			case FileRef.FILEMODE_WRITE:
@@ -21,13 +28,13 @@ public class FileStream extends Stream {
 					file.delete();
 				// fall through
 			case FileRef.FILEMODE_READWRITE:
-				mFile = new RandomAccessFile(fileref.getFile(), "rw");
+				mFile = new RandomAccessFile(file, "rw");
 				break;
 			case FileRef.FILEMODE_READ:
-				mFile = new RandomAccessFile(fileref.getFile(), "r");
+				mFile = new RandomAccessFile(file, "r");
 				break;
 			case FileRef.FILEMODE_WRITEAPPEND:
-				mFile = new RandomAccessFile(fileref.getFile(), "rw");
+				mFile = new RandomAccessFile(file, "rw");
 				mFile.seek(mFile.length());
 				break;
 			default:
