@@ -229,7 +229,8 @@ public abstract class Window extends CPointed {
 			if (mEchoStream != null)
 				mEchoStream.echoOff(this);
 			mEchoStream = echoStream;
-			echoStream.echoOn(this);
+			if (echoStream != null)
+				echoStream.echoOn(this);
 		}
 
 		public long windowClosed() {
