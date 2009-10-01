@@ -2,6 +2,7 @@ package org.andglk;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 public class PairWindow extends Window {
@@ -111,11 +112,14 @@ public class PairWindow extends Window {
 		
 		release();
 		PairWindow parent = getParent();
+		keep.setParent(parent);
 		if (parent != null) {
-			keep.setParent(parent);
 			parent.mChildren[idx == 0 ? 0 : 1] = keep;
 			parent.notifyGone(this);
 			parent.setArrangement(parent.mMethod, parent.mSize, parent.mKeyWindow);
+		} else {
+			// we have the root, so the parent is a framelayout, not a linearlayout
+			keepv.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
 		}
 	}
 	
