@@ -53,6 +53,8 @@ public class TextGridWindow extends Window {
 
 		public View(Context context) {
 			super(context, null, R.attr.textGridWindowStyle);
+			setClickable(true);
+			setEnabled(false);
 			TypedArray ta = context.obtainStyledAttributes(null, new int[] { android.R.attr.textAppearance }, 
 					R.attr.textGridWindowStyle, 0);
 			int res = ta.getResourceId(0, -1);
@@ -174,8 +176,10 @@ public class TextGridWindow extends Window {
 			_glk.waitForUi(new Runnable() {
 				@Override
 				public void run() {
-					setFocusableInTouchMode(true);
 					mCharEventPending = true;
+					setEnabled(true);
+					setFocusableInTouchMode(true);
+					requestFocus();
 				}
 			});
 		}
@@ -183,7 +187,7 @@ public class TextGridWindow extends Window {
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
 			do {
-				if (mCharEventPending && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+				if (mLineEventPending && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
 					doneLineInput();
 					return true;
 				}
@@ -208,7 +212,27 @@ public class TextGridWindow extends Window {
 				}
 				return true;
 			} while (false);
-			return super.onKeyUp(keyCode, event);
+			
+			if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+				android.view.View v = focusSearch(FOCUS_LEFT);
+				if (v == null)
+					v = focusSearch(FOCUS_UP);
+				if (v != null) {
+					v.requestFocus(FOCUS_LEFT);
+					return true;
+				}
+			} else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+				android.view.View v = focusSearch(FOCUS_RIGHT);
+				if (v == null)
+					v = focusSearch(FOCUS_DOWN);
+				if (v != null) {
+					v.requestFocus(FOCUS_RIGHT);
+					return true;
+				}
+				
+			}
+			
+			return super.onKeyDown(keyCode, event);
 		}
 
 		private void backspace() {
@@ -242,7 +266,9 @@ public class TextGridWindow extends Window {
 			if (mLineInputEnd - mLineInputStart > mMaxLen)
 				mLineInputEnd = mLineInputStart + mMaxLen;
 			
+			setEnabled(true);
 			setFocusableInTouchMode(true);
+			requestFocus();
 		}
 
 		public LineInputEvent cancelLineEvent() {
@@ -253,6 +279,7 @@ public class TextGridWindow extends Window {
 			_pos = _pos + _charsW;
 			_pos -= _pos % _charsW;
 			mLineEventPending = false;
+			setEnabled(false);
 			setFocusable(false);
 			
 			return new LineInputEvent(TextGridWindow.this, result, mLineBuffer, mMaxLen, mDispatchRock);
@@ -260,6 +287,7 @@ public class TextGridWindow extends Window {
 
 		public void cancelCharEvent() {
 			if (mCharEventPending) {
+				setEnabled(false);
 				setFocusable(false);
 				mCharEventPending = false;
 			}				

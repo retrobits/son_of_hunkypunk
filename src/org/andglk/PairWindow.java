@@ -68,7 +68,7 @@ public class PairWindow extends Window {
 		assert(oldParent != null);
 		
 		// swap the pair in
-		int parentIndex = (oldParent.getChildAt(0) == oldv) ? 0 : 2; // 2 because of the divider
+		int parentIndex = (oldParent.getChildAt(0) == oldv) ? 0 : 1;
 		oldParent.removeView(oldv);
 		oldParent.addView(l, parentIndex);
 		
@@ -77,16 +77,6 @@ public class PairWindow extends Window {
 		mChildren = new Window[] { first, second };
 		
 		l.addView(first.getView());
-		
-		View divider = new View(_glk.getContext());
-		if (l.getOrientation() == LinearLayout.VERTICAL) {
-			divider.setBackgroundResource(android.R.drawable.divider_horizontal_bright);
-			divider.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, 1));
-		} else {
-			divider.setBackgroundResource(R.drawable.divider_vertical_bright);
-			divider.setLayoutParams(new ViewGroup.LayoutParams(1, ViewGroup.LayoutParams.FILL_PARENT));
-		}
-		l.addView(divider);
 		l.addView(second.getView());
 		
 		setArrangement(method, size, neww);
@@ -113,7 +103,7 @@ public class PairWindow extends Window {
 		
 		_view.removeView(keepv);
 		
-		int idx = parentv.getChildAt(0) == _view ? 0 : 2;
+		int idx = parentv.getChildAt(0) == _view ? 0 : 1;
 		parentv.removeView(_view);
 		parentv.addView(keepv, idx);
 		
@@ -166,12 +156,12 @@ public class PairWindow extends Window {
 		case WINMETHOD_ABOVE:
 		case WINMETHOD_LEFT:
 			constrained = _view.getChildAt(0);
-			free = _view.getChildAt(2);
+			free = _view.getChildAt(1);
 			break;
 		case WINMETHOD_BELOW:
 		case WINMETHOD_RIGHT:
 			free = _view.getChildAt(0);
-			constrained = _view.getChildAt(2);
+			constrained = _view.getChildAt(1);
 			break;
 		default:
 			assert(false);

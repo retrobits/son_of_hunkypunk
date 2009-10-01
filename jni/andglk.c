@@ -154,6 +154,7 @@ void Java_org_andglk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativ
 	jbyte *jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, jbuf, NULL);
 	memcpy(nbuf, jbufcontents, len);
 	(*env)->ReleasePrimitiveArrayCritical(env, jbuf, jbufcontents, JNI_ABORT);
+	(*env)->DeleteLocalRef(env, jbuf);
 }
 
 int (*Java_org_andglk_MemoryStream_retainVmArray)(JNIEnv *env, jobject this, int buffer, long len) =
@@ -221,6 +222,7 @@ glui32 glk_gestalt_ext(glui32 sel, glui32 val, glui32 *arr,
 	}
 
 	(*env)->ReleaseIntArrayElements(env, ret, array, JNI_ABORT);
+	(*env)->DeleteLocalRef(env, ret);
 
 	return res;
 }
@@ -520,6 +522,7 @@ strid_t glk_stream_open_memory(char *buf, glui32 buflen, glui32 fmode, glui32 ro
 	}
 
 	jobject str = (*env)->NewObject(env, _MemoryStream, mid, (jint) buf, jbuf, (jint) fmode, (jint) rock);
+	(*env)->DeleteLocalRef(env, jbuf);
 	strid_t ret;
 	if (!str)
 		return 0;
@@ -549,6 +552,7 @@ void glk_stream_close(strid_t str, stream_result_t *result)
 	result->readcount = arr[0];
 	result->writecount = arr[1];
 	(*env)->ReleaseIntArrayElements(env, res, arr, JNI_ABORT);
+	(*env)->DeleteLocalRef(env, res);
 }
 
 strid_t glk_stream_iterate(strid_t str, glui32 *rockptr)
@@ -775,6 +779,7 @@ glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 	jbyte *jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, result, NULL);
 	memcpy(buf, jbufcontents, count);
 	(*env)->ReleasePrimitiveArrayCritical(env, result, jbufcontents, 0);
+	(*env)->DeleteLocalRef(env, result);
 
 	return count;
 }

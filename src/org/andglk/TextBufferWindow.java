@@ -66,10 +66,22 @@ public class TextBufferWindow extends Window {
 				
 				if (mLineInputPending && ((selStart = Selection.getSelectionStart(buffer)) > _start)) {
 					Selection.setSelection(buffer, selStart - 1);
+					scrollToEnd();
 					return true;
 				}
 
-				return super.left(widget, buffer);
+				if (super.left(widget, buffer))
+					return true;
+				
+				android.view.View v = focusSearch(FOCUS_LEFT);
+				if (v == null)
+					v = focusSearch(FOCUS_UP);
+				if (v != null) {
+					v.requestFocus(FOCUS_LEFT);
+					return true;
+				}
+				
+				return false;
 			}
 
 			protected boolean right(TextView widget, Spannable buffer) {
@@ -77,10 +89,27 @@ public class TextBufferWindow extends Window {
 				
 				if (mLineInputPending && ((selEnd = Selection.getSelectionEnd(buffer)) < buffer.length())) {
 					Selection.setSelection(buffer, selEnd + 1);
+					scrollToEnd();
 					return true;
 				}
 
-				return super.left(widget, buffer);
+				if (super.right(widget, buffer))
+					return true;
+				
+				android.view.View v = focusSearch(FOCUS_RIGHT);
+				if (v == null)
+					v = focusSearch(FOCUS_DOWN);
+				if (v != null) {
+					v.requestFocus(FOCUS_RIGHT);
+					return true;
+				}
+				
+				return false;
+			}
+			
+			@Override
+			public void onTakeFocus(TextView widget, Spannable text, int dir) {
+				// do nothing, else cursor will jump
 			}
 		}
 
@@ -138,7 +167,13 @@ public class TextBufferWindow extends Window {
 			
 			return super.onKeyDown(keyCode, event);
 		}
-		
+
+		public void scrollToEnd() {
+            int padding = getTotalPaddingTop() + getTotalPaddingBottom();
+            int line = getLineCount() - 1;
+            scrollTo(getScrollX(), getLayout().getLineTop(line+1) - getHeight() - padding);
+		}
+
 		public void print(String str) {
 			append(str);
 //			final Layout layout = getLayout();
@@ -174,10 +209,12 @@ public class TextBufferWindow extends Window {
 		public View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setMovementMethod(new _MovementMethod());
+			setEnabled(false);
 		}
 		
 		public void requestLineEvent(String initial, long maxlen) {
 			setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+			setEnabled(true);
 			setFocusableInTouchMode(true);
 			setOnEditorActionListener(this);
 			mLineInputPending = true;
@@ -235,8 +272,10 @@ public class TextBufferWindow extends Window {
 
 		public void requestCharEvent() {
 			setOnKeyListener(this);
+			setEnabled(true);
 			setFocusableInTouchMode(true);
 			mCharEventPending = true;
+			requestFocus();
 		}
 
 		@Override
@@ -259,6 +298,7 @@ public class TextBufferWindow extends Window {
 			if (mCharEventPending) {
 				setOnKeyListener(null);
 				setFocusable(false);
+				setEnabled(false);
 				mCharEventPending = false;
 			}
 		}
@@ -286,6 +326,7 @@ public class TextBufferWindow extends Window {
 					print("\n");
 					setOnEditorActionListener(null);
 					setRawInputType(InputType.TYPE_NULL);
+					setEnabled(false);
 					setFocusable(false);
 				}
 			});
