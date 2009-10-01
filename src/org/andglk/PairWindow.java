@@ -147,7 +147,16 @@ public class PairWindow extends Window {
 		return new long[] { 0, 0 }; // no meaningful measurement
 	}
 	
-	public void setArrangement(int method, int size, Window keyWindow) {
+	public void setArrangement(final int method, final int size, final Window keyWindow) {
+		_glk.waitForUi(new Runnable() {
+			@Override
+			public void run() {
+				doSetArrangement(method, size, keyWindow);
+			}
+		});
+	}
+
+	protected void doSetArrangement(int method, int size, Window keyWindow) {
 		int division = (int) method & Window.WINMETHOD_DIVISIONMASK;
 		int dir = method & Window.WINMETHOD_DIRMASK;
 

@@ -106,6 +106,16 @@ public abstract class Window extends CPointed {
 	public abstract long[] getSize();
 	
 	public long close() {
+		Glk.getInstance().waitForUi(new Runnable() {
+			@Override
+			public void run() {
+				doClose();
+			}
+		});
+		return mStream.windowClosed();
+	}
+
+	protected void doClose() {
 		PairWindow pair = getParent();
 		if (pair != null) {
 			pair.notifyGone(this);
@@ -113,7 +123,6 @@ public abstract class Window extends CPointed {
 		} else
 			_root = null;
 		release();
-		return mStream.windowClosed();
 	}
 
 	protected void setParent(PairWindow parent) {
