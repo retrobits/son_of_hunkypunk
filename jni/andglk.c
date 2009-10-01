@@ -781,8 +781,8 @@ glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 		return 0;
 
 	int count = (*env)->GetArrayLength(env, result);
-	if (count > len - 1)
-		count = len - 1;
+	if (count > len)
+		count = len;
 
 	jbyte *jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, result, NULL);
 	memcpy(buf, jbufcontents, count);
