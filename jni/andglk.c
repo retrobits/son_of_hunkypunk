@@ -389,7 +389,7 @@ winid_t glk_window_get_parent(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "getParent", "()Lorg/andglk/Window;");
+		mid = (*env)->GetMethodID(env, _Window, "getParent", "()Lorg/andglk/PairWindow;");
 
 	jobject parent = (*env)->CallObjectMethod(env, *win, mid);
 	winid_t ret;
