@@ -177,7 +177,14 @@ JNIEnv *JNU_GetEnv()
 
 void glk_exit(void)
 {
+	JNIEnv *env = JNU_GetEnv();
+	static jmethodID mid = 0;
+	if (mid == 0)
+		mid = (*env)->GetMethodID(env, _class, "exit", "()V");
+
 	// TODO: cleanup objects
+	(*env)->CallVoidMethod(env, _this, mid);
+
 
 	// any cleaner way to have glk_exit() not returning (as per spec)?
 	longjmp(_quit_env, 1);
@@ -309,6 +316,7 @@ void glk_window_get_size(winid_t win, glui32 *widthptr, glui32 *heightptr)
 	if (widthptr) *widthptr = arr[0];
 	if (heightptr) *heightptr = arr[1];
 	(*env)->ReleaseLongArrayElements(env, res, arr, JNI_ABORT);
+	(*env)->DeleteLocalRef(env, res);
 }
 
 void glk_window_set_arrangement(winid_t win, glui32 method,

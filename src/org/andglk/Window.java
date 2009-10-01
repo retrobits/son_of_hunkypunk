@@ -326,4 +326,10 @@ public abstract class Window extends CPointed {
 	public int getDispatchClass() {
 		return GIDISP_CLASS_WINDOW;
 	}
+
+	public static void disableAll() {
+		Window w = null;
+		while ((w = iterate(w)) != null)
+			w.getView().setEnabled(false);
+	}
 }

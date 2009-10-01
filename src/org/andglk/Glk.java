@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 public class Glk extends Thread {
 	public final static int STYLE_NORMAL = 0;
@@ -228,5 +229,15 @@ public class Glk extends Thread {
 
 	public Stream getCurrentStream() {
 		return mCurrentStream;
+	}
+	
+	public void exit() {
+		_uiHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				Window.disableAll();
+				Toast.makeText(_context, R.string.game_quit, Toast.LENGTH_SHORT).show();
+			}
+		});
 	}
 }

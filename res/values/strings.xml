@@ -14,4 +14,5 @@
     <string name="pick_data">Pick data file</string>
     <string name="new_data">New data file</string>
     <string name="name">Name</string>
+    <string name="game_quit">The game has quit. Use BACK button to exit.</string>
 </resources>
