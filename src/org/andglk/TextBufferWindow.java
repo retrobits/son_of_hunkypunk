@@ -261,7 +261,10 @@ public class TextBufferWindow extends Window {
 					e.setSpan(mStyleSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
 			
-			mStyleStart = e.length(); 
+			if (e != null)
+				mStyleStart = e.length();
+			else
+				mStyleStart = 0;
 
 			final int id = getTextAppearanceId((int) styl);
 			if (id == 0)
