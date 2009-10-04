@@ -103,7 +103,7 @@ public abstract class Window extends CPointed {
 	
 	public abstract View getView();
 	public abstract void clear();
-	public abstract long[] getSize();
+	public abstract int[] getSize();
 	
 	public long close() {
 		Glk.getInstance().waitForUi(new Runnable() {

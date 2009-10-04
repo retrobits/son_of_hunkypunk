@@ -143,8 +143,8 @@ public class PairWindow extends Window {
 	}
 
 	@Override
-	public long[] getSize() {
-		return new long[] { 0, 0 }; // no meaningful measurement
+	public int[] getSize() {
+		return new int[] { 0, 0 }; // no meaningful measurement
 	}
 	
 	public void setArrangement(final int method, final int size, final Window keyWindow) {

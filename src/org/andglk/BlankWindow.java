@@ -12,8 +12,8 @@ public class BlankWindow extends Window {
 	}
 
 	@Override
-	public long[] getSize() {
-		return new long[] { 0, 0 };
+	public int[] getSize() {
+		return new int[] { 0, 0 };
 	}
 
 	@Override

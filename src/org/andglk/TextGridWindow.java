@@ -135,8 +135,8 @@ public class TextGridWindow extends Window {
 			invalidate();
 		}
 
-		public synchronized long[] getSize() {
-			return new long[] { _charsW, _charsH };
+		public synchronized int[] getSize() {
+			return new int[] { _charsW, _charsH };
 		}
 
 		public synchronized void moveCursor(long x, long y) {
@@ -333,7 +333,7 @@ public class TextGridWindow extends Window {
 	}
 	
 	@Override
-	public long[] getSize() {
+	public int[] getSize() {
 		return _view.getSize();
 	}
 	

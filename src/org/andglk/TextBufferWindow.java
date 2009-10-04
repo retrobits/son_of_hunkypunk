@@ -383,10 +383,10 @@ public class TextBufferWindow extends Window {
 	}
 	
 	@Override
-	public long[] getSize() {
+	public int[] getSize() {
 		int w = _view.getWidth() - _view.getCompoundPaddingLeft() - _view.getCompoundPaddingRight();
 		int h = _view.getHeight() - _view.getCompoundPaddingBottom() - _view.getCompoundPaddingTop();
-		return new long[] { (long) (w / _view.getPaint().measureText("0")), (long) (h / _view.getLineHeight()) };
+		return new int[] { Math.round(w / _view.getPaint().measureText("0")), (h / _view.getLineHeight()) };
 	}
 
 	@Override
