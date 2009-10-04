@@ -121,8 +121,8 @@ public class Glk extends Thread {
 			public void run() {
 				synchronized(Glk.this) {
 					runnable.run();
-					Glk.this.notify();
 					_done = true;
+					Glk.this.notify();
 				}
 			}
 		});
