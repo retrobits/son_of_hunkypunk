@@ -165,10 +165,9 @@ public class TextGridWindow extends Window {
 			
 			int px = getPaddingLeft();
 			int py = getPaddingTop();
-			float ch = measureCharacterHeight(), cw = measureCharacterWidth();
+			float ch = measureCharacterHeight();
 			for (int y = 0; y < _charsH; y++)
-				for (int x = 0; x < _charsW; x++)
-					canvas.drawText(_framebuf, y * _charsW + x, 1, px + cw * x, py + ch * (y + 1), mPaint);
+				canvas.drawText(_framebuf, y * _charsW, _charsW, px, py + ch * (y + 1), mPaint);
 		}
 
 		public void requestCharEvent() {
