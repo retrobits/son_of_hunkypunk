@@ -171,6 +171,7 @@ public class PairWindow extends Window {
 		_glk.waitForUi(new Runnable() {
 			@Override
 			public void run() {
+				mWaitingForLayout = true;
 				doSetArrangement(method, size, keyWindow);
 			}
 		});
@@ -178,10 +179,9 @@ public class PairWindow extends Window {
 	}
 
 	synchronized private void waitForLayout() {
-		mWaitingForLayout = true;
 		while (mWaitingForLayout)
 			try {
-				wait();
+				wait(1000);
 			} catch (InterruptedException e) {
 			}
 	}
