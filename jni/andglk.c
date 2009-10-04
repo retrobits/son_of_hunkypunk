@@ -1124,22 +1124,3 @@ void gidispatch_set_retained_registry(gidispatch_rock_t (*regi)(void *array, glu
 	_vm_reg_array = regi;
 	_vm_unreg_array = unregi;
 }
-
-strid_t glkandroid_stream_open_pathname(char *pathname, glui32 usage, glui32 rock)
-{
-	JNIEnv *env = JNU_GetEnv();
-	static jmethodID mid = 0;
-	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Stream, "openPathname", "(Ljava/lang/String;II)Lorg/andglk/Stream;");
-
-	jstring path = (*env)->NewStringUTF(env, pathname);
-	jobject stream = (*env)->CallStaticObjectMethod(env, _Stream, mid, path, (jint) usage, (jint) rock);
-	(*env)->DeleteLocalRef(env, path);
-
-	if (!stream)
-		return 0;
-
-	strid_t ret = (strid_t) (*env)->CallIntMethod(env, stream, _getPointer);
-	(*env)->DeleteLocalRef(env, stream);
-	return ret;
-}
