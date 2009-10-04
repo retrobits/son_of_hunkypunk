@@ -47,8 +47,6 @@ public class Glk extends Thread {
 	public final static int GESTALT_GRAPHICSTRANSPARENCY = 14;
 	public final static int GESTALT_UNICODE = 15;
 
-	@SuppressWarnings("unused")
-	private Window _root;
 	private Stream mCurrentStream;
 	private FrameLayout _frame;
 	private Handler _uiHandler = new Handler();
@@ -85,12 +83,11 @@ public class Glk extends Thread {
 	@SuppressWarnings("unused")
 	private Event select()
 	{
-		Log.d("Glk", "select()");
+		flush();
 		Event ev;
 		while (true) {
 			try {
 				ev = _eventQueue.take();
-				Log.d("Glk", "select()ed event " + ev.toString());
 				return ev;
 			} catch (InterruptedException e) {
 			}
@@ -240,5 +237,11 @@ public class Glk extends Thread {
 				Toast.makeText(_context, R.string.game_quit, Toast.LENGTH_SHORT).show();
 			}
 		});
+	}
+	
+	public void flush() {
+		final Window root = Window.getRoot();
+		if (root != null)
+			root.flush();
 	}
 }

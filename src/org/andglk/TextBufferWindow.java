@@ -22,6 +22,9 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
 public class TextBufferWindow extends Window {
+	private boolean mCharEventPending;
+	private boolean mLineInputPending;
+	private SpannableStringBuilder mText;
 	private class Stream extends Window.Stream {
 		@Override
 		protected void doPutChar(final char c) throws IOException {
@@ -102,9 +105,6 @@ public class TextBufferWindow extends Window {
 		private int _start;
 		private TextAppearanceSpan mStyleSpan;
 		private int mStyleStart;
-		private boolean mCharEventPending;
-		private boolean mLineInputPending;
-		private SpannableStringBuilder mText;
 		private class Filter implements InputFilter {
 			private long _maxlen;
 
@@ -453,5 +453,16 @@ public class TextBufferWindow extends Window {
 			(ta1.getColor(1, 0) != ta2.getColor(1, 0)) ||
 			(ta1.getString(2) != ta2.getString(2)) ||
 			(ta1.getString(3) != ta2.getString(3));
+	}
+
+	@Override
+	public void flush() {
+		_uiHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				if (!mLineInputPending)
+					_view.setText(mText);
+			}
+		});
 	}
 }

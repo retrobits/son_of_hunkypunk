@@ -61,4 +61,8 @@ public class BlankWindow extends Window {
 	boolean styleDistinguish(int style1, int style2) {
 		return false;
 	}
+
+	@Override
+	public void flush() {
+	}
 }

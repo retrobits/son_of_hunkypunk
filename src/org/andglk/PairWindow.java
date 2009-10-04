@@ -282,4 +282,10 @@ public class PairWindow extends Window {
 	public Window getRightChild() {
 		return mChildren[1];
 	}
+
+	@Override
+	public void flush() {
+		mChildren[0].flush();
+		mChildren[1].flush();
+	}
 }

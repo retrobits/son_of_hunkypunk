@@ -2,6 +2,7 @@ package org.andglk;
 
 import android.app.Activity;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Debug;
 
@@ -16,7 +17,10 @@ public class Nitfol extends Activity {
     	System.loadLibrary("nitfol");
     	glk = new Glk(this);
         setContentView(glk.getView());
-        useFile(new FileStream(getIntent().getData().getPath(), FileRef.FILEMODE_READ, 0).getPointer());
+        Uri uri = getIntent().getData();
+        if (uri == null)
+        	uri = Uri.parse("file:///sdcard/download/softfood.z5");
+        useFile(new FileStream(uri.getPath(), FileRef.FILEMODE_READ, 0).getPointer());
     	glk.start();
         super.onCreate(savedInstanceState);
     }

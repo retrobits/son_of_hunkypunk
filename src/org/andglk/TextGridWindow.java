@@ -37,6 +37,8 @@ public class TextGridWindow extends Window {
 			_view.setStyle((int) styl);
 		}
 	}
+
+	public boolean mChanged;
 	
 	private class View extends android.view.View {
 		private int _fontSize;
@@ -126,13 +128,11 @@ public class TextGridWindow extends Window {
 					_framebuf[y * _charsW + x] = oldfb[y * oldw + x];
 		}
 
-		/* must be run on the main thread */
 		public synchronized void clear() {
 			for (int i = 0; i < _charsW * _charsH; ++i)
 				_framebuf[i] = ' ';
 			
 			_pos = 0;
-			invalidate();
 		}
 
 		public synchronized int[] getSize() {
@@ -157,8 +157,6 @@ public class TextGridWindow extends Window {
 				return;
 			str.getChars(0, end, _framebuf, _pos);
 			_pos += end;
-			
-			postInvalidate();
 		}
 		
 		@Override
@@ -324,12 +322,7 @@ public class TextGridWindow extends Window {
 	
 	@Override
 	public void clear() {
-		_glk.waitForUi(new Runnable() {
-			@Override
-			public void run() {
-				_view.clear();
-			}
-		});
+		_view.clear();
 	}
 	
 	@Override
@@ -383,5 +376,10 @@ public class TextGridWindow extends Window {
 	boolean styleDistinguish(int style1, int style2) {
 		// TODO fix when styles implemented
 		return false;
+	}
+
+	@Override
+	public void flush() {
+		_view.postInvalidate();
 	}
 }

@@ -1017,7 +1017,7 @@ void glk_select(event_t *event)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _class, "select", "()Lorg/andglk/Event;");
 
-	jobject ev = (*env)->CallObjectMethod(env, _this, mid, event);
+	jobject ev = (*env)->CallObjectMethod(env, _this, mid);
 	event2glk(env, ev, event);
 
 	(*env)->DeleteLocalRef(env, ev);
@@ -1025,7 +1025,12 @@ void glk_select(event_t *event)
 
 void glk_select_poll(event_t *event)
 {
-	/* we don't use that ATM (TODO?) */
+	JNIEnv *env = JNU_GetEnv();
+	static jmethodID mid = 0;
+	if (mid == 0)
+		mid = (*env)->GetMethodID(env, _class, "flush", "()V");
+
+	(*env)->CallVoidMethod(env, _this, mid);
 	event->type = evtype_None;
 }
 

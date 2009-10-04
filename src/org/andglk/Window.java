@@ -342,4 +342,6 @@ public abstract class Window extends CPointed {
 		while ((w = iterate(w)) != null)
 			w.getView().setEnabled(false);
 	}
+
+	abstract public void flush();
 }
