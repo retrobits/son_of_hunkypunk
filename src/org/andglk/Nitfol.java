@@ -3,6 +3,7 @@ package org.andglk;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Debug;
 
 public class Nitfol extends Activity {
     private Glk glk;
@@ -10,6 +11,7 @@ public class Nitfol extends Activity {
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+    	Debug.startMethodTracing("nitfol");
     	setTheme(R.style.theme);
     	System.loadLibrary("nitfol");
     	glk = new Glk(this);
@@ -30,6 +32,7 @@ public class Nitfol extends Activity {
     	// XXX we don't support pausing yet
     	super.onPause();
     	finish();
+    	Debug.stopMethodTracing();
     }
     
     native void useFile(int str_p);
