@@ -10,6 +10,7 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Selection;
 import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
@@ -24,32 +25,17 @@ public class TextBufferWindow extends Window {
 	private class Stream extends Window.Stream {
 		@Override
 		protected void doPutChar(final char c) throws IOException {
-			_uiHandler.post(new Runnable() {
-				@Override
-				public void run() {
-					_view.print(Character.toString(c));
-				}
-			});
+			_view.print(Character.toString(c));
 		}
 
 		@Override
 		protected void doPutString(final String str) throws IOException {
-			_uiHandler.post(new Runnable() {
-				@Override
-				public void run() {
-					_view.print(str);
-				}
-			});
+			_view.print(str);
 		}
 
 		@Override
 		public void setStyle(final long styl) {
-			_glk.waitForUi(new Runnable() {
-				@Override
-				public void run() {
-					_view.setStyle(styl);
-				}
-			});
+			_view.setStyle(styl);
 		}
 
 		public void echo(String s) {
@@ -118,6 +104,7 @@ public class TextBufferWindow extends Window {
 		private int mStyleStart;
 		private boolean mCharEventPending;
 		private boolean mLineInputPending;
+		private SpannableStringBuilder mText;
 		private class Filter implements InputFilter {
 			private long _maxlen;
 
@@ -175,7 +162,7 @@ public class TextBufferWindow extends Window {
 		}
 
 		public void print(String str) {
-			append(str);
+			mText.append(str);
 //			final Layout layout = getLayout();
 //            scrollTo(getScrollX(), layout.getLineTop(getLineCount()));
 //            Touch.scrollTo(this, layout, getScrollX(), getScrollY());
@@ -184,7 +171,7 @@ public class TextBufferWindow extends Window {
 		@Override
 		protected void onTextChanged(CharSequence text, int start, int before,
 				int after) {
-			if (mStyleSpan == null)
+			if ((!mLineInputPending) || mStyleSpan == null)
 				return;
 
 			/* the point is that if the span was to vanish, 
@@ -209,10 +196,13 @@ public class TextBufferWindow extends Window {
 		public View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setMovementMethod(new _MovementMethod());
+			mText = new SpannableStringBuilder();
 			setEnabled(false);
 		}
 		
 		public void requestLineEvent(String initial, long maxlen) {
+			setStyle(Glk.STYLE_INPUT);
+			setText(mText);
 			setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 			setEnabled(true);
 			setFocusableInTouchMode(true);
@@ -221,7 +211,6 @@ public class TextBufferWindow extends Window {
 
 			final Editable e = getEditableText();
 			_start = e.length();
-			setStyle(Glk.STYLE_INPUT);
 			final InputFilter filter = new Filter(maxlen);
 
 			e.setFilters(new InputFilter[] { filter });
@@ -251,18 +240,17 @@ public class TextBufferWindow extends Window {
 		 * @param styl
 		 */
 		public void setStyle(long styl) {
-			Editable e = getEditableText();
 			if (mStyleSpan != null) {
 				int start = mStyleStart;
-				int end = e.length();
+				int end = mText.length();
 				if (start == end)
-					e.removeSpan(mStyleSpan);
+					mText.removeSpan(mStyleSpan);
 				else
-					e.setSpan(mStyleSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					mText.setSpan(mStyleSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
 			
-			if (e != null)
-				mStyleStart = e.length();
+			if (mText != null)
+				mStyleStart = mText.length();
 			else
 				mStyleStart = 0;
 
@@ -323,10 +311,11 @@ public class TextBufferWindow extends Window {
 				@Override
 				public void run() {
 					Editable ed = getEditableText();
-					setStyle(Glk.STYLE_NORMAL);
 					ed.setFilters(new InputFilter[]{});
 					
-					print("\n");
+					ed.append("\n");
+					mText = new SpannableStringBuilder(ed);
+					setStyle(Glk.STYLE_NORMAL);
 					setOnEditorActionListener(null);
 					setRawInputType(InputType.TYPE_NULL);
 					setEnabled(false);
