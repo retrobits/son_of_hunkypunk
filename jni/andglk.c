@@ -157,8 +157,10 @@ void Java_org_andglk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativ
 	(*env)->DeleteLocalRef(env, jbuf);
 }
 
-int (*Java_org_andglk_MemoryStream_retainVmArray)(JNIEnv *env, jobject this, int buffer, long len) =
-	&Java_org_andglk_Window_retainVmArray;
+int Java_org_andglk_MemoryStream_retainVmArray(JNIEnv *env, jobject this, int buffer, long len)
+{
+	Java_org_andglk_Window_retainVmArray(env, this, buffer, len);
+}
 
 void Java_org_andglk_MemoryStream_releaseVmArray(JNIEnv *env, jobject this, int buffer, int length, int dispatchRock)
 {
