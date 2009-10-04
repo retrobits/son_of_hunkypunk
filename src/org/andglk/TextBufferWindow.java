@@ -25,19 +25,21 @@ public class TextBufferWindow extends Window {
 	private boolean mCharEventPending;
 	private boolean mLineInputPending;
 	private SpannableStringBuilder mText;
+	private StringBuilder mBuffer;
 	private class Stream extends Window.Stream {
 		@Override
 		protected void doPutChar(final char c) throws IOException {
-			_view.print(Character.toString(c));
+			mBuffer.append(c);
 		}
 
 		@Override
 		protected void doPutString(final String str) throws IOException {
-			_view.print(str);
+			mBuffer.append(str);
 		}
 
 		@Override
 		public void setStyle(final long styl) {
+			flushBuffer();
 			_view.setStyle(styl);
 		}
 
@@ -197,11 +199,13 @@ public class TextBufferWindow extends Window {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setMovementMethod(new _MovementMethod());
 			mText = new SpannableStringBuilder();
+			mBuffer = new StringBuilder();
 			setEnabled(false);
 		}
 		
 		public void requestLineEvent(String initial, long maxlen) {
 			setStyle(Glk.STYLE_INPUT);
+			flushBuffer();
 			setText(mText);
 			setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 			setEnabled(true);
@@ -352,6 +356,11 @@ public class TextBufferWindow extends Window {
 		});
 	}
 	
+	public void flushBuffer() {
+		mText.append(mBuffer);
+		mBuffer.setLength(0);
+	}
+
 	@Override
 	public synchronized void requestLineEvent(final String initial, final long maxlen, int buffer) {
 		mDispatchRock = retainVmArray(buffer, maxlen);
@@ -460,8 +469,10 @@ public class TextBufferWindow extends Window {
 		_uiHandler.post(new Runnable() {
 			@Override
 			public void run() {
-				if (!mLineInputPending)
+				if (!mLineInputPending) {
+					flushBuffer();
 					_view.setText(mText);
+				}
 			}
 		});
 	}
