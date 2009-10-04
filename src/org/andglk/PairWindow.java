@@ -1,5 +1,6 @@
 package org.andglk;
 
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -12,6 +13,24 @@ public class PairWindow extends Window {
 	private int mMethod;
 	private int mSize;
 	private Window[] mChildren;
+	private boolean mWaitingForLayout;
+	
+	private class _View extends LinearLayout {
+		public _View(Context context) {
+			super(context);
+		}
+
+		@Override
+		protected void onLayout(boolean changed, int l, int t, int r, int b) {
+			super.onLayout(changed, l, t, r, b);
+			synchronized(PairWindow.this) {
+				if (mWaitingForLayout) {
+					mWaitingForLayout = false;
+					PairWindow.this.notify();
+				}
+			}
+		}
+	}
 
 	public PairWindow(final Glk glk, final Window oldw, final Window neww, final int method, final int size) {
 		super(0);
@@ -26,8 +45,9 @@ public class PairWindow extends Window {
 
 	/* this must run in the main thread */
 	protected void init(Glk glk, Window oldw, Window neww, int method, int size) {
+		mWaitingForLayout = false;
 		_glk = glk;
-		LinearLayout l = _view = new LinearLayout(glk.getContext());
+		LinearLayout l = _view = new _View(glk.getContext());
 		final PairWindow parent = oldw.getParent();
 		setParent(parent);
 		if (parent != null)
@@ -80,7 +100,7 @@ public class PairWindow extends Window {
 		l.addView(first.getView());
 		l.addView(second.getView());
 		
-		setArrangement(method, size, neww);
+		doSetArrangement(method, size, neww);
 	}
 
 	@Override
@@ -154,6 +174,16 @@ public class PairWindow extends Window {
 				doSetArrangement(method, size, keyWindow);
 			}
 		});
+		waitForLayout();
+	}
+
+	synchronized private void waitForLayout() {
+		mWaitingForLayout = true;
+		while (mWaitingForLayout)
+			try {
+				wait();
+			} catch (InterruptedException e) {
+			}
 	}
 
 	protected void doSetArrangement(int method, int size, Window keyWindow) {
@@ -183,7 +213,7 @@ public class PairWindow extends Window {
 
 		switch (division) {
 		case WINMETHOD_PROPORTIONAL:
-			constrained.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.FILL_PARENT, android.widget.LinearLayout.LayoutParams.FILL_PARENT, 100 - size));
+			constrained.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.FILL_PARENT, android.widget.LinearLayout.LayoutParams.FILL_PARENT, 100 - size + .01f));
 			break;
 		case WINMETHOD_FIXED:
 			boolean horiz = (dir == WINMETHOD_LEFT) || (dir == WINMETHOD_RIGHT);
@@ -192,6 +222,8 @@ public class PairWindow extends Window {
 				measure = horiz ? mKeyWindow.measureWidth(size) : mKeyWindow.measureHeight(size);
 			constrained.setLayoutParams(new LinearLayout.LayoutParams(horiz ? measure : LinearLayout.LayoutParams.FILL_PARENT, horiz ? LinearLayout.LayoutParams.FILL_PARENT : measure));
 		}
+		
+		_view.requestLayout();
 	}
 
 	public void notifyGone(Window window) {
