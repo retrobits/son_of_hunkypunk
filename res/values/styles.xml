@@ -4,6 +4,7 @@
 		<item name="android:typeface">serif</item>
 		<item name="android:fadingEdge">vertical</item>
 		<item name="android:padding">5sp</item>
+		<item name="android:textColor">@android:color/primary_text_light_nodisable</item>
 	</style>
 	
 	<style name="TextGridWindow" parent="@android:style/Widget.TextView">
