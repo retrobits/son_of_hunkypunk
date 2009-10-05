@@ -52,12 +52,13 @@ public class TextGridWindow extends Window {
 		private int mLineInputEnd;
 		private int mLineInputStart;
 		private int mDefaultColor;
+		private boolean mIsClear;
 
 		public View(Context context) {
 			super(context, null, R.attr.textGridWindowStyle);
+			mIsClear = true;
 			setClickable(true);
 			setEnabled(false);
-			setDrawingCacheEnabled(true);
 			TypedArray ta = context.obtainStyledAttributes(null, new int[] { android.R.attr.textAppearance }, 
 					R.attr.textGridWindowStyle, 0);
 			int res = ta.getResourceId(0, -1);
@@ -79,6 +80,8 @@ public class TextGridWindow extends Window {
 				return;
 			
 			_framebuf[_pos++] = c;
+			
+			mIsClear = false;
 		}
 
 		public void setStyle(int styl) {
@@ -140,6 +143,7 @@ public class TextGridWindow extends Window {
 				_framebuf[i] = ' ';
 			
 			_pos = 0;
+			mIsClear = true;
 		}
 
 		public synchronized int[] getSize() {
@@ -164,11 +168,16 @@ public class TextGridWindow extends Window {
 				return;
 			str.getChars(0, end, _framebuf, _pos);
 			_pos += end;
+			
+			mIsClear = false;
 		}
 		
 		@Override
 		protected synchronized void onDraw(Canvas canvas) {
 			super.onDraw(canvas);
+			
+			if (mIsClear)
+				return;
 			
 			int px = getPaddingLeft();
 			int py = getPaddingTop();
@@ -245,7 +254,7 @@ public class TextGridWindow extends Window {
 				return;
 			
 			_framebuf[--_pos] = ' ';
-			invalidate();
+			postInvalidate();
 		}
 
 		private void addToLine(int c) {
@@ -253,7 +262,8 @@ public class TextGridWindow extends Window {
 				return;
 			
 			_framebuf[_pos++] = (char) c;
-			invalidate();
+			mIsClear = false;
+			postInvalidate();
 		}
 
 		private void doneLineInput() {
