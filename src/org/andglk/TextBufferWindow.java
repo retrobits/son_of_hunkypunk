@@ -4,15 +4,22 @@ import java.io.IOException;
 
 
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.os.Handler;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.TextAppearanceSpan;
 import android.view.View;
 import android.widget.TextView;
 
 public class TextBufferWindow extends Window {
 	private class _Stream extends Stream {
+		private long mCurrentStyle = Glk.STYLE_NORMAL;
+		private StringBuilder mBuffer = new StringBuilder();
+
 		@Override
 		protected void doPutChar(char c) throws IOException {
-			// TODO Auto-generated method stub
-
+			mBuffer.append(c);
 		}
 
 		@Override
@@ -23,25 +30,70 @@ public class TextBufferWindow extends Window {
 
 		@Override
 		public void setStyle(long styl) {
-			// TODO Auto-generated method stub
+			if (styl == mCurrentStyle)
+				return;
+			flushBuffer();
+			mCurrentStyle = styl;
+		}
 
+		private void flushBuffer() {
+			if (mBuffer.length() == 0)
+				return;
+			
+			final String text = mBuffer.toString();
+			final long style = mCurrentStyle;
+			mHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					mView.print(text, style);
+				}
+			});
+			
+			mBuffer.setLength(0);
 		}
 	}
 
 	private Glk mGlk;
-	private _View mView;
+	protected _View mView;
+	private Handler mHandler;
+	private Context mContext;
 	
 	private class _View extends TextView {
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
+		}
+
+		public void print(String text, long style) {
+			final Object span = makeStyleSpan(style);
+			if (span != null) {
+				final SpannableString ss = new SpannableString(text);
+				ss.setSpan(span, 0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				append(ss);
+			} else
+				append(text);
+		}
+
+		private Object makeStyleSpan(long style) {
+			final int id = getTextAppearanceId((int) style);
+			if (id == 0)
+				return null;
+			else
+				return new TextAppearanceSpan(mContext, id);
+		}
+
+		/* see TextBufferWindow.clear() */
+		public void clear() {
+			setText("");
 		}
 	}
 
 	public TextBufferWindow(Glk glk, int rock) {
 		super(rock);
 		mGlk = glk;
-		mView = new _View(glk.getContext());
+		mContext = glk.getContext();
+		mView = new _View(mContext);
 		mStream = new _Stream();
+		mHandler = mGlk.getUiHandler();
 	}
 	
 	@Override
@@ -58,8 +110,12 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void clear() {
-		// TODO Auto-generated method stub
-		
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				mView.clear();
+			}
+		});
 	}
 
 	@Override
@@ -111,7 +167,21 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	boolean styleDistinguish(int style1, int style2) {
-		// TODO Auto-generated method stub
-		return false;
+		if (style1 == style2)
+			return false;
+		
+		int res1 = getTextAppearanceId(style1), res2 = getTextAppearanceId(style2);
+		if (res1 == 0)
+			res1 = R.style.TextBufferWindow;
+		if (res2 == 0)
+			res2 = R.style.TextBufferWindow;
+		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor, android.R.attr.typeface, android.R.attr.textStyle };
+		TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
+		TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);
+		
+		return (ta1.getDimension(0, 0) != ta2.getDimension(0, 0)) ||
+			(ta1.getColor(1, 0) != ta2.getColor(1, 0)) ||
+			(ta1.getString(2) != ta2.getString(2)) ||
+			(ta1.getString(3) != ta2.getString(3));
 	}
 }
