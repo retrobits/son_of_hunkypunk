@@ -24,7 +24,7 @@ public class TextGridWindow extends Window {
 		
 		@Override
 		protected void doPutChar(char c) throws IOException {
-			_view.putString(Character.toString(c));
+			_view.putChar(c);
 		}
 
 		@Override
@@ -72,6 +72,13 @@ public class TextGridWindow extends Window {
 			mPaint.setColor(mDefaultColor);
 			
 			_charsW = _charsH = 0;
+		}
+
+		public void putChar(char c) {
+			if (_pos >= _charsW * _charsH)
+				return;
+			
+			_framebuf[_pos++] = c;
 		}
 
 		public void setStyle(int styl) {
