@@ -40,7 +40,7 @@ public class TextGridWindow extends Window {
 
 	public boolean mChanged;
 	
-	private class View extends android.view.View {
+	protected class View extends android.view.View {
 		private int _fontSize;
 		private Paint mPaint;
 		private int _charsW;
@@ -299,7 +299,7 @@ public class TextGridWindow extends Window {
 		}
 	}
 	
-	private View _view;
+	protected View _view;
 	private Glk _glk;
 	private int mLineBuffer;
 	private int mMaxLen;
