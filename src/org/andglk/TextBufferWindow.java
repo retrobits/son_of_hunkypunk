@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.style.TextAppearanceSpan;
 import android.view.KeyEvent;
 import android.view.View;
@@ -17,6 +18,7 @@ public class TextBufferWindow extends Window {
 	private class _Stream extends Stream {
 		private long mCurrentStyle = Glk.STYLE_NORMAL;
 		private StringBuilder mBuffer = new StringBuilder();
+		private SpannableStringBuilder mSsb = new SpannableStringBuilder();
 
 		@Override
 		protected void doPutChar(char c) throws IOException {
@@ -33,26 +35,50 @@ public class TextBufferWindow extends Window {
 		public void setStyle(long styl) {
 			if (styl == mCurrentStyle)
 				return;
-			flushBuffer();
+			applyStyle();
 			mCurrentStyle = styl;
 		}
 
-		protected void flushBuffer() {
+		private void applyStyle() {
 			if (mBuffer.length() == 0)
 				return;
 			
-			final String text = mBuffer.toString();
-			final long style = mCurrentStyle;
-			mHandler.post(new Runnable() {
-				@Override
-				public void run() {
-					mView.print(text, style);
-				}
-			});
+			final Object span = makeStyleSpan(mCurrentStyle);
+			if (span != null) {
+				final SpannableString ss = new SpannableString(mBuffer);
+				ss.setSpan(span, 0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				mSsb.append(ss);
+			} else
+				mSsb.append(mBuffer);
 			
 			mBuffer.setLength(0);
 		}
-	}
+
+		private Object makeStyleSpan(long style) {
+			final int id = getTextAppearanceId((int) style);
+			if (id == 0)
+				return null;
+			else
+				return new TextAppearanceSpan(mContext, id);
+		}
+
+		public void flush() {
+			applyStyle();
+			
+			if (mSsb.length() == 0)
+				return;
+			
+			final Spannable ssb = mSsb;
+			mHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					mView.print(ssb);
+				}
+			});
+			
+			mSsb = new SpannableStringBuilder();
+		}
+}
 
 	protected Glk mGlk;
 	protected _View mView;
@@ -67,29 +93,14 @@ public class TextBufferWindow extends Window {
 			setText("", BufferType.SPANNABLE);
 		}
 
-		public void print(String text, long style) {
-			final Object span = makeStyleSpan(style);
-			if (span != null) {
-				final SpannableString ss = new SpannableString(text);
-				ss.setSpan(span, 0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				append(ss);
-			} else
-				append(text);
-			
+		public void print(CharSequence text) {
+			append(text);
 			scrollToEnd();
 		}
 
 		private void scrollToEnd() {
 			// this trivial expression below is ripped right out of the ScrollingMovementMethod
 			scrollTo(getScrollX(), getLayout().getLineTop(getLineCount()) - (getHeight() - getTotalPaddingTop() - getTotalPaddingBottom()));
-		}
-
-		private Object makeStyleSpan(long style) {
-			final int id = getTextAppearanceId((int) style);
-			if (id == 0)
-				return null;
-			else
-				return new TextAppearanceSpan(mContext, id);
 		}
 
 		/* see TextBufferWindow.clear() */
@@ -166,7 +177,7 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void flush() {
-		((_Stream) mStream).flushBuffer();
+		((_Stream) mStream).flush();
 	}
 
 	@Override
