@@ -2,13 +2,14 @@ package org.andglk;
 
 import java.io.IOException;
 
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Handler;
+import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.TextAppearanceSpan;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 
@@ -53,14 +54,17 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
-	private Glk mGlk;
+	protected Glk mGlk;
 	protected _View mView;
-	private Handler mHandler;
-	private Context mContext;
+	protected Handler mHandler;
+	protected Context mContext;
 	
 	private class _View extends TextView {
+		private boolean mCharInputEnabled;
+
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
+			setText("", BufferType.SPANNABLE);
 		}
 
 		public void print(String text, long style) {
@@ -83,7 +87,42 @@ public class TextBufferWindow extends Window {
 
 		/* see TextBufferWindow.clear() */
 		public void clear() {
-			setText("");
+			setText("", BufferType.SPANNABLE);
+		}
+
+		public void enableCharInput() {
+			mCharInputEnabled = true;
+
+			final CharSequence cs = getText();
+			assert(cs instanceof Spannable);
+			final Spannable s = (Spannable) cs;
+			Selection.setSelection(s, s.length());
+			
+			setFocusableInTouchMode(true);
+			requestFocus();
+		}
+
+		private void disableCharInput() {
+			mCharInputEnabled = false;
+			
+			final Spannable s = (Spannable) getText();
+			Selection.removeSelection(s);
+			
+			setFocusable(false);
+		}
+
+		@Override
+		public boolean onKeyDown(int keyCode, KeyEvent event) {
+			if (mCharInputEnabled) {
+				Event ev = CharInputEvent.fromKeyEvent(TextBufferWindow.this, event);
+				if (ev != null) {
+					mGlk.postEvent(ev);
+					disableCharInput();
+					return true;
+				}
+			}
+			
+			return super.onKeyDown(keyCode, event);
 		}
 	}
 
@@ -155,8 +194,12 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void requestCharEvent() {
-		// TODO Auto-generated method stub
-		
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				mView.enableCharInput();
+			}
+		});
 	}
 
 	@Override
