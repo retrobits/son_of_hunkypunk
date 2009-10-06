@@ -24,7 +24,12 @@ public class TextGridWindow extends Window {
 		
 		@Override
 		protected void doPutChar(char c) throws IOException {
-			_view.putChar(c);
+			if (_view._pos >= _view._charsW * _view._charsH)
+				return;
+			
+			_view._framebuf[_view._pos++] = c;
+			
+			_view.mIsClear = false;
 		}
 
 		@Override
@@ -43,16 +48,16 @@ public class TextGridWindow extends Window {
 	protected class View extends android.view.View {
 		private int _fontSize;
 		private Paint mPaint;
-		private int _charsW;
-		private int _charsH;
-		private char[] _framebuf;
-		private int _pos;
+		protected int _charsW;
+		protected int _charsH;
+		protected char[] _framebuf;
+		protected int _pos;
 		private boolean mCharEventPending;
 		private boolean mLineEventPending;
 		private int mLineInputEnd;
 		private int mLineInputStart;
 		private int mDefaultColor;
-		private boolean mIsClear;
+		protected boolean mIsClear;
 
 		public View(Context context) {
 			super(context, null, R.attr.textGridWindowStyle);
@@ -73,15 +78,6 @@ public class TextGridWindow extends Window {
 			mPaint.setColor(mDefaultColor);
 			
 			_charsW = _charsH = 0;
-		}
-
-		public void putChar(char c) {
-			if (_pos >= _charsW * _charsH)
-				return;
-			
-			_framebuf[_pos++] = c;
-			
-			mIsClear = false;
 		}
 
 		public void setStyle(int styl) {
