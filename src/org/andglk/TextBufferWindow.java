@@ -37,7 +37,7 @@ public class TextBufferWindow extends Window {
 			mCurrentStyle = styl;
 		}
 
-		private void flushBuffer() {
+		protected void flushBuffer() {
 			if (mBuffer.length() == 0)
 				return;
 			
@@ -75,6 +75,13 @@ public class TextBufferWindow extends Window {
 				append(ss);
 			} else
 				append(text);
+			
+			scrollToEnd();
+		}
+
+		private void scrollToEnd() {
+			// this trivial expression below is ripped right out of the ScrollingMovementMethod
+			scrollTo(getScrollX(), getLayout().getLineTop(getLineCount()) - (getHeight() - getTotalPaddingTop() - getTotalPaddingBottom()));
 		}
 
 		private Object makeStyleSpan(long style) {
@@ -159,8 +166,7 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void flush() {
-		// TODO Auto-generated method stub
-		
+		((_Stream) mStream).flushBuffer();
 	}
 
 	@Override
