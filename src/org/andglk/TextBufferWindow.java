@@ -5,16 +5,29 @@ import java.io.IOException;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.InputType;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.method.MovementMethod;
 import android.text.style.TextAppearanceSpan;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 
 public class TextBufferWindow extends Window {
+	private Object makeStyleSpan(long style) {
+		final int id = getTextAppearanceId((int) style);
+		if (id == 0)
+			return null;
+		else
+			return new TextAppearanceSpan(mContext, id);
+	}
+
 	private class _Stream extends Stream {
 		private long mCurrentStyle = Glk.STYLE_NORMAL;
 		private StringBuilder mBuffer = new StringBuilder();
@@ -54,14 +67,6 @@ public class TextBufferWindow extends Window {
 			mBuffer.setLength(0);
 		}
 
-		private Object makeStyleSpan(long style) {
-			final int id = getTextAppearanceId((int) style);
-			if (id == 0)
-				return null;
-			else
-				return new TextAppearanceSpan(mContext, id);
-		}
-
 		public void flush() {
 			applyStyle();
 			
@@ -84,13 +89,85 @@ public class TextBufferWindow extends Window {
 	protected _View mView;
 	protected Handler mHandler;
 	protected Context mContext;
+	private int mLineEventBuffer;
+	private long mLineEventBufferLength;
+	private int mLineEventBufferRock;
 	
-	private class _View extends TextView {
+	private class _View extends TextView implements OnEditorActionListener {
+		public class _MovementMethod implements MovementMethod {
+
+			@Override
+			public boolean canSelectArbitrarily() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public void initialize(TextView widget, Spannable text) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public boolean onKeyDown(TextView widget, Spannable text,
+					int keyCode, KeyEvent event) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean onKeyOther(TextView view, Spannable text,
+					KeyEvent event) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean onKeyUp(TextView widget, Spannable text,
+					int keyCode, KeyEvent event) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public void onTakeFocus(TextView widget, Spannable text,
+					int direction) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public boolean onTouchEvent(TextView widget, Spannable text,
+					MotionEvent event) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			public boolean onTrackballEvent(TextView widget, Spannable text,
+					MotionEvent event) {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+		}
+
 		private boolean mCharInputEnabled;
+		private boolean mLineInputEnabled;
+		private int mLineInputStart;
+		private Object mLineInputSpan;
 
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
-			setText("", BufferType.SPANNABLE);
+			setText("", BufferType.EDITABLE);
+			setMovementMethod(new _MovementMethod());
+			setInputType(0
+					| InputType.TYPE_CLASS_TEXT 
+					| InputType.TYPE_TEXT_FLAG_AUTO_CORRECT 
+					| InputType.TYPE_TEXT_FLAG_MULTI_LINE
+				);
+			setOnEditorActionListener(this);
+			setFocusable(false);
 		}
 
 		public void print(CharSequence text) {
@@ -105,24 +182,28 @@ public class TextBufferWindow extends Window {
 
 		/* see TextBufferWindow.clear() */
 		public void clear() {
-			setText("", BufferType.SPANNABLE);
+			setText("", BufferType.EDITABLE);
 		}
 
 		public void enableCharInput() {
 			mCharInputEnabled = true;
-
-			final CharSequence cs = getText();
-			assert(cs instanceof Spannable);
-			final Spannable s = (Spannable) cs;
-			Selection.setSelection(s, s.length());
-			
+			enableInput();
+		}
+		
+		private void enableInput() {
 			setFocusableInTouchMode(true);
 			requestFocus();
+			
+			Selection.setSelection(getEditableText(), length());
 		}
 
 		private void disableCharInput() {
 			mCharInputEnabled = false;
 			
+			disableInput();
+		}
+		
+		private void disableInput() {
 			final Spannable s = (Spannable) getText();
 			Selection.removeSelection(s);
 			
@@ -142,6 +223,44 @@ public class TextBufferWindow extends Window {
 			
 			return super.onKeyDown(keyCode, event);
 		}
+
+		public void enableLineInput(String initial) {
+			mLineInputEnabled = true;
+			mLineInputSpan = makeStyleSpan(Glk.STYLE_INPUT); 
+			append("\u200b"); // to attach the span to
+			mLineInputStart = length();
+			final Editable e = getEditableText();
+			e.setSpan(mLineInputSpan, mLineInputStart - 1, mLineInputStart, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+			if (initial != null)
+				e.append(initial);
+			
+			enableInput();
+		}
+		
+		@Override
+		public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+			if (!mLineInputEnabled)
+				return false;
+			
+			lineInputAccepted(finishLineInput().toString());
+			return true;
+		}
+
+		private CharSequence finishLineInput() {
+			disableInput();
+			
+			final Editable e = getEditableText();
+			final int len = e.length();
+			e.setSpan(mLineInputSpan, mLineInputStart - 1, len, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			final CharSequence result = e.subSequence(mLineInputStart, len);
+			
+			e.append("\n");
+			mLineInputSpan = null;
+			mLineInputStart = -1;
+			mLineInputEnabled = false;
+			
+			return result;
+		}
 	}
 
 	public TextBufferWindow(Glk glk, int rock) {
@@ -153,6 +272,19 @@ public class TextBufferWindow extends Window {
 		mHandler = mGlk.getUiHandler();
 	}
 	
+	public void lineInputAccepted(String result) {
+		final org.andglk.Stream echo = mStream.mEchoStream;
+		if (echo != null) {
+			echo.putString(result);
+			echo.putChar('\n');
+		}
+		
+		LineInputEvent lie = new LineInputEvent(this, result, mLineEventBuffer, 
+				mLineEventBufferLength, mLineEventBufferRock);
+		mLineEventBufferLength = mLineEventBuffer = mLineEventBufferRock = 0;
+		mGlk.postEvent(lie);
+	}
+
 	@Override
 	public void cancelCharEvent() {
 		// TODO Auto-generated method stub
@@ -220,9 +352,19 @@ public class TextBufferWindow extends Window {
 	}
 
 	@Override
-	public void requestLineEvent(String initial, long maxlen, int buffer) {
-		// TODO Auto-generated method stub
+	public void requestLineEvent(final String initial, long maxlen, int buffer) {
+		flush();
 		
+		mLineEventBuffer = buffer;
+		mLineEventBufferLength = maxlen;
+		mLineEventBufferRock = retainVmArray(buffer, maxlen);
+		
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				mView.enableLineInput(initial);
+			}
+		});
 	}
 
 	@Override
