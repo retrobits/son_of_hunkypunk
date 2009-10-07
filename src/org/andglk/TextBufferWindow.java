@@ -19,6 +19,7 @@ import android.text.style.TextAppearanceSpan;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
@@ -172,13 +173,24 @@ public class TextBufferWindow extends Window {
 				layout.getLineForVertical(mScrollLimit + innerHeight) != lineCount - 1;
 			
 			if (mPaging)
-				scrollTo(getScrollX(), mScrollLimit);
+				startScrollTo(mScrollLimit);
 			else {
 				mScrollLimit = layout.getLineTop(lineCount - 1);
-				scrollTo(getScrollX(), wantedScroll);
+				startScrollTo(wantedScroll);
 			}
 		}
 		
+		private void startScrollTo(int dest) {
+			final int scrollY = getScrollY();
+			final int dy = dest - scrollY;
+			if (dy == 0)
+				return;
+			mScroller.startScroll(getScrollX(), scrollY, 0, dy);
+			postInvalidate();
+		}
+
+
+
 		private int getUltimateBottom() {
 			return getLayout().getLineTop(getLineCount());
 		}
@@ -216,6 +228,7 @@ public class TextBufferWindow extends Window {
 			}
 			
 		}};
+		private Scroller mScroller;
 		
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
@@ -228,6 +241,8 @@ public class TextBufferWindow extends Window {
 				);
 			setOnEditorActionListener(this);
 			setFocusable(false);
+			mScroller = new Scroller(context);
+			setScroller(mScroller);
 		}
 
 		public void print(CharSequence text) {
