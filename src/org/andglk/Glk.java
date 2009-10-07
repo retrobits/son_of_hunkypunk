@@ -169,8 +169,10 @@ public class Glk extends Thread {
 	 * @param val Parameter for that selector. Optional, pass 0 if not needed.
 	 * @return An array which first element is the main return value and the rest is any additional information pertinent.
 	 */
+	static final int[] sZero = { 0 };
+	static final int[] sOne = { 1 };
+
 	public int[] gestalt(int sel, int val) {
-		final int[] zero = { 0 };
 		
 		switch (sel) {
 		case GESTALT_VERSION:
@@ -182,15 +184,12 @@ public class Glk extends Thread {
 				return new int[] { GESTALT_CHAROUTPUT_CANNOTPRINT, 0 };
 		case GESTALT_LINEINPUT:
 			if (isPrintable((char) val) && val != 10)
-				return new int[] { 1 };
+				return sOne;
 			else
-				return new int[] { 0 };
+				return sZero;
 		case GESTALT_CHARINPUT:
 			// TODO: handle special characters; this needs getChar support too.
-			if (val > 0 && isPrintable((char) val) && val != 10)
-				return new int[] { 1 };
-			else
-				return new int[] { 0 };
+			return CharInputEvent.accepts(val) ? sOne : sZero;
 		default:
 			Log.w("Glk", "unhandled gestalt selector: " + Integer.toString(sel) + " (value " + val + ")");
 		// all below are TODO
@@ -206,7 +205,7 @@ public class Glk extends Thread {
 		case GESTALT_SOUNDNOTIFY:
 		case GESTALT_HYPERLINKS:
 		case GESTALT_HYPERLINKINPUT:
-			return zero;
+			return sZero;
 		}
 	}
 
