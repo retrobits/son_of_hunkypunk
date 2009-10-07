@@ -6,11 +6,13 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Handler;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.method.MovementMethod;
 import android.text.style.TextAppearanceSpan;
 import android.view.KeyEvent;
@@ -156,6 +158,27 @@ public class TextBufferWindow extends Window {
 		private boolean mLineInputEnabled;
 		private int mLineInputStart;
 		private Object mLineInputSpan;
+		private final InputFilter[] mNoFilters = {};
+		private final InputFilter[] mFilters = { new InputFilter() {
+			SpannableStringBuilder mSsb = new SpannableStringBuilder();
+
+			@Override
+			public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+				assert mLineInputEnabled;
+				
+				if (dstart > mLineInputStart)
+					return null;
+				
+				mSsb.clear();
+				mSsb.append(dest, dstart, mLineInputStart);
+				final int newStart = start + (mLineInputStart - dstart);
+				if (newStart < end)
+					mSsb.append(source, newStart, end);
+				
+				return mSsb;
+			}
+			
+		}};
 
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
@@ -234,6 +257,8 @@ public class TextBufferWindow extends Window {
 			if (initial != null)
 				e.append(initial);
 			
+			setFilters(mFilters);
+			
 			enableInput();
 		}
 		
@@ -250,6 +275,7 @@ public class TextBufferWindow extends Window {
 
 		private CharSequence finishLineInput() {
 			disableInput();
+			setFilters(mNoFilters);
 			
 			final Editable e = getEditableText();
 			final int len = e.length();
