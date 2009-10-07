@@ -1,6 +1,7 @@
 package org.andglk;
 
 import java.io.IOException;
+import java.text.StringCharacterIterator;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -8,6 +9,7 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.Layout;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -151,7 +153,44 @@ public class TextBufferWindow extends Window {
 				// TODO Auto-generated method stub
 				return false;
 			}
+		}
 
+		private int mScrollLimit = 0;
+		private boolean mPaging = false;
+		
+		@Override
+		protected void onTextChanged(CharSequence text, int start, int before, int after) {
+			super.onTextChanged(text, start, before, after);
+			scrollDown();
+		}
+		
+		private void scrollDown() {
+			if (getLayout() == null)
+				return;
+			final int ultimateBottom = getUltimateBottom();
+			final int wantedScroll = Math.max(0, ultimateBottom - getInnerHeight());
+			
+			mPaging = true;
+			if (wantedScroll < mScrollLimit) {
+				mScrollLimit = ultimateBottom;
+				scrollTo(getScrollX(), wantedScroll);
+				mPaging  = false;
+			} else
+				scrollTo(getScrollX(), mScrollLimit);
+		}
+		
+		private int getUltimateBottom() {
+			return getLayout().getLineTop(getLineCount());
+		}
+
+		private int getInnerHeight() {
+			return getHeight() - getTotalPaddingBottom() - getTotalPaddingTop();
+		}
+
+		@Override
+		public boolean onPreDraw() {
+			/* super method does strange things with cursor and scrolling here */
+			return true;
 		}
 
 		private boolean mCharInputEnabled;
@@ -171,15 +210,13 @@ public class TextBufferWindow extends Window {
 				
 				mSsb.clear();
 				mSsb.append(dest, dstart, mLineInputStart);
-				final int newStart = start + (mLineInputStart - dstart);
-				if (newStart < end)
-					mSsb.append(source, newStart, end);
+				mSsb.append(source, start, end);
 				
 				return mSsb;
 			}
 			
 		}};
-
+		
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setText("", BufferType.EDITABLE);
@@ -195,12 +232,6 @@ public class TextBufferWindow extends Window {
 
 		public void print(CharSequence text) {
 			append(text);
-			scrollToEnd();
-		}
-
-		private void scrollToEnd() {
-			// this trivial expression below is ripped right out of the ScrollingMovementMethod
-			scrollTo(getScrollX(), getLayout().getLineTop(getLineCount()) - (getHeight() - getTotalPaddingTop() - getTotalPaddingBottom()));
 		}
 
 		/* see TextBufferWindow.clear() */
@@ -216,6 +247,7 @@ public class TextBufferWindow extends Window {
 		private void enableInput() {
 			setFocusableInTouchMode(true);
 			requestFocus();
+			scrollDown();
 			
 			Selection.setSelection(getEditableText(), length());
 		}
@@ -235,6 +267,10 @@ public class TextBufferWindow extends Window {
 
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
+			if (mPaging) {
+				pageDown();
+				return true;
+			}
 			if (mCharInputEnabled) {
 				Event ev = CharInputEvent.fromKeyEvent(TextBufferWindow.this, event);
 				if (ev != null) {
@@ -245,6 +281,13 @@ public class TextBufferWindow extends Window {
 			}
 			
 			return super.onKeyDown(keyCode, event);
+		}
+
+		private void pageDown() {
+			final Layout layout = getLayout();
+			final int innerHeight = getInnerHeight();
+			mScrollLimit = layout.getLineTop(layout.getLineForVertical(mScrollLimit + innerHeight));
+			scrollDown();
 		}
 
 		public void enableLineInput(String initial) {
