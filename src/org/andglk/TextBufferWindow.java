@@ -1,7 +1,6 @@
 package org.andglk;
 
 import java.io.IOException;
-import java.text.StringCharacterIterator;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -158,25 +157,26 @@ public class TextBufferWindow extends Window {
 		private int mScrollLimit = 0;
 		private boolean mPaging = false;
 		
-		@Override
-		protected void onTextChanged(CharSequence text, int start, int before, int after) {
-			super.onTextChanged(text, start, before, after);
-			scrollDown();
-		}
-		
 		private void scrollDown() {
-			if (getLayout() == null)
+			final Layout layout = getLayout();
+			if (layout == null)
 				return;
+			final int lineCount = getLineCount();
 			final int ultimateBottom = getUltimateBottom();
-			final int wantedScroll = Math.max(0, ultimateBottom - getInnerHeight());
+			final int innerHeight = getInnerHeight();
+			final int wantedScroll = Math.max(0, ultimateBottom - innerHeight);
 			
-			mPaging = true;
-			if (wantedScroll < mScrollLimit) {
-				mScrollLimit = ultimateBottom;
-				scrollTo(getScrollX(), wantedScroll);
-				mPaging  = false;
-			} else
+			// this is annoying to page half a line and it's probably a prompt anyway
+			// thus we clear paging flag if we're cutting it
+			mPaging = wantedScroll > mScrollLimit &&
+				layout.getLineForVertical(mScrollLimit + innerHeight) != lineCount - 1;
+			
+			if (mPaging)
 				scrollTo(getScrollX(), mScrollLimit);
+			else {
+				mScrollLimit = layout.getLineTop(lineCount - 1);
+				scrollTo(getScrollX(), wantedScroll);
+			}
 		}
 		
 		private int getUltimateBottom() {
@@ -237,6 +237,7 @@ public class TextBufferWindow extends Window {
 		/* see TextBufferWindow.clear() */
 		public void clear() {
 			setText("", BufferType.EDITABLE);
+			mScrollLimit = 0;
 		}
 
 		public void enableCharInput() {
