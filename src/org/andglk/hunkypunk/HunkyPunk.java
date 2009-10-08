@@ -15,6 +15,6 @@ public final class HunkyPunk {
 		public static final String DEFAULT_SORT_ORDER = "title ASC";
 		public static final String TITLE = "title";
 		public static final String IFID = "ifid";
-		public static final String LAST_LOCATION = "last_location";
+		public static final String FILENAME = "filename";
 	}
 }

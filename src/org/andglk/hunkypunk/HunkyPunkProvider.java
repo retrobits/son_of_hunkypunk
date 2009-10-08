@@ -42,10 +42,9 @@ public class HunkyPunkProvider extends ContentProvider {
 				"CREATE TABLE " + GAMES_TABLE_NAME + " ("
 					+ Games._ID + " INTEGER PRIMARY KEY, "
 					+ Games.IFID + " TEXT UNIQUE NOT NULL, "
-					+ Games.LAST_LOCATION + " TEXT, "
+					+ Games.FILENAME + " TEXT, "
 					+ Games.TITLE + " TEXT"
-					+ ") CHECK (" + Games.LAST_LOCATION + " IS NOT NULL OR " + Games.TITLE + " IS NOT NULL)" +
-				";");
+					+ ");");
 		}
 
 		@Override
@@ -63,6 +62,9 @@ public class HunkyPunkProvider extends ContentProvider {
 	
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+		SQLiteDatabase db;
+		db = mOpenHelper.getReadableDatabase();
+		
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 		
 		qb.setTables(GAMES_TABLE_NAME);
@@ -74,11 +76,13 @@ public class HunkyPunkProvider extends ContentProvider {
 			qb.appendWhere(Games._ID + " = " + Long.toString(ContentUris.parseId(uri)));
 			break;
 		case GAME_IFID:
-			qb.appendWhereEscapeString(Games.IFID + " = " + uri.getPathSegments().get(1));
+			qb.appendWhere(Games.IFID + " = ");
+			qb.appendWhereEscapeString(uri.getPathSegments().get(1));
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI " + uri);
 		}
+		
 		
 		String orderBy;
 		if (TextUtils.isEmpty(sortOrder))
@@ -86,7 +90,6 @@ public class HunkyPunkProvider extends ContentProvider {
 		else
 			orderBy = sortOrder;
 		
-		SQLiteDatabase db = mOpenHelper.getReadableDatabase();
 		Cursor c = qb.query(db, projection, selection, selectionArgs, null, null, orderBy);
 		
 		c.setNotificationUri(getContext().getContentResolver(), uri);
@@ -166,7 +169,7 @@ public class HunkyPunkProvider extends ContentProvider {
 			sb = new StringBuilder(Games._ID + " = " + Long.toString(ContentUris.parseId(uri)));
 			break;
 		case GAME_IFID:
-			sb = new StringBuilder(Games.IFID + " = \'" + DatabaseUtils.sqlEscapeString(uri.getLastPathSegment()) + "\'");
+			sb = new StringBuilder(Games.IFID + " = " + DatabaseUtils.sqlEscapeString(uri.getLastPathSegment()));
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI " + uri);
@@ -191,7 +194,7 @@ public class HunkyPunkProvider extends ContentProvider {
 		sGamesProjectionMap = new HashMap<String, String>();
 		sGamesProjectionMap.put(Games._ID, Games._ID);
 		sGamesProjectionMap.put(Games.IFID, Games.IFID);
-		sGamesProjectionMap.put(Games.LAST_LOCATION, Games.LAST_LOCATION);
+		sGamesProjectionMap.put(Games.FILENAME, Games.FILENAME);
 		sGamesProjectionMap.put(Games.TITLE, Games.TITLE);
 	}
 }

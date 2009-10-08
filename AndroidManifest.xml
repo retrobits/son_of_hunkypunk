@@ -14,7 +14,7 @@
             </intent-filter>
         </activity>
     	<provider android:name=".hunkypunk.HunkyPunkProvider"
-    		android:authorities="org.andglk.hunkypunk"
+    		android:authorities="org.andglk.hunkypunk.HunkyPunk"
     	/>
     	<activity android:name=".hunkypunk.GamesList"
     		android:label="Hunky Punk"
