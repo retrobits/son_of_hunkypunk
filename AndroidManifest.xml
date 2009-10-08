@@ -11,12 +11,21 @@
                 <action android:name="android.intent.action.VIEW" />
                 <data android:mimeType="application/x-zmachine" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+    	<provider android:name=".hunkypunk.HunkyPunkProvider"
+    		android:authorities="org.andglk.hunkypunk"
+    	/>
+    	<activity android:name=".hunkypunk.GamesList"
+    		android:label="Hunky Punk"
+    	>
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>		
 
-</application>
+	</application>
     <uses-sdk android:minSdkVersion="3" />
 
 </manifest>
