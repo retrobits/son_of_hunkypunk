@@ -1,10 +1,13 @@
 package org.andglk.hunkypunk;
 
+import java.io.File;
+
 import android.net.Uri;
 import android.provider.BaseColumns;
 
 public final class HunkyPunk {
 	public static final String AUTHORITY = "org.andglk.hunkypunk.HunkyPunk";
+	public static final File DIRECTORY = new File("/sdcard/Interactive Fiction");
 	private HunkyPunk() {}
 	
 	public static final class Games implements BaseColumns {

@@ -15,4 +15,9 @@
     <string name="new_data">New data file</string>
     <string name="name">Name</string>
     <string name="game_quit">The game has quit. Use BACK button to exit.</string>
+    
+    <string name="examining_file">Examining file %s...</string>
+    <string name="install_success">Successfully installed a new story.</string>
+    <string name="install_failure">Could not read the story file.</string>
+    <string name="hunky_punk">Hunky Punk</string>
 </resources>
