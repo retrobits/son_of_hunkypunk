@@ -1,7 +1,9 @@
 package org.andglk.hunkypunk;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
+import org.andglk.Nitfol;
 import org.andglk.R;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.andglk.ifdb.IFDb;
@@ -9,12 +11,15 @@ import org.andglk.ifdb.IFDb;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.View;
 import android.view.Window;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
@@ -25,6 +30,7 @@ public class GamesList extends ListActivity {
 		Games.TITLE,
 		Games.FILENAME
 	};
+	private static final int FILENAME = 3;
 	private MediaScanner mScanner;
 	private ProgressDialog mProgressDialog;
 	private Handler mHandler = new Handler() {
@@ -71,6 +77,15 @@ public class GamesList extends ListActivity {
 			tryToInstall(uri);
 		else
 			startScan();
+	}
+	
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		Cursor query = getContentResolver().query(Games.uriOfId(id), PROJECTION, null, null, null);
+		query.moveToFirst();
+		Uri uri = HunkyPunk.DIRECTORY_URI.buildUpon().appendEncodedPath(query.getString(FILENAME)).build();
+		Intent i = new Intent(Intent.ACTION_VIEW, uri, this, Nitfol.class);
+		startActivity(i);
 	}
 
 	private void tryToInstall(Uri uri) {

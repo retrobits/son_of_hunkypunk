@@ -8,6 +8,7 @@ import android.provider.BaseColumns;
 public final class HunkyPunk {
 	public static final String AUTHORITY = "org.andglk.hunkypunk.HunkyPunk";
 	public static final File DIRECTORY = new File("/sdcard/Interactive Fiction");
+	public static final Uri DIRECTORY_URI = Uri.fromFile(DIRECTORY);
 	private HunkyPunk() {}
 	
 	public static final class Games implements BaseColumns {
@@ -23,6 +24,9 @@ public final class HunkyPunk {
 		public static final String LOOKED_UP = "looked_up";
 		public static Uri uriOfIfid(String ifid) {
 			return CONTENT_URI.buildUpon().appendPath(ifid).build();
+		}
+		public static Uri uriOfId(long id) {
+			return CONTENT_URI.buildUpon().appendPath(Long.toString(id)).build();
 		}
 	}
 }

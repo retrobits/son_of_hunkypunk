@@ -1,8 +1,6 @@
 package org.andglk.ifdb;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,7 +15,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Handler;
 import android.os.Message;
-import android.text.Html;
 import android.util.Log;
 
 public class IFDb {

@@ -239,6 +239,7 @@ public class Glk extends Thread {
 				Toast.makeText(_context, R.string.game_quit, Toast.LENGTH_SHORT).show();
 			}
 		});
+		_instance = null;
 	}
 	
 	public void flush() {

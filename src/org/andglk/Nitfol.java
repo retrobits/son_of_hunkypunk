@@ -18,8 +18,6 @@ public class Nitfol extends Activity {
     	glk = new Glk(this);
         setContentView(glk.getView());
         Uri uri = getIntent().getData();
-        if (uri == null)
-        	uri = Uri.parse("file:///sdcard/download/Tangle.z5");
         useFile(new FileStream(uri.getPath(), FileRef.FILEMODE_READ, 0).getPointer());
     	glk.start();
         super.onCreate(savedInstanceState);
