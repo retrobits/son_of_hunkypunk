@@ -13,6 +13,9 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 public class Glk extends Thread {
+	public static class AlreadyRunning extends Exception {
+	}
+	
 	public final static int STYLE_NORMAL = 0;
 	public final static int STYLE_EMPHASIZED = 1;
 	public final static int STYLE_PREFORMATTED = 2;

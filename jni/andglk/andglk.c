@@ -7,18 +7,20 @@
 #include "glk.h"
 #include "gi_dispa.h"
 
+/* these are OK to keep */
 static JavaVM *_jvm;
 static jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow,
-	_CharInputEvent, _ArrangeEvent, _MemoryStream, _CPointed;
+_CharInputEvent, _ArrangeEvent, _MemoryStream, _CPointed;
 static jmethodID _getRock, _getPointer, _getDispatchRock, _getDispatchClass;
-static JNIEnv *_env;
-static jobject _this;
-static jmp_buf _quit_env;
 
+/* this should be nulled on exit */
+static jobject _this = 0;
 static gidispatch_rock_t (*_vm_reg_object)(void *obj, glui32 objclass) = 0;
 static void (*_vm_unreg_object)(void *obj, glui32 objclass, gidispatch_rock_t objrock) = 0;
 static gidispatch_rock_t (*_vm_reg_array)(void *array, glui32 len, char *typecode) = 0;
 static void (*_vm_unreg_array)(void *array, glui32 len, char *typecode, gidispatch_rock_t objrock) = 0;
+
+static jmp_buf _quit_env;
 static char* gidispatch_char_array = "&+#!Cn";
 
 #define GLK_JNI_VERSION JNI_VERSION_1_2
@@ -85,6 +87,9 @@ static glui32 jstring2latin1(JNIEnv *env, jstring str, char *buf, glui32 maxlen)
 		len = maxlen;
 
 	const jchar * jbuf = (*env)->GetStringChars(env, str, NULL);
+	if (!jbuf)
+		return 0;
+
 	int i;
 	for (i = 0; i < len; ++i)
 		buf[i] = jbuf[i];
@@ -95,7 +100,14 @@ static glui32 jstring2latin1(JNIEnv *env, jstring str, char *buf, glui32 maxlen)
 
 void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
 {
-	_this = (*env)->NewGlobalRef(env, this);
+	if (_this) {
+		(*env)->ThrowNew(env, (*env)->FindClass(env, "org/andglk/Glk/AlreadyRunning"),
+				"you can't run more than one glk instance");
+		return;
+	}
+
+	if (!(_this = (*env)->NewGlobalRef(env, this)))
+		return;
 
 	if (!setjmp(_quit_env))
 		glk_main();
@@ -151,10 +163,13 @@ void Java_org_andglk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativ
 	char *nbuf = (char *)nativeBuf;
 	int len = (*env)->GetArrayLength(env, jbuf);
 
-	jbyte *jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, jbuf, NULL);
+	jbyte *jbufcontents;
+	if (!(jbufcontents = (jbyte *) (*env)->GetPrimitiveArrayCritical(env, jbuf, NULL)))
+		return;
+
 	memcpy(nbuf, jbufcontents, len);
+
 	(*env)->ReleasePrimitiveArrayCritical(env, jbuf, jbufcontents, JNI_ABORT);
-	(*env)->DeleteLocalRef(env, jbuf);
 }
 
 int Java_org_andglk_MemoryStream_retainVmArray(JNIEnv *env, jobject this, int buffer, long len)
@@ -170,23 +185,29 @@ void Java_org_andglk_MemoryStream_releaseVmArray(JNIEnv *env, jobject this, int 
 
 JNIEnv *JNU_GetEnv()
 {
-    JNIEnv *env;
-    (*_jvm)->GetEnv(_jvm,
-                          (void **)&env,
-                          JNI_VERSION_1_2);
-    return env;
+	JNIEnv *env;
+	(*_jvm)->GetEnv(_jvm, (void **)&env, GLK_JNI_VERSION);
+	return env;
 }
 
 void glk_exit(void)
 {
 	JNIEnv *env = JNU_GetEnv();
+
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "exit", "()V");
+		if (!(mid = (*env)->GetMethodID(env, _class, "exit", "()V")))
+			goto end;
 
-	// TODO: cleanup objects
 	(*env)->CallVoidMethod(env, _this, mid);
 
+	end:
+	(*env)->DeleteGlobalRef(env, _this);
+	_this = 0;
+	_vm_reg_array = 0;
+	_vm_reg_object = 0;
+	_vm_unreg_array = 0;
+	_vm_unreg_object = 0;
 
 	// any cleaner way to have glk_exit() not returning (as per spec)?
 	longjmp(_quit_env, 1);
