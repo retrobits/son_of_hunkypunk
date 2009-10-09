@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.andglk.R;
 import org.andglk.hunkypunk.HunkyPunk.Games;
+import org.andglk.ifdb.IFDb;
 
 import android.app.ListActivity;
 import android.app.ProgressDialog;
@@ -36,10 +37,12 @@ public class GamesList extends ListActivity {
 			case MediaScanner.INSTALLED:
 				mProgressDialog.dismiss();
 				Toast.makeText(GamesList.this, R.string.install_success, Toast.LENGTH_SHORT).show();
+				startScan();
 				break;
 			case MediaScanner.INSTALL_FAILED:
 				mProgressDialog.dismiss();
 				Toast.makeText(GamesList.this, R.string.install_failure, Toast.LENGTH_SHORT).show();
+				startScan();
 				break;
 			}
 		}
@@ -84,5 +87,16 @@ public class GamesList extends ListActivity {
 		setProgressBarIndeterminateVisibility(true);
 		
 		mScanner.start();
+		startLookup();
+	}
+
+	private void startLookup() {
+		IFDb ifdb = IFDb.getInstance(getContentResolver());
+		ifdb.startLookup(new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				Toast.makeText(GamesList.this, R.string.ifdb_connection_error, Toast.LENGTH_LONG).show();
+			}
+		});
 	}
 }

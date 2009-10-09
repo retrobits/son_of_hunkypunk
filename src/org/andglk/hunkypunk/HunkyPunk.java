@@ -20,5 +20,9 @@ public final class HunkyPunk {
 		public static final String TITLE = "title";
 		public static final String IFID = "ifid";
 		public static final String FILENAME = "filename";
+		public static final String LOOKED_UP = "looked_up";
+		public static Uri uriOfIfid(String ifid) {
+			return CONTENT_URI.buildUpon().appendPath(ifid).build();
+		}
 	}
 }

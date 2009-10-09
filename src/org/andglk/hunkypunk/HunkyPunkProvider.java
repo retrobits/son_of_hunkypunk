@@ -20,7 +20,7 @@ import android.text.TextUtils;
 
 public class HunkyPunkProvider extends ContentProvider {
 	private static final String DATABASE_NAME = "hunky_punk.db";
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 	private static final String GAMES_TABLE_NAME = "games";
 	
 	private static HashMap<String, String> sGamesProjectionMap;
@@ -43,12 +43,16 @@ public class HunkyPunkProvider extends ContentProvider {
 					+ Games._ID + " INTEGER PRIMARY KEY, "
 					+ Games.IFID + " TEXT UNIQUE NOT NULL, "
 					+ Games.FILENAME + " TEXT, "
-					+ Games.TITLE + " TEXT"
+					+ Games.TITLE + " TEXT, "
+					+ Games.LOOKED_UP
 					+ ");");
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			// no public version yet, so no sense in transforming data
+			db.execSQL("DROP TABLE " + GAMES_TABLE_NAME + ";");
+			onCreate(db);
 		}
 	}
 	
