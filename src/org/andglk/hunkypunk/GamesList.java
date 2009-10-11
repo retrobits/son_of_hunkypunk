@@ -68,7 +68,7 @@ public class GamesList extends ListActivity {
 	private void startScan() {
 		setProgressBarIndeterminateVisibility(true);
 		
-		mScanner.start();
+		mScanner.startScan();
 	}
 
 	private void startLookup() {

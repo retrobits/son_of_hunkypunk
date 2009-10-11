@@ -20,7 +20,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-public class StorageManager extends Thread {
+public class StorageManager {
 	public static final int DONE = 0;
 	public static final int INSTALLED = 1;
 	public static final int INSTALL_FAILED = 2;
@@ -52,14 +52,6 @@ public class StorageManager extends Thread {
 		mHandler = h;
 	}
 	
-	@Override
-	public void run() {
-		scan(HunkyPunk.DIRECTORY, false);
-		for (File dir : mExtraPaths)
-			scan(dir, true);
-		Message.obtain(mHandler, DONE).sendToTarget();
-	}
-
 	public void checkExisting() {
 		Cursor c = mContentResolver.query(Games.CONTENT_URI, PROJECTION, Games.FILENAME + " IS NOT NULL", null, null);
 		
@@ -167,5 +159,17 @@ public class StorageManager extends Thread {
 				Message.obtain(mHandler, INSTALL_FAILED).sendToTarget();
 			}
 		}.run();
+	}
+
+	public void startScan() {
+		new Thread() {
+			@Override
+			public void run() {
+				scan(HunkyPunk.DIRECTORY, false);
+				for (File dir : mExtraPaths)
+					scan(dir, true);
+				Message.obtain(mHandler, DONE).sendToTarget();
+			}
+		}.start();
 	}
 }
