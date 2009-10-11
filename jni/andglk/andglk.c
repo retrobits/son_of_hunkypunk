@@ -7,6 +7,8 @@
 #include "glk.h"
 #include "gi_dispa.h"
 
+#define TAG "andglk.c"
+
 /* these are OK to keep */
 static JavaVM *_jvm;
 static jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _Character, _PairWindow, _TextGridWindow,
@@ -817,7 +819,7 @@ glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 
 void glk_stylehint_set(glui32 wintype, glui32 styl, glui32 hint, glsi32 val)
 {
-	/* we don't currently support stylehints (TODO) */
+	__android_log_print(ANDROID_LOG_WARN, TAG, "style hint requested but not supported\n");
 }
 
 void glk_stylehint_clear(glui32 wintype, glui32 styl, glui32 hint)
@@ -837,7 +839,7 @@ glui32 glk_style_distinguish(winid_t win, glui32 styl1, glui32 styl2)
 
 glui32 glk_style_measure(winid_t win, glui32 styl, glui32 hint, glui32 *result)
 {
-	/* not implemented (TODO) */
+	__android_log_print(ANDROID_LOG_WARN, TAG, "style measure requested but not supported\n");
 }
 
 frefid_t glk_fileref_create_temp(glui32 usage, glui32 rock)
@@ -1012,7 +1014,6 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 
 			(*env)->DeleteLocalRef(env, line);
 
-			__android_log_print(ANDROID_LOG_DEBUG, "andglk.c", "got line: \"%s\"\n", buf);
 			event->val2 = 0;
 		}
 	} else if ((*env)->IsInstanceOf(env, ev, _CharInputEvent)) {
