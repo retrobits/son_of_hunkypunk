@@ -1,0 +1,5 @@
+- add "by" to the author field
+- consider design of game list item layout (show cover thumb, perhaps)
+- game info screen
+- automatic save/load on suspend/resume
+- style support in text grid window
