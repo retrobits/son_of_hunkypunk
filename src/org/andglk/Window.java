@@ -2,6 +2,7 @@ package org.andglk;
 
 import java.io.IOException;
 
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 
@@ -344,4 +345,11 @@ public abstract class Window extends CPointed {
 	}
 
 	abstract public void flush();
+
+	public Parcelable saveInstanceState() {
+		return null;
+	}
+
+	public void restoreInstanceState(Parcelable p) {
+	}
 }

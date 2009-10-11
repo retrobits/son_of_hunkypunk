@@ -57,7 +57,6 @@ public class Glk extends Thread {
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
 	protected boolean _done;
 	private Context _context;
-	private Runnable mOnSelect;
 
 	@Override
 	public void run() {

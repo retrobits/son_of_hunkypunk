@@ -204,7 +204,7 @@ public class GameDetails extends Activity implements OnClickListener {
 		case R.id.open:
 			Intent intent = new Intent(Intent.ACTION_VIEW, 
 					Uri.withAppendedPath(HunkyPunk.DIRECTORY_URI, mQuery.getString(FILENAME)), this, Nitfol.class);
-			intent.addFlags(Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP);
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startActivity(intent);
 		case R.id.remove:
 			// TODO

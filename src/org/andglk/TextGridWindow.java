@@ -7,10 +7,60 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.KeyEvent;
 
 public class TextGridWindow extends Window {
+	 public static class TextGridParcelable implements Parcelable {
+	     private char[] _frameBuf;
+	     
+	     public void writeToParcel(Parcel out, int flags) {
+	    	 out.writeInt(_frameBuf.length);
+	         out.writeCharArray(_frameBuf);
+	     }
+
+	     public static final Parcelable.Creator<TextGridParcelable> CREATOR
+	             = new Parcelable.Creator<TextGridParcelable>() {
+	         public TextGridParcelable createFromParcel(Parcel in) {
+	             return new TextGridParcelable(in);
+	         }
+
+	         public TextGridParcelable[] newArray(int size) {
+	             return new TextGridParcelable[size];
+	         }
+	     };
+	     
+	     private TextGridParcelable(Parcel in) {
+	    	 _frameBuf = new char[in.readInt()];
+	    	 in.readCharArray(_frameBuf);
+	     }
+
+		public TextGridParcelable(char[] framebuf) {
+			_frameBuf = framebuf;
+		}
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+
+		public char[] getFrameBuffer() {
+			return _frameBuf;
+		}
+	 }
+
+	 @Override
+	public Parcelable saveInstanceState() {
+		return _view.onSaveInstanceState();
+	}
+	
+	@Override
+	public void restoreInstanceState(Parcelable p) {
+		_view.onRestoreInstanceState(p);
+	}
+	
 	private class Stream extends Window.Stream {
 		@Override
 		public int getPosition() {
@@ -302,6 +352,16 @@ public class TextGridWindow extends Window {
 				setFocusable(false);
 				mCharEventPending = false;
 			}				
+		}
+		
+		@Override
+		public Parcelable onSaveInstanceState() {
+			return new TextGridParcelable(_framebuf);
+		}
+		
+		@Override
+		protected void onRestoreInstanceState(Parcelable state) {
+			_framebuf = ((TextGridParcelable) state).getFrameBuffer();
 		}
 	}
 	

@@ -5,6 +5,8 @@ import java.io.IOException;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -24,6 +26,57 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
 public class TextBufferWindow extends Window {
+	public static class _SavedState implements Parcelable {
+		public static final Parcelable.Creator<_SavedState> CREATOR = new Parcelable.Creator<_SavedState>() {
+			@Override
+			public _SavedState createFromParcel(Parcel source) {
+				return new _SavedState(source);
+			}
+
+			@Override
+			public _SavedState[] newArray(int size) {
+				return new _SavedState[size];
+			}
+		};
+		
+		public Parcelable mSuperState;
+		public boolean mLineInputEnabled;
+		public int mLineInputStart;
+		public boolean mCharInputEnabled;
+
+		public _SavedState(Parcel source) {
+			mSuperState = TextView.SavedState.CREATOR.createFromParcel(source);
+			mLineInputEnabled = source.readByte() == 1;
+			mCharInputEnabled = source.readByte() == 1;
+			mLineInputStart = source.readInt();
+		}
+
+		public _SavedState() {
+		}
+
+		@Override
+		public void writeToParcel(Parcel dest, int flags) {
+			mSuperState.writeToParcel(dest, flags);
+			dest.writeByte((byte) (mLineInputEnabled ? 1 : 0));
+			dest.writeByte((byte) (mCharInputEnabled ? 1 : 0));
+			dest.writeInt(mLineInputStart);
+		}
+
+		@Override
+		public int describeContents() {
+			return 0;
+		}
+	};
+	@Override
+	public Parcelable saveInstanceState() {
+		return mView.onSaveInstanceState();
+	}
+	
+	@Override
+	public void restoreInstanceState(Parcelable p) {
+		mView.onRestoreInstanceState(p);
+	}
+	
 	private Object makeStyleSpan(long style) {
 		final int id = getTextAppearanceId((int) style);
 		if (id == 0)
@@ -158,6 +211,38 @@ public class TextBufferWindow extends Window {
 		private int mScrollLimit = 0;
 		private boolean mPaging = false;
 		
+		@Override
+		public Parcelable onSaveInstanceState() {
+			TextBufferWindow._SavedState ss = new TextBufferWindow._SavedState();
+			final Editable e = getEditableText();
+			if (mLineInputEnabled)
+				e.removeSpan(mLineInputSpan);
+			ss.mSuperState = super.onSaveInstanceState();
+			if (mLineInputEnabled)
+				e.setSpan(mLineInputSpan, mLineInputStart, e.length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+			ss.mLineInputEnabled = mLineInputEnabled;
+			ss.mLineInputStart = mLineInputStart;
+			ss.mCharInputEnabled = mCharInputEnabled;
+			return ss;
+		}
+		
+		@Override
+		public void onRestoreInstanceState(Parcelable state) {
+			setFilters(mNoFilters);
+			TextBufferWindow._SavedState ss = (_SavedState) state;
+			mLineInputEnabled = ss.mLineInputEnabled;
+			mCharInputEnabled = ss.mCharInputEnabled;
+			mLineInputStart = ss.mLineInputStart;
+			super.onRestoreInstanceState(ss.mSuperState);
+			if (mLineInputEnabled) {
+				mLineInputSpan = makeStyleSpan(Glk.STYLE_INPUT); 
+				getEditableText().setSpan(mLineInputSpan, mLineInputStart - 1, length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+				setFilters(mFilters);
+			}
+			scrollTo(getScrollX(), Math.max(0, (mScrollLimit = getUltimateBottom()) - getInnerHeight()));
+			mPaging = false;
+		}
+		
 		private void scrollDown() {
 			final Layout layout = getLayout();
 			if (layout == null)
@@ -244,6 +329,7 @@ public class TextBufferWindow extends Window {
 			mScroller = new Scroller(context);
 			setScroller(mScroller);
 		}
+		
 
 		public void print(CharSequence text) {
 			append(text);
@@ -473,4 +559,5 @@ public class TextBufferWindow extends Window {
 			(ta1.getString(2) != ta2.getString(2)) ||
 			(ta1.getString(3) != ta2.getString(3));
 	}
+	
 }

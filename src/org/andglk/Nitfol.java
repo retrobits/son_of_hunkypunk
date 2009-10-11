@@ -1,15 +1,17 @@
 package org.andglk;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Debug;
+import android.os.Parcelable;
 
 public class Nitfol extends Activity {
     private Glk glk;
+	private ArrayList<Parcelable> mWindowStates;
 
 	/** Called when the activity is first created. */
     @Override
@@ -22,6 +24,8 @@ public class Nitfol extends Activity {
         useFile(new FileStream(uri.getPath(), FileRef.FILEMODE_READ, 0).getPointer());
     	glk.start();
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null)
+        	mWindowStates = savedInstanceState.getParcelableArrayList("windowStates");
     }
     
     @Override
@@ -61,8 +65,33 @@ public class Nitfol extends Activity {
     	    	restoreGame(fs.getPointer());
     	    	fs.close();
     	    	f.delete();
+
+    	    	if (mWindowStates != null)
+	    	    	Glk.getInstance().getUiHandler().post(new Runnable() {
+	    	    		public void run() {
+			    	    	Window w = null;
+			    	    	for (Parcelable p : mWindowStates)
+			    	    		if ((w = Window.iterate(w)) != null)
+			    	    			w.restoreInstanceState(p);
+			    	    		else
+			    	    			break;
+	    	    		}
+	    	    	});
     		}
     	});
+    }
+    
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+    	super.onSaveInstanceState(outState);
+
+    	ArrayList<Parcelable> states = new ArrayList<Parcelable>();
+    	
+    	Window w = null;
+    	while ((w = Window.iterate(w)) != null)
+    		states.add(w.saveInstanceState());
+    	
+    	outState.putParcelableArrayList("windowStates", states);
     }
     
     private native void saveGame(int fs);
