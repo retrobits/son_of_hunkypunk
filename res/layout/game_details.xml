@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+>
+	<ScrollView android:id="@+id/info_scroll" 
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+	>
+		<include
+			layout="@layout/game_details_header"
+			android:id="@+id/game_details_header"
+		/>
+	</ScrollView>
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		style="@android:style/ButtonBar"
+	>
+		<Button
+			android:id="@+id/open"
+			android:layout_width="0dip"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:text="@string/open"
+		/>
+		<Button
+			android:id="@+id/remove"
+			android:layout_width="0dip"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:text="@string/remove"
+		/>
+	</LinearLayout>
+</LinearLayout>

@@ -20,5 +20,10 @@
     <string name="install_success">Successfully installed a new story.</string>
     <string name="install_failure">Could not read the story file.</string>
     <string name="hunky_punk">Hunky Punk</string>
-    <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string> 
+    <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string>
+    
+    <string name="open">Open</string>
+    <string name="remove">Remove</string>
+    <string name="game_details">Story details</string>
+    <string name="by_author">by %s</string> 
 </resources>

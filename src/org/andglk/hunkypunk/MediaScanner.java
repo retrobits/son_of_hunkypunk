@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.andglk.Utils;
 import org.andglk.babel.Babel;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 
@@ -58,6 +59,8 @@ public class MediaScanner extends Thread {
 				cv.putNull(Games.FILENAME);
 				mContentResolver.update(ContentUris.withAppendedId(Games.CONTENT_URI, c.getLong(_ID)), cv, null, null);
 			}
+		
+		c.close();
 	}
 
 	private void scan(File dir, boolean foreign) {
@@ -90,6 +93,7 @@ public class MediaScanner extends Thread {
 				filename = installStory(f);
 			} catch (IOException e) {
 				Log.e(TAG, "IO error while installing story " + f, e);
+				query.close();
 				return false;
 			}
 		
@@ -103,6 +107,7 @@ public class MediaScanner extends Thread {
 		} else
 			mContentResolver.update(uri, cv, null, null);
 		
+		query.close();
 		return true;
 	}
 
@@ -125,10 +130,7 @@ public class MediaScanner extends Thread {
 		FileInputStream fis = new FileInputStream(f);
 		FileOutputStream fos = new FileOutputStream(target);
 
-		int count;
-		byte[] buf = new byte[32768];
-		while ((count = fis.read(buf)) != -1)
-			fos.write(buf, 0, count);
+		Utils.copyStream(fis, fos);
 		
 		fis.close();
 		fos.close();

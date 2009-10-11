@@ -8,6 +8,7 @@ import android.provider.BaseColumns;
 public final class HunkyPunk {
 	public static final String AUTHORITY = "org.andglk.hunkypunk.HunkyPunk";
 	public static final File DIRECTORY = new File("/sdcard/Interactive Fiction");
+	public static final File COVER_DIRECTORY = new File(DIRECTORY, "covers");
 	public static final Uri DIRECTORY_URI = Uri.fromFile(DIRECTORY);
 	private HunkyPunk() {}
 	
@@ -42,5 +43,13 @@ public final class HunkyPunk {
 		public static Uri uriOfId(long id) {
 			return CONTENT_URI.buildUpon().appendPath(Long.toString(id)).build();
 		}
+	}
+
+	public static File getCover(String ifid) {
+		if (!DIRECTORY.exists())
+			DIRECTORY.mkdir();
+		if (!COVER_DIRECTORY.exists())
+			COVER_DIRECTORY.mkdir();
+		return new File(COVER_DIRECTORY, ifid);
 	}
 }

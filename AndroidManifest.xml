@@ -30,6 +30,9 @@
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity>		
+    	<activity android:name=".hunkypunk.GameDetails"
+    		android:label="@string/game_details"
+    	/>
 
 		
 	</application>

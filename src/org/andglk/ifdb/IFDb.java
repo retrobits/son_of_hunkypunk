@@ -1,5 +1,7 @@
 package org.andglk.ifdb;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -7,6 +9,8 @@ import java.net.URL;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.andglk.Utils;
+import org.andglk.hunkypunk.HunkyPunk;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -43,6 +47,8 @@ public class IFDb {
 		private static final String SERIES_TAG = "series";
 		private static final String SERIESNUMBER_TAG = "seriesnumber";
 		private static final String FORGIVENESS_TAG = "forgiveness";
+		private static final String IFDB_TAG = "ifdb";
+		private static final String COVERART_TAG = "coverart";
 		
 		private static final int NOTHING_INTERESTING = -1;
 		private static final int BIBLIOGRAPHIC = 0;
@@ -57,9 +63,12 @@ public class IFDb {
 		private static final int SERIES = 9;
 		private static final int SERIESNUMBER = 10;
 		private static final int FORGIVENESS = 11;
+		private static final int IFDB = 12;
+		private static final int COVERART = 13;
 		
 		private int mElement = NOTHING_INTERESTING;
 		private ContentValues mValues = new ContentValues();
+		private String mCoverArt = "";
 
 		@Override
 		public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
@@ -87,8 +96,12 @@ public class IFDb {
 					mElement = SERIESNUMBER;
 				else if (trim.equals(FORGIVENESS_TAG))
 					mElement = FORGIVENESS;
-			} else if (trim.equals(BIBLIOGRAPHIC_TAG))
+			} else if (mElement == IFDB && trim.equals(COVERART_TAG))
+				mElement = COVERART;
+			else if (trim.equals(BIBLIOGRAPHIC_TAG))
 				mElement = BIBLIOGRAPHIC;
+			else if (trim.equals(IFDB_TAG))
+				mElement = IFDB;
 		}
 		
 		@Override
@@ -129,6 +142,9 @@ public class IFDb {
 			case FORGIVENESS:
 				mValues.put(Games.FORGIVENESS, str);
 				break;
+			case COVERART:
+				mCoverArt += str;
+				break;
 			}
 		}
 		
@@ -151,12 +167,23 @@ public class IFDb {
 				break;
 			case BIBLIOGRAPHIC:
 				mElement = NOTHING_INTERESTING;
+			case IFDB:
+				if (localName.trim().equals(IFDB_TAG))
+					mElement = NOTHING_INTERESTING;
+				break;
+			case COVERART:
+				if (localName.trim().equals(COVERART_TAG))
+					mElement = IFDB;
 				break;
 			}
 		}
 		
 		public ContentValues getValues() {
 			return mValues;
+		}
+		
+		public String getCoverArt() {
+			return mCoverArt;
 		}
 	}
 
@@ -201,15 +228,19 @@ public class IFDb {
 		Cursor query = mContentResolver.query(Games.CONTENT_URI, PROJECTION, 
 				Games.LOOKED_UP + " IS NULL", null, null);
 		
-		while (query.moveToNext())
-			try {
-				lookup(query.getString(IFID));
-			} catch (MalformedIFIDException e) {
-				Log.e(TAG, "malformed ifid", e);
-			} catch (IOException e) {
-				Log.e(TAG, "can't connect, giving up on others", e);
-				throw e;
-			}
+		try {
+			while (query.moveToNext())
+				try {
+					lookup(query.getString(IFID));
+				} catch (MalformedIFIDException e) {
+					Log.e(TAG, "malformed ifid", e);
+				} catch (IOException e) {
+					Log.e(TAG, "can't connect, giving up on others", e);
+					throw e;
+				}
+		} finally {
+			query.close();
+		}
 	}
 	
 	private static SAXParserFactory factory = SAXParserFactory.newInstance(); 
@@ -243,9 +274,27 @@ public class IFDb {
 			return;
 		}
 		
+		final String coverArt = handler.getCoverArt();
+		if (coverArt != null)
+			try {
+				fetchCover(ifid, coverArt);
+			} catch (IOException e) {
+				Log.e(TAG, "IO error when fetching cover for " + ifid, e);
+			}
+		
 		ContentValues values = handler.getValues();
 		values.put(Games.LOOKED_UP, true);
 		mContentResolver.update(Games.uriOfIfid(ifid), values, null, null);
+	}
+
+	private static void fetchCover(String ifid, String coverArt) throws IOException {
+		URL source = new URL(coverArt);
+		File destination = HunkyPunk.getCover(ifid);
+
+		FileOutputStream fos = new FileOutputStream(destination);
+		Utils.copyStream(source.openStream(), fos);
+		
+		fos.close();
 	}
 
 	private static URL urlOfIfid(String ifid) throws MalformedURLException {

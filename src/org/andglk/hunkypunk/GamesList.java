@@ -2,7 +2,6 @@ package org.andglk.hunkypunk;
 
 import java.io.File;
 
-import org.andglk.Nitfol;
 import org.andglk.R;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.andglk.ifdb.IFDb;
@@ -30,7 +29,7 @@ public class GamesList extends ListActivity {
 		Games.AUTHOR,
 		Games.FILENAME
 	};
-	private static final int FILENAME = 4;
+
 	private MediaScanner mScanner;
 	private ProgressDialog mProgressDialog;
 	private Handler mHandler = new Handler() {
@@ -81,10 +80,7 @@ public class GamesList extends ListActivity {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		Cursor query = getContentResolver().query(Games.uriOfId(id), PROJECTION, null, null, null);
-		query.moveToFirst();
-		Uri uri = HunkyPunk.DIRECTORY_URI.buildUpon().appendEncodedPath(query.getString(FILENAME)).build();
-		Intent i = new Intent(Intent.ACTION_VIEW, uri, this, Nitfol.class);
+		Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(id), this, GameDetails.class);
 		startActivity(i);
 	}
 
