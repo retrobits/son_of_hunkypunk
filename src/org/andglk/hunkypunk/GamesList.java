@@ -1,7 +1,6 @@
 package org.andglk.hunkypunk;
 
 import java.io.File;
-import java.io.FilenameFilter;
 
 import org.andglk.Nitfol;
 import org.andglk.R;
@@ -28,9 +27,10 @@ public class GamesList extends ListActivity {
 		Games._ID,
 		Games.IFID,
 		Games.TITLE,
+		Games.AUTHOR,
 		Games.FILENAME
 	};
-	private static final int FILENAME = 3;
+	private static final int FILENAME = 4;
 	private MediaScanner mScanner;
 	private ProgressDialog mProgressDialog;
 	private Handler mHandler = new Handler() {
@@ -68,7 +68,7 @@ public class GamesList extends ListActivity {
 
 		Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.FILENAME + " IS NOT NULL", null, null);
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursor,
-				new String[] { Games.TITLE, Games.IFID }, new int[] { android.R.id.text1, android.R.id.text2 });
+				new String[] { Games.TITLE, Games.AUTHOR }, new int[] { android.R.id.text1, android.R.id.text2 });
 		
 		setListAdapter(adapter);
 

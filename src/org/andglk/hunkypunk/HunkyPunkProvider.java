@@ -1,7 +1,5 @@
 package org.andglk.hunkypunk;
 
-import java.util.HashMap;
-
 import org.andglk.hunkypunk.HunkyPunk.Games;
 
 import android.content.ContentProvider;
@@ -20,10 +18,8 @@ import android.text.TextUtils;
 
 public class HunkyPunkProvider extends ContentProvider {
 	private static final String DATABASE_NAME = "hunky_punk.db";
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 1;
 	private static final String GAMES_TABLE_NAME = "games";
-	
-	private static HashMap<String, String> sGamesProjectionMap;
 	
 	private static final int GAMES = 1;
 	private static final int GAME_ID = 2;
@@ -38,21 +34,31 @@ public class HunkyPunkProvider extends ContentProvider {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			db.execSQL(
+			final String query =
 				"CREATE TABLE " + GAMES_TABLE_NAME + " ("
 					+ Games._ID + " INTEGER PRIMARY KEY, "
 					+ Games.IFID + " TEXT UNIQUE NOT NULL, "
-					+ Games.FILENAME + " TEXT, "
+
 					+ Games.TITLE + " TEXT, "
+					+ Games.AUTHOR + " TEXT, "
+					+ Games.LANGUAGE + " TEXT, "
+					+ Games.HEADLINE + " TEXT, "
+					+ Games.FIRSTPUBLISHED + " TEXT, "
+					+ Games.GENRE + " TEXT, "
+					+ Games.GROUP + " TEXT, "
+					+ Games.DESCRIPTION + " TEXT, "
+					+ Games.SERIES + " TEXT, "
+					+ Games.SERIESNUMBER + " INTEGER, "
+					+ Games.FORGIVENESS + " TEXT, "
+
+					+ Games.FILENAME + " TEXT, "
 					+ Games.LOOKED_UP
-					+ ");");
+					+ ");";
+			db.execSQL(query);
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			// no public version yet, so no sense in transforming data
-			db.execSQL("DROP TABLE " + GAMES_TABLE_NAME + ";");
-			onCreate(db);
 		}
 	}
 	
@@ -72,7 +78,6 @@ public class HunkyPunkProvider extends ContentProvider {
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 		
 		qb.setTables(GAMES_TABLE_NAME);
-		qb.setProjectionMap(sGamesProjectionMap);
 		switch (sUriMatcher.match(uri)) {
 		case GAMES:
 			break;
@@ -194,11 +199,5 @@ public class HunkyPunkProvider extends ContentProvider {
 		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games", GAMES);
 		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games/#", GAME_ID);
 		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games/*", GAME_IFID);
-		
-		sGamesProjectionMap = new HashMap<String, String>();
-		sGamesProjectionMap.put(Games._ID, Games._ID);
-		sGamesProjectionMap.put(Games.IFID, Games.IFID);
-		sGamesProjectionMap.put(Games.FILENAME, Games.FILENAME);
-		sGamesProjectionMap.put(Games.TITLE, Games.TITLE);
 	}
 }

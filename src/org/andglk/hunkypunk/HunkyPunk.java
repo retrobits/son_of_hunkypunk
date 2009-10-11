@@ -18,10 +18,24 @@ public final class HunkyPunk {
 		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.andglk.game";
 		public static final String DEFAULT_SORT_ORDER = "lower(title) ASC";
 		
-		public static final String TITLE = "title";
 		public static final String IFID = "ifid";
+
+		public static final String TITLE = "title";
+		public static final String AUTHOR = "author";
+
 		public static final String FILENAME = "filename";
 		public static final String LOOKED_UP = "looked_up";
+		
+		public static final String LANGUAGE = "language";
+		public static final String HEADLINE = "headline";
+		public static final String FIRSTPUBLISHED = "first_published";
+		public static final String GENRE = "genre";
+		public static final String GROUP = "collection";
+		public static final String DESCRIPTION = "description";
+		public static final String SERIES = "series";
+		public static final String SERIESNUMBER = "seriesnumber";
+		public static final String FORGIVENESS = "forgiveness";
+		
 		public static Uri uriOfIfid(String ifid) {
 			return CONTENT_URI.buildUpon().appendPath(ifid).build();
 		}
