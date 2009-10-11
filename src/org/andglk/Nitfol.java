@@ -1,5 +1,7 @@
 package org.andglk;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -12,7 +14,6 @@ public class Nitfol extends Activity {
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	Debug.startMethodTracing("nitfol");
     	setTheme(R.style.theme);
     	System.loadLibrary("nitfol");
     	glk = new Glk(this);
@@ -31,11 +32,41 @@ public class Nitfol extends Activity {
     
     @Override
     protected void onPause() {
-    	// XXX we don't support pausing yet
     	super.onPause();
-    	finish();
-    	Debug.stopMethodTracing();
+    	
+    	final File f = new File(Glk.getInstance().getFilesDir(FileRef.FILEUSAGE_SAVEDGAME), "autosave");
+    	Glk.getInstance().onSelect(new Runnable() {
+    		public void run() {
+		    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_WRITE, 0);
+		    	
+		    	saveGame(fs.getPointer());
+		    	fs.close();
+    		}
+    	});
     }
     
-    native void useFile(int str_p);
+    @Override
+    protected void onResume() {
+    	super.onResume();
+
+    	final File f = new File(Glk.getInstance().getFilesDir(FileRef.FILEUSAGE_SAVEDGAME), "autosave");
+    	if (!f.exists())
+    		return;
+
+    	Glk.getInstance().onSelect(new Runnable() {
+    		@Override
+    		public void run() {
+    	    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
+    	    	
+    	    	restoreGame(fs.getPointer());
+    	    	fs.close();
+    	    	f.delete();
+    		}
+    	});
+    }
+    
+    private native void saveGame(int fs);
+    private native void restoreGame(int fs);
+
+	native void useFile(int str_p);
 }

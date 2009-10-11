@@ -57,6 +57,7 @@ public class Glk extends Thread {
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
 	protected boolean _done;
 	private Context _context;
+	private Runnable mOnSelect;
 
 	@Override
 	public void run() {
@@ -92,6 +93,10 @@ public class Glk extends Thread {
 		while (true) {
 			try {
 				ev = _eventQueue.take();
+				if (ev instanceof SystemEvent) {
+					((SystemEvent) ev).run();
+					continue;
+				}
 				return ev;
 			} catch (InterruptedException e) {
 			}
@@ -247,5 +252,9 @@ public class Glk extends Thread {
 		final Window root = Window.getRoot();
 		if (root != null)
 			root.flush();
+	}
+
+	public void onSelect(Runnable runnable) {
+		postEvent(new SystemEvent(runnable));
 	}
 }

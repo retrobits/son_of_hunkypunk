@@ -1,6 +1,7 @@
 #include <jni.h>
 #include "nitfol.h"
 #include "main.h"
+#include "quetzal.h"
 
 /* we don't let nitfol play with filesystem, at least now */
 
@@ -27,4 +28,14 @@ void Java_org_andglk_Nitfol_useFile(JNIEnv *env, jobject *this, strid_t gameFile
 {
 	game_use_file(gameFile);
 	ignore_errors = TRUE;
+}
+
+void Java_org_andglk_Nitfol_saveGame(JNIEnv *env, jobject *this, strid_t saveFile)
+{
+	savequetzal(saveFile);
+}
+
+void Java_org_andglk_Nitfol_restoreGame(JNIEnv *env, jobject *this, strid_t saveFile)
+{
+	restorequetzal(saveFile);
 }
