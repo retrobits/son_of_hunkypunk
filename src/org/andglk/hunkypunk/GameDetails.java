@@ -92,6 +92,7 @@ public class GameDetails extends Activity implements OnClickListener {
 			}
 		};
 	};
+	private String mFileName;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -188,6 +189,8 @@ public class GameDetails extends Activity implements OnClickListener {
 			sb.append('\n');
 		}
 		
+		mFileName = mQuery.getString(FILENAME);
+		
 		final int len = sb.length(); 
 		if (len != 0)
 			sb.replace(len - 1, len, ""); // remove trailing newline
@@ -196,6 +199,12 @@ public class GameDetails extends Activity implements OnClickListener {
 		
 		// Uri.fromFile doesn't work for some reason
 		mCover.setImageURI(Uri.parse(HunkyPunk.getCover(mQuery.getString(IFID)).getAbsolutePath()));
+		
+		final String tag = (String) mCover.getTag();
+		if (tag != null && tag.equals("fill_screen_v")) {
+			View scrollView = findViewById(R.id.info_scroll);
+			mCover.setMaxHeight(scrollView.getHeight() - scrollView.getPaddingBottom() - scrollView.getPaddingTop());
+		}
 	}
 
 	@Override
@@ -203,7 +212,7 @@ public class GameDetails extends Activity implements OnClickListener {
 		switch (arg0.getId()) {
 		case R.id.open:
 			Intent intent = new Intent(Intent.ACTION_VIEW, 
-					Uri.withAppendedPath(HunkyPunk.DIRECTORY_URI, mQuery.getString(FILENAME)), this, Nitfol.class);
+					Uri.withAppendedPath(HunkyPunk.DIRECTORY_URI, mFileName), this, Nitfol.class);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startActivity(intent);
 		case R.id.remove:
