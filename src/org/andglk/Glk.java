@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 public class Glk extends Thread {
 	public static class AlreadyRunning extends Exception {
+		private static final long serialVersionUID = -8966218915411360727L;
 	}
 	
 	public final static int STYLE_NORMAL = 0;

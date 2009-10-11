@@ -7,7 +7,11 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
+import android.util.Log;
+
 public class Babel {
+	private static final String TAG = "Babel";
+
 	static {
 		System.loadLibrary("babel");
 	}
@@ -17,7 +21,9 @@ public class Babel {
 		FileChannel fc = fis.getChannel();
 		MappedByteBuffer map = fc.map(MapMode.READ_ONLY, 0, f.length());
 		
-		return examine(map);
+		final String ifid = examine(map);
+		Log.d(TAG, "examined " + f + ", found IFID " + ifid);
+		return ifid;
 	}
 
 	private native static String examine(MappedByteBuffer map);

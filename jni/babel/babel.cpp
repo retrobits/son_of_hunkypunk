@@ -18,7 +18,7 @@ extern "C" jstring Java_org_andglk_babel_Babel_examine(JNIEnv *env, jclass cls, 
 	if (!len)
 		return 0;
 
-#define IFID_BUFLEN 32
+#define IFID_BUFLEN 128
 	char ifid_buffer[IFID_BUFLEN];
 	ifid_buffer[0] = 0;
 

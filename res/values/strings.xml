@@ -26,4 +26,14 @@
     <string name="remove">Remove</string>
     <string name="game_details">Story details</string>
     <string name="by_author">by %s</string> 
+    <string name="first_published_s">First published: %s</string>
+    <string name="genre_s">Genre: %s</string>
+    <string name="group_s">Group: %s</string>
+    <string name="series_s">Series: %s</string>
+    <string name="seriesnumber_s">Number in series: %s</string>
+    <string name="forgiveness_s">Forgiveness: %s</string>
+    <string name="language_s">Language: %s</string>
+    <string name="lookup_failure">Could not connect to IFDb to lookup details about the story.</string>
+    <string name="looking_up">Please wait while I\'m looking up details on IFDb...</string>
+    <string name="install_with_hunky_punk">Install with Hunky Punk</string>
 </resources>

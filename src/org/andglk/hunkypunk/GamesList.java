@@ -1,17 +1,12 @@
 package org.andglk.hunkypunk;
 
-import java.io.File;
-
 import org.andglk.R;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.andglk.ifdb.IFDb;
 
 import android.app.ListActivity;
-import android.app.ProgressDialog;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,24 +25,14 @@ public class GamesList extends ListActivity {
 		Games.FILENAME
 	};
 
-	private MediaScanner mScanner;
-	private ProgressDialog mProgressDialog;
+	private StorageManager mScanner;
 	private Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case MediaScanner.DONE:
+			case StorageManager.DONE:
 				setProgressBarIndeterminateVisibility(false);
-				break;
-			case MediaScanner.INSTALLED:
-				mProgressDialog.dismiss();
-				Toast.makeText(GamesList.this, R.string.install_success, Toast.LENGTH_SHORT).show();
-				startScan();
-				break;
-			case MediaScanner.INSTALL_FAILED:
-				mProgressDialog.dismiss();
-				Toast.makeText(GamesList.this, R.string.install_failure, Toast.LENGTH_SHORT).show();
-				startScan();
+				startLookup();
 				break;
 			}
 		}
@@ -61,7 +46,7 @@ public class GamesList extends ListActivity {
 		
 		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 		
-		mScanner = new MediaScanner(getContentResolver());
+		mScanner = StorageManager.getInstance(getContentResolver());
 		mScanner.setHandler(mHandler);
 		mScanner.checkExisting();
 
@@ -71,11 +56,7 @@ public class GamesList extends ListActivity {
 		
 		setListAdapter(adapter);
 
-		Uri uri = getIntent().getData();
-		if (uri != null && uri.getScheme().equals(ContentResolver.SCHEME_FILE))
-			tryToInstall(uri);
-		else
-			startScan();
+		startScan();
 	}
 	
 	@Override
@@ -84,21 +65,10 @@ public class GamesList extends ListActivity {
 		startActivity(i);
 	}
 
-	private void tryToInstall(Uri uri) {
-		mProgressDialog = new ProgressDialog(this);
-		mProgressDialog.setMessage(getString(R.string.examining_file, uri.getLastPathSegment()));
-		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-		mProgressDialog.setCancelable(false);
-		mProgressDialog.show();
-		
-		mScanner.startCheckingFile(new File(uri.getPath()));
-	}
-
 	private void startScan() {
 		setProgressBarIndeterminateVisibility(true);
 		
 		mScanner.start();
-		startLookup();
 	}
 
 	private void startLookup() {

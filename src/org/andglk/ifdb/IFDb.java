@@ -130,9 +130,11 @@ public class IFDb {
 			case GROUP:
 				mValues.put(Games.GROUP, str);
 				break;
-			case DESCRIPTION:
-				mValues.put(Games.DESCRIPTION, str);
+			case DESCRIPTION: {
+				String soFar = mValues.getAsString(Games.DESCRIPTION);
+				mValues.put(Games.DESCRIPTION, soFar == null ? str : soFar + str);
 				break;
+			}
 			case SERIES:
 				mValues.put(Games.SERIES, str);
 				break;
@@ -193,6 +195,8 @@ public class IFDb {
 	private static final String BASE_URL = "http://ifdb.tads.org/viewgame?ifiction&ifid=";
 
 	private static final String TAG = "IFDb";
+	public static final int FAILURE = 0;
+	public static final int SUCCESS = 1;
 	
 	private static IFDb sInstance;
 	private final ContentResolver mContentResolver;
@@ -245,7 +249,7 @@ public class IFDb {
 	
 	private static SAXParserFactory factory = SAXParserFactory.newInstance(); 
 
-	private void lookup(String ifid) throws MalformedIFIDException, IOException {
+	public void lookup(String ifid) throws MalformedIFIDException, IOException {
 		URL url;
 		try {
 			url = urlOfIfid(ifid);
@@ -299,5 +303,20 @@ public class IFDb {
 
 	private static URL urlOfIfid(String ifid) throws MalformedURLException {
 		return new URL(BASE_URL + ifid);
+	}
+
+	public void startLookup(final String ifid, final Handler lookupHandler) {
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					lookup(ifid);
+					Message.obtain(lookupHandler, SUCCESS).sendToTarget();
+				} catch (Exception e) {
+					Message.obtain(lookupHandler, FAILURE).sendToTarget();
+					Log.e(TAG, "error while looking up " + ifid, e);
+				}
+			}
+		}.start();
 	}
 }

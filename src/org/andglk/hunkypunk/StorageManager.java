@@ -20,7 +20,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-public class MediaScanner extends Thread {
+public class StorageManager extends Thread {
 	public static final int DONE = 0;
 	public static final int INSTALLED = 1;
 	public static final int INSTALL_FAILED = 2;
@@ -34,8 +34,18 @@ public class MediaScanner extends Thread {
 	private List<File> mExtraPaths = new LinkedList<File>();
 	private Handler mHandler;
 	
-	public MediaScanner(ContentResolver contentResolver) {
+	private StorageManager(ContentResolver contentResolver) {
 		mContentResolver = contentResolver;
+	}
+	
+	private static StorageManager sInstance;
+	
+	public static StorageManager getInstance(ContentResolver contentResolver) {
+		if (sInstance == null)
+			sInstance = new StorageManager(contentResolver);
+		
+		assert(sInstance.mContentResolver == contentResolver);
+		return sInstance;
 	}
 
 	public void setHandler(Handler h) {
@@ -76,11 +86,11 @@ public class MediaScanner extends Thread {
 				}
 	}
 
-	private boolean checkFile(File f, boolean foreign) throws IOException {
+	private String checkFile(File f, boolean foreign) throws IOException {
 		String ifid = Babel.examine(f);
 		
 		if (ifid == null)
-			return false;
+			return null;
 		
 		Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, ifid);
 		Cursor query = mContentResolver.query(uri, PROJECTION, null, null, null);
@@ -94,7 +104,7 @@ public class MediaScanner extends Thread {
 			} catch (IOException e) {
 				Log.e(TAG, "IO error while installing story " + f, e);
 				query.close();
-				return false;
+				throw(e);
 			}
 		
 		ContentValues cv = new ContentValues();
@@ -102,13 +112,14 @@ public class MediaScanner extends Thread {
 		
 		if (query == null || query.getCount() != 1) {
 			cv.put(Games.IFID, ifid);
-			cv.put(Games.TITLE, f.getName());
+			final String fname = f.getName();
+			cv.put(Games.TITLE, fname.substring(0, fname.lastIndexOf('.')));
 			mContentResolver.insert(Games.CONTENT_URI, cv);
 		} else
 			mContentResolver.update(uri, cv, null, null);
 		
 		query.close();
-		return true;
+		return ifid;
 	}
 
 	private String installStory(File f) throws IOException {
@@ -145,8 +156,9 @@ public class MediaScanner extends Thread {
 			@Override
 			public void run() {
 				try {
-					if (checkFile(file, true)) {
-						Message.obtain(mHandler, INSTALLED).sendToTarget();
+					String ifid;
+					if ((ifid = checkFile(file, true)) != null) {
+						Message.obtain(mHandler, INSTALLED, ifid).sendToTarget();
 						return;
 					}
 				} catch (IOException e) {
