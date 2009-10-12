@@ -11,7 +11,6 @@ import android.os.Parcelable;
 
 public class Nitfol extends Activity {
     private Glk glk;
-	private ArrayList<Parcelable> mWindowStates;
 
 	/** Called when the activity is first created. */
     @Override
@@ -25,10 +24,39 @@ public class Nitfol extends Activity {
     	glk.start();
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)
-        	mWindowStates = savedInstanceState.getParcelableArrayList("windowStates");
+        	restore(savedInstanceState.getParcelableArrayList("windowStates"));
     }
     
-    @Override
+    private void restore(final ArrayList<Parcelable> windowStates) {
+    	final File f = new File(Glk.getInstance().getFilesDir(FileRef.FILEUSAGE_SAVEDGAME), "autosave");
+    	if (!f.exists())
+    		return;
+
+    	Glk.getInstance().onSelect(new Runnable() {
+    		@Override
+    		public void run() {
+    	    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
+    	    	
+    	    	restoreGame(fs.getPointer());
+    	    	fs.close();
+    	    	f.delete();
+
+    	    	if (windowStates != null)
+	    	    	Glk.getInstance().getUiHandler().post(new Runnable() {
+	    	    		public void run() {
+			    	    	Window w = null;
+			    	    	for (Parcelable p : windowStates)
+			    	    		if ((w = Window.iterate(w)) != null)
+			    	    			w.restoreInstanceState(p);
+			    	    		else
+			    	    			break;
+	    	    		}
+	    	    	});
+    		}
+    	});
+	}
+
+	@Override
     public void onConfigurationChanged(Configuration newConfig) {
     	super.onConfigurationChanged(newConfig);
     	glk.onConfigurationChanged(newConfig);
@@ -50,35 +78,12 @@ public class Nitfol extends Activity {
     }
     
     @Override
-    protected void onResume() {
-    	super.onResume();
-
-    	final File f = new File(Glk.getInstance().getFilesDir(FileRef.FILEUSAGE_SAVEDGAME), "autosave");
-    	if (!f.exists())
-    		return;
-
-    	Glk.getInstance().onSelect(new Runnable() {
-    		@Override
-    		public void run() {
-    	    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
-    	    	
-    	    	restoreGame(fs.getPointer());
-    	    	fs.close();
-    	    	f.delete();
-
-    	    	if (mWindowStates != null)
-	    	    	Glk.getInstance().getUiHandler().post(new Runnable() {
-	    	    		public void run() {
-			    	    	Window w = null;
-			    	    	for (Parcelable p : mWindowStates)
-			    	    		if ((w = Window.iterate(w)) != null)
-			    	    			w.restoreInstanceState(p);
-			    	    		else
-			    	    			break;
-	    	    		}
-	    	    	});
-    		}
-    	});
+    protected void onStop() {
+    	// so we don't have to cleanup which would be a major pain in the ass
+    	// because the interps weren't designed to be run again in the same process
+    	// (I know bc I've wasted whole day trying to figure out how to do that cleanly)
+    	// and we'll get thawed anyway
+    	System.exit(0);
     }
     
     @Override
