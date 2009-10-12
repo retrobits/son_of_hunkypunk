@@ -168,10 +168,7 @@ public class TextBufferWindow extends Window {
 					return scrollDown();
 				case KeyEvent.KEYCODE_DPAD_UP:
 					return scrollUp();
-//				case KeyEvent.KEYCODE_DPAD_LEFT:
-//					return cursorLeft();
-//				case KeyEvent.KEYCODE_DPAD_RIGHT:
-//					return cursorRight();
+				// TODO: cursor movement
 				default:
 					return false;
 				}
@@ -193,11 +190,13 @@ public class TextBufferWindow extends Window {
 
 			@Override
 			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
+				// TODO
 				return false;
 			}
 
 			@Override
 			public boolean onTrackballEvent(TextView widget, Spannable text, MotionEvent event) {
+				// maybe TODO
 				return false;
 			}
 		}
@@ -255,8 +254,10 @@ public class TextBufferWindow extends Window {
 			
 			if (target + fadingEdgeLength < ultimateTop)
 				startScrollTo(target);
-			else
+			else {
+				mPaging = false;
 				startScrollTo(ultimateTop);
+			}
 			
 			return true;
 		}
@@ -331,11 +332,13 @@ public class TextBufferWindow extends Window {
 		}};
 		
 		private Scroller mScroller;
+		private _MovementMethod mMovementMethod;
+		private boolean mPaging;
 		
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setText("", BufferType.EDITABLE);
-			setMovementMethod(new _MovementMethod());
+			setMovementMethod(mMovementMethod = new _MovementMethod());
 			setInputType(0
 					| InputType.TYPE_CLASS_TEXT 
 					| InputType.TYPE_TEXT_FLAG_AUTO_CORRECT 
@@ -365,6 +368,7 @@ public class TextBufferWindow extends Window {
 		private void enableInput() {
 			setFocusableInTouchMode(true);
 			requestFocus();
+			mPaging = true;
 			if (getScrollY() != 0)
 				scrollDown();
 			
@@ -386,6 +390,20 @@ public class TextBufferWindow extends Window {
 
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
+			if (mMovementMethod.onKeyDown(this, (Spannable) getText(), keyCode, event))
+				return true;
+
+			final int ultimateTop = getUltimateBottom() - getInnerHeight(); 
+			if (mPaging && scrollDown()) {
+				if (mScroller.getFinalY() != ultimateTop)
+					return true;
+			} else if (getScrollY() < ultimateTop) { 
+				startScrollTo(ultimateTop);
+				if (mCharInputEnabled)
+					// passing the key would be confusing
+					return true;
+			}
+			
 			if (mCharInputEnabled) {
 				Event ev = CharInputEvent.fromKeyEvent(TextBufferWindow.this, event);
 				if (ev != null) {
@@ -565,5 +583,4 @@ public class TextBufferWindow extends Window {
 			(ta1.getString(2) != ta2.getString(2)) ||
 			(ta1.getString(3) != ta2.getString(3));
 	}
-	
 }

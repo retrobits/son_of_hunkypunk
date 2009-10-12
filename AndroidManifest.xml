@@ -10,7 +10,8 @@
                   android:label="@string/app_name"
                   android:configChanges="orientation|keyboard|keyboardHidden"
                   android:launchMode="singleInstance"
-                  android:process=":nitfol">
+			>
+<!--   put it above for release, the debugger can't cope with it               android:process=":nitfol"-->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <data android:mimeType="application/x-zmachine" />
