@@ -8,6 +8,7 @@
 		android:layout_width="fill_parent"
 		android:layout_height="0dip"
 		android:layout_weight="1"
+		android:fadingEdge="none"
 	>
 		<LinearLayout
 			android:orientation="vertical"

@@ -10,7 +10,9 @@
 		android:id="@+id/cover"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:scaleType="fitCenter"
+		android:adjustViewBounds="true"
+		android:maxWidth="215dip"
+		android:maxHeight="215dip"
 		android:tag="fill_screen_v"
 	/>
 	<include layout="@layout/game_details_header_title" />

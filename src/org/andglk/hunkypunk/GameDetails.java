@@ -24,6 +24,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.LinearLayout.LayoutParams;
 
 public class GameDetails extends Activity implements OnClickListener {
 	private static final String[] PROJECTION = { 
@@ -201,12 +202,6 @@ public class GameDetails extends Activity implements OnClickListener {
 		
 		// Uri.fromFile doesn't work for some reason
 		mCover.setImageURI(Uri.parse(HunkyPunk.getCover(mQuery.getString(IFID)).getAbsolutePath()));
-		
-		final String tag = (String) mCover.getTag();
-		if (tag != null && tag.equals("fill_screen_v")) {
-			View scrollView = findViewById(R.id.info_scroll);
-			mCover.setMaxHeight(scrollView.getHeight() - scrollView.getPaddingBottom() - scrollView.getPaddingTop());
-		}
 	}
 
 	@Override
