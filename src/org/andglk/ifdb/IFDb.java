@@ -275,7 +275,8 @@ public class IFDb {
 			return;
 		} catch (SAXException e) {
 			Log.e(TAG, "SAX exception while parsing record on " + ifid, e);
-			return;
+			// try to continue, IFDb currently sometimes serves broken XML
+			// (and there is no easy way in java to massage it, #@%&#%$@)
 		}
 		
 		final String coverArt = handler.getCoverArt();

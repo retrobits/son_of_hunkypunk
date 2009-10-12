@@ -140,6 +140,8 @@ public class GameDetails extends Activity implements OnClickListener {
 	protected void showData() {
 		mQuery.moveToFirst();
 		
+		if (mGameIfid == null)
+			mGameIfid = mQuery.getString(IFID);
 		if (mQuery.isNull(LOOKED_UP)) {
 			Toast.makeText(this, R.string.looking_up, Toast.LENGTH_SHORT).show();
 			setProgressBarIndeterminateVisibility(true);
