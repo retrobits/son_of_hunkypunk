@@ -152,65 +152,56 @@ public class TextBufferWindow extends Window {
 	
 	private class _View extends TextView implements OnEditorActionListener {
 		public class _MovementMethod implements MovementMethod {
-
 			@Override
 			public boolean canSelectArbitrarily() {
-				// TODO Auto-generated method stub
 				return false;
 			}
 
 			@Override
 			public void initialize(TextView widget, Spannable text) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
-			public boolean onKeyDown(TextView widget, Spannable text,
-					int keyCode, KeyEvent event) {
-				// TODO Auto-generated method stub
+			public boolean onKeyDown(TextView widget, Spannable text, int keyCode, KeyEvent event) {
+				switch (keyCode) {
+				case KeyEvent.KEYCODE_DPAD_DOWN:
+					return scrollDown();
+				case KeyEvent.KEYCODE_DPAD_UP:
+					return scrollUp();
+//				case KeyEvent.KEYCODE_DPAD_LEFT:
+//					return cursorLeft();
+//				case KeyEvent.KEYCODE_DPAD_RIGHT:
+//					return cursorRight();
+				default:
+					return false;
+				}
+			}
+
+			@Override
+			public boolean onKeyOther(TextView view, Spannable text, KeyEvent event) {
 				return false;
 			}
 
 			@Override
-			public boolean onKeyOther(TextView view, Spannable text,
-					KeyEvent event) {
-				// TODO Auto-generated method stub
+			public boolean onKeyUp(TextView widget, Spannable text, int keyCode, KeyEvent event) {
 				return false;
 			}
 
 			@Override
-			public boolean onKeyUp(TextView widget, Spannable text,
-					int keyCode, KeyEvent event) {
-				// TODO Auto-generated method stub
+			public void onTakeFocus(TextView widget, Spannable text, int direction) {
+			}
+
+			@Override
+			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
 				return false;
 			}
 
 			@Override
-			public void onTakeFocus(TextView widget, Spannable text,
-					int direction) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public boolean onTouchEvent(TextView widget, Spannable text,
-					MotionEvent event) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public boolean onTrackballEvent(TextView widget, Spannable text,
-					MotionEvent event) {
-				// TODO Auto-generated method stub
+			public boolean onTrackballEvent(TextView widget, Spannable text, MotionEvent event) {
 				return false;
 			}
 		}
 
-		private int mScrollLimit = 0;
-		private boolean mPaging = false;
-		
 		@Override
 		public Parcelable onSaveInstanceState() {
 			TextBufferWindow._SavedState ss = new TextBufferWindow._SavedState();
@@ -239,33 +230,61 @@ public class TextBufferWindow extends Window {
 				getEditableText().setSpan(mLineInputSpan, mLineInputStart - 1, length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
 				setFilters(mFilters);
 			}
-			scrollTo(getScrollX(), Math.max(0, (mScrollLimit = getUltimateBottom()) - getInnerHeight()));
-			mPaging = false;
+			scrollTo(getScrollX(), Math.max(0, (getUltimateBottom()) - getInnerHeight()));
 		}
-		
-		private void scrollDown() {
+
+		/**
+		 * Scrolls the view down a page or as far as possible, whichever is less.
+		 * 
+		 * @return whether any scroll was commenced
+		 */
+		private boolean scrollDown() {
 			final Layout layout = getLayout();
 			if (layout == null)
-				return;
-			final int lineCount = getLineCount();
-			final int ultimateBottom = getUltimateBottom();
+				return false;
+			
+			final int currentScroll = getScrollY();
 			final int innerHeight = getInnerHeight();
-			final int wantedScroll = Math.max(0, ultimateBottom - innerHeight);
+			final int ultimateTop = layout.getLineTop(getLineCount()) - getInnerHeight(); 
+			if (currentScroll >= ultimateTop)
+				return false;
 			
-			// this is annoying to page half a line and it's probably a prompt anyway
-			// thus we clear paging flag if we're cutting it
-			mPaging = wantedScroll > mScrollLimit &&
-				layout.getLineForVertical(mScrollLimit + innerHeight) != lineCount - 1;
+			final int fadingEdgeLength = getVerticalFadingEdgeLength();
+			final int target = layout.getLineTop(layout.getLineForVertical(currentScroll + innerHeight))
+				- fadingEdgeLength;
 			
-			if (mPaging)
-				startScrollTo(mScrollLimit);
-			else {
-				mScrollLimit = layout.getLineTop(lineCount - 1);
-				startScrollTo(wantedScroll);
-			}
+			if (target + fadingEdgeLength < ultimateTop)
+				startScrollTo(target);
+			else
+				startScrollTo(ultimateTop);
+			
+			return true;
 		}
-		
-		private void startScrollTo(int dest) {
+
+		/** Scroll the view up a page or as far as possible, whichever is less.
+		 * 
+		 * @return whether any scroll was commenced
+		 */
+		public boolean scrollUp() {
+			final Layout layout = getLayout();
+			if (layout == null)
+				return false;
+			
+			final int currentScroll = getScrollY();
+			if (currentScroll <= 0)
+				return false;
+			
+			final int fadingEdgeLength = getVerticalFadingEdgeLength();
+			final int target = layout.getLineBottom(layout.getLineForVertical(currentScroll)) 
+				- getInnerHeight() + fadingEdgeLength;
+			if (target < 0)
+				startScrollTo(0);
+			else
+				startScrollTo(target);
+			return true;
+		}
+
+		protected void startScrollTo(int dest) {
 			final int scrollY = getScrollY();
 			final int dy = dest - scrollY;
 			if (dy == 0)
@@ -274,13 +293,11 @@ public class TextBufferWindow extends Window {
 			postInvalidate();
 		}
 
-
-
-		private int getUltimateBottom() {
+		protected int getUltimateBottom() {
 			return getLayout().getLineTop(getLineCount());
 		}
 
-		private int getInnerHeight() {
+		protected int getInnerHeight() {
 			return getHeight() - getTotalPaddingBottom() - getTotalPaddingTop();
 		}
 
@@ -311,8 +328,8 @@ public class TextBufferWindow extends Window {
 				
 				return mSsb;
 			}
-			
 		}};
+		
 		private Scroller mScroller;
 		
 		public _View(Context context) {
@@ -338,7 +355,6 @@ public class TextBufferWindow extends Window {
 		/* see TextBufferWindow.clear() */
 		public void clear() {
 			setText("", BufferType.EDITABLE);
-			mScrollLimit = 0;
 		}
 
 		public void enableCharInput() {
@@ -349,7 +365,8 @@ public class TextBufferWindow extends Window {
 		private void enableInput() {
 			setFocusableInTouchMode(true);
 			requestFocus();
-			scrollDown();
+			if (getScrollY() != 0)
+				scrollDown();
 			
 			Selection.setSelection(getEditableText(), length());
 		}
@@ -369,10 +386,6 @@ public class TextBufferWindow extends Window {
 
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
-			if (mPaging) {
-				pageDown();
-				return true;
-			}
 			if (mCharInputEnabled) {
 				Event ev = CharInputEvent.fromKeyEvent(TextBufferWindow.this, event);
 				if (ev != null) {
@@ -383,13 +396,6 @@ public class TextBufferWindow extends Window {
 			}
 			
 			return super.onKeyDown(keyCode, event);
-		}
-
-		private void pageDown() {
-			final Layout layout = getLayout();
-			final int innerHeight = getInnerHeight();
-			mScrollLimit = layout.getLineTop(layout.getLineForVertical(mScrollLimit + innerHeight));
-			scrollDown();
 		}
 
 		public void enableLineInput(String initial) {
