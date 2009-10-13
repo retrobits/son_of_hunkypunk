@@ -168,7 +168,7 @@ public class TextGridWindow extends Window {
 			oldw = _charsW;
 			oldh = _charsH;
 			w -= getPaddingLeft() + getPaddingRight();
-			h -= getPaddingBottom() + getPaddingTop();
+			h -= getPaddingBottom() + getPaddingTop() - getDescent();
 			if (w < 0)
 				w = 0;
 			if (h < 0)
@@ -182,6 +182,11 @@ public class TextGridWindow extends Window {
 			for (int y = 0; y < Math.min(oldh, _charsH); ++y)
 				for (int x = 0; x < Math.min(oldw, _charsW); ++x)
 					_framebuf[y * _charsW + x] = oldfb[y * oldw + x];
+		}
+
+		/** Get recommended descent. Useful for determining bottom padding needed. */
+		public float getDescent() {
+			return mPaint.getFontMetrics().descent;
 		}
 
 		public synchronized void clear() {
@@ -408,7 +413,8 @@ public class TextGridWindow extends Window {
 
 	@Override
 	public int measureHeight(int size) {
-		return ((int) Math.ceil(mView.measureCharacterHeight())) * size + mView.getPaddingBottom() + mView.getPaddingTop();
+		return ((int) Math.ceil(mView.measureCharacterHeight())) * size 
+			+ mView.getPaddingBottom() + mView.getPaddingTop() + ((int) Math.floor(mView.getDescent()));
 	}
 
 	@Override
