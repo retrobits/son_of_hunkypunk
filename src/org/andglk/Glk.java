@@ -6,12 +6,21 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.MeasureSpec;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+/** <strong>DO NOT EVER INSTANTIATE OR START THIS CLASS MORE THAN ONCE IN A PROCESS' LIFETIME</strong> */
 public class Glk extends Thread {
 	public static class AlreadyRunning extends Exception {
 		private static final long serialVersionUID = -8966218915411360727L;
@@ -63,8 +72,27 @@ public class Glk extends Thread {
 	@Override
 	public void run() {
 		runProgram();
+		notifyQuit();
 	}
 	
+	private void notifyQuit() {
+		mUiHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				final View overlay = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE))
+					.inflate(R.layout.floating_notification, null);
+				((TextView) overlay.findViewById(R.id.message)).setText(R.string.game_quit);
+				overlay.measure(View.MeasureSpec.makeMeasureSpec(mFrame.getWidth(), MeasureSpec.AT_MOST), 
+						View.MeasureSpec.makeMeasureSpec(mFrame.getHeight(), MeasureSpec.AT_MOST));
+				Bitmap bitmap = Bitmap.createBitmap(overlay.getMeasuredWidth(), overlay.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+				overlay.layout(0, 0, overlay.getMeasuredWidth(), overlay.getMeasuredHeight());
+				overlay.draw(new Canvas(bitmap));
+				mFrame.setForeground(new BitmapDrawable(bitmap));
+				mFrame.setForegroundGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
+			}
+		});
+	}
+
 	native private void runProgram();
 	
 	public Glk(Context context) {
@@ -231,17 +259,6 @@ public class Glk extends Thread {
 
 	public Stream getCurrentStream() {
 		return mCurrentStream;
-	}
-	
-	public void exit() {
-		_uiHandler.post(new Runnable() {
-			@Override
-			public void run() {
-				Window.disableAll();
-				Toast.makeText(_context, R.string.game_quit, Toast.LENGTH_SHORT).show();
-			}
-		});
-		_instance = null;
 	}
 	
 	public void flush() {

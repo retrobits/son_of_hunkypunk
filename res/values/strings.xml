@@ -14,7 +14,7 @@
     <string name="pick_data">Pick data file</string>
     <string name="new_data">New data file</string>
     <string name="name">Name</string>
-    <string name="game_quit">The game has quit. Use BACK button to exit.</string>
+    <string name="game_quit">The game has quit. You can examine the output.\nUse the BACK button to exit.</string>
     
     <string name="examining_file">Examining file %s...</string>
     <string name="install_success">Successfully installed a new story.</string>
