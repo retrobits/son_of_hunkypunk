@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -337,6 +338,7 @@ public class TextBufferWindow extends Window {
 		
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
+			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setText("", BufferType.EDITABLE);
 			setMovementMethod(mMovementMethod = new _MovementMethod());
 			setInputType(0

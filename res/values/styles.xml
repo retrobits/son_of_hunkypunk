@@ -10,7 +10,12 @@
 	
 	<style name="TextGridWindow" parent="@android:style/Widget.TextView">
 <!--	makes the whole window white, why?	<item name="android:background">?android:attr/colorBackground</item>-->
+		<item name="android:textAppearance">@style/TextGridWindow.TextAppearance</item>
+	</style>
+	
+	<style name="TextGridWindow.TextAppearance" parent="@android:style/TextAppearance.Small">
 		<item name="android:typeface">monospace</item> <!-- we don't use this, only here for completeness -->
+		<item name="android:textSize">11dip</item>
 	</style>
 	
 	<style name="theme" parent="@android:style/Theme.Light.NoTitleBar">
@@ -22,9 +27,7 @@
 		<item name="android:textStyle">italic</item>
 	</style>
 	
-	<style name="preformatted">
-		<item name="android:typeface">monospace</item>
-	</style>
+	<style name="preformatted" parent="@style/TextGridWindow.TextAppearance"/>
 
 	<style name="header" parent="@android:style/TextAppearance.Medium">
 		<item name="android:textStyle">bold</item>

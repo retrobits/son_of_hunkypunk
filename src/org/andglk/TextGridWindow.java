@@ -130,6 +130,7 @@ public class TextGridWindow extends Window {
 			mPaint.setAntiAlias(true);
 			mPaint.setTextSize(_fontSize);
 			mPaint.setColor(mDefaultColor);
+			mPaint.setSubpixelText(true);
 
 			mBackPaint = new Paint();
 			mBackPaint.setColor(0xffffffff);
