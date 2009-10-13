@@ -53,43 +53,43 @@ public class TextGridWindow extends Window {
 
 	 @Override
 	public Parcelable saveInstanceState() {
-		return _view.onSaveInstanceState();
+		return mView.onSaveInstanceState();
 	}
 	
 	@Override
 	public void restoreInstanceState(Parcelable p) {
-		_view.onRestoreInstanceState(p);
+		mView.onRestoreInstanceState(p);
 	}
 	
 	private class Stream extends Window.Stream {
 		@Override
 		public int getPosition() {
-			return _view.getPosition();
+			return mView.getPosition();
 		}
 		
 		@Override
 		public void setPosition(int pos, int seekMode) {
-			_view.setPosition(pos, seekMode);
+			mView.setPosition(pos, seekMode);
 		}
 		
 		@Override
 		protected void doPutChar(char c) throws IOException {
-			if (_view._pos >= _view._charsW * _view._charsH)
+			if (mView._pos >= mView._charsW * mView._charsH)
 				return;
 			
-			_view._framebuf[_view._pos++] = c;
+			mView._framebuf[mView._pos++] = c;
 			
-			_view.mIsClear = false;
+			mView.mIsClear = false;
 		}
 
 		@Override
 		protected void doPutString(String str) throws IOException {
-			_view.putString(str);
+			mView.putString(str);
 		}
 
 		@Override
 		public void setStyle(long styl) {
-			_view.setStyle((int) styl);
+			mView.setStyle((int) styl);
 		}
 	}
 
@@ -233,7 +233,7 @@ public class TextGridWindow extends Window {
 		}
 
 		public void requestCharEvent() {
-			_glk.waitForUi(new Runnable() {
+			mGlk.waitForUi(new Runnable() {
 				@Override
 				public void run() {
 					mCharEventPending = true;
@@ -266,7 +266,7 @@ public class TextGridWindow extends Window {
 					cancelCharEvent();
 					
 					Event e = new CharInputEvent(TextGridWindow.this, c);
-					_glk.postEvent(e);
+					mGlk.postEvent(e);
 				} else {
 					addToLine(c);
 				}
@@ -315,7 +315,7 @@ public class TextGridWindow extends Window {
 		private void doneLineInput() {
 			final Event e = cancelLineEvent();
 			if (null != e)
-				_glk.postEvent(e);
+				mGlk.postEvent(e);
 		}
 
 		public void requestLineEvent(String initial) {
@@ -365,15 +365,15 @@ public class TextGridWindow extends Window {
 		}
 	}
 	
-	protected View _view;
-	private Glk _glk;
+	protected View mView;
+	private Glk mGlk;
 	private int mLineBuffer;
 	private int mMaxLen;
 	private int mDispatchRock;
 
 	public TextGridWindow(final Glk glk, int rock) {
 		super(rock);
-		_glk = glk;
+		mGlk = glk;
 		mStream = new Stream();
 		glk.waitForUi(new Runnable() {
 			@Override
@@ -384,36 +384,36 @@ public class TextGridWindow extends Window {
 	}
 
 	protected void init(Glk glk) {
-		_view = new View(glk.getContext());
+		mView = new View(glk.getContext());
 	}
 
 	@Override
 	public android.view.View getView() {
-		return _view;
+		return mView;
 	}
 	
 	@Override
 	public void clear() {
-		_view.clear();
+		mView.clear();
 	}
 	
 	@Override
 	public int[] getSize() {
-		return _view.getSize();
+		return mView.getSize();
 	}
 	
 	public void moveCursor(int x, int y) {
-		_view.moveCursor(x, y);
+		mView.moveCursor(x, y);
 	}
 
 	@Override
 	public int measureHeight(int size) {
-		return ((int) Math.ceil(_view.measureCharacterHeight())) * size + _view.getPaddingBottom() + _view.getPaddingTop();
+		return ((int) Math.ceil(mView.measureCharacterHeight())) * size + mView.getPaddingBottom() + mView.getPaddingTop();
 	}
 
 	@Override
 	public int measureWidth(int size) {
-		return ((int) Math.ceil(_view.measureCharacterWidth())) * size + _view.getPaddingLeft() + _view.getPaddingRight();
+		return ((int) Math.ceil(mView.measureCharacterWidth())) * size + mView.getPaddingLeft() + mView.getPaddingRight();
 	}
 
 	@Override
@@ -423,7 +423,7 @@ public class TextGridWindow extends Window {
 
 	@Override
 	public void requestCharEvent() {
-		_view.requestCharEvent();
+		mView.requestCharEvent();
 	}
 
 	@Override
@@ -431,17 +431,17 @@ public class TextGridWindow extends Window {
 		mLineBuffer = buffer;
 		mMaxLen = (int) maxlen;
 		mDispatchRock = retainVmArray(buffer, maxlen);
-		_view.requestLineEvent(initial);
+		mView.requestLineEvent(initial);
 	}
 
 	@Override
 	public void cancelCharEvent() {
-		_view.cancelCharEvent();
+		mView.cancelCharEvent();
 	}
 
 	@Override
 	public LineInputEvent cancelLineEvent() {
-		return _view.cancelLineEvent();
+		return mView.cancelLineEvent();
 	}
 
 	@Override
@@ -452,6 +452,6 @@ public class TextGridWindow extends Window {
 
 	@Override
 	public void flush() {
-		_view.postInvalidate();
+		mView.postInvalidate();
 	}
 }
