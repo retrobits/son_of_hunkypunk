@@ -398,7 +398,7 @@ public class TextBufferWindow extends Window {
 			if (mPaging && scrollDown()) {
 				if (mScroller.getFinalY() != ultimateTop)
 					return true;
-			} else if (getScrollY() < ultimateTop) { 
+			} else if (keyCode != KeyEvent.KEYCODE_DPAD_UP && getScrollY() < ultimateTop) { 
 				startScrollTo(ultimateTop);
 				if (mCharInputEnabled)
 					// passing the key would be confusing
