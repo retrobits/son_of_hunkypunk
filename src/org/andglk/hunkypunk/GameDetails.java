@@ -24,7 +24,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.LinearLayout.LayoutParams;
 
 public class GameDetails extends Activity implements OnClickListener {
 	private static final String[] PROJECTION = { 
@@ -211,6 +210,7 @@ public class GameDetails extends Activity implements OnClickListener {
 			Intent intent = new Intent(Intent.ACTION_VIEW, 
 					Uri.withAppendedPath(HunkyPunk.DIRECTORY_URI, mFileName), this, Nitfol.class);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			intent.putExtra("ifid", mGameIfid);
 			startActivity(intent);
 		case R.id.remove:
 			// TODO

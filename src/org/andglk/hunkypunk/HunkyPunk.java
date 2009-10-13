@@ -52,4 +52,10 @@ public final class HunkyPunk {
 			COVER_DIRECTORY.mkdir();
 		return new File(COVER_DIRECTORY, ifid);
 	}
+
+	public static File getTranscriptDir() {
+		File f = new File(DIRECTORY, "transcripts");
+		f.mkdir();
+		return f;
+	}
 }

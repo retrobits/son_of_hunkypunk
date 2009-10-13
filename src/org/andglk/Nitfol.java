@@ -3,7 +3,10 @@ package org.andglk;
 import java.io.File;
 import java.util.ArrayList;
 
+import org.andglk.hunkypunk.HunkyPunk;
+
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +14,7 @@ import android.os.Parcelable;
 
 public class Nitfol extends Activity {
     private Glk glk;
+	private File mDataDir;
 
 	/** Called when the activity is first created. */
     @Override
@@ -19,7 +23,14 @@ public class Nitfol extends Activity {
     	System.loadLibrary("nitfol");
     	glk = new Glk(this);
         setContentView(glk.getView());
-        Uri uri = getIntent().getData();
+        Intent i = getIntent();
+        Uri uri = i.getData();
+        String dataDirName = i.getStringExtra("ifid");
+        mDataDir = getDir(dataDirName, MODE_PRIVATE);
+        File saveDir = new File(mDataDir, "savegames");
+        saveDir.mkdir();
+        glk.setSaveDir(saveDir);
+        glk.setTranscriptDir(HunkyPunk.getTranscriptDir()); // there goes separation, and so cheaply...
         useFile(new FileStream(uri.getPath(), FileRef.FILEMODE_READ, 0).getPointer());
     	glk.start();
         super.onCreate(savedInstanceState);
@@ -28,7 +39,7 @@ public class Nitfol extends Activity {
     }
     
     private void restore(final ArrayList<Parcelable> windowStates) {
-    	final File f = new File(Glk.getInstance().getFilesDir(FileRef.FILEUSAGE_SAVEDGAME), "autosave");
+    	final File f = getBookmark(); 
     	if (!f.exists())
     		return;
 
@@ -39,7 +50,6 @@ public class Nitfol extends Activity {
     	    	
     	    	restoreGame(fs.getPointer());
     	    	fs.close();
-    	    	f.delete();
 
     	    	if (windowStates != null)
 	    	    	Glk.getInstance().getUiHandler().post(new Runnable() {
@@ -66,7 +76,7 @@ public class Nitfol extends Activity {
     protected void onPause() {
     	super.onPause();
     	
-    	final File f = new File(Glk.getInstance().getFilesDir(FileRef.FILEUSAGE_SAVEDGAME), "autosave");
+    	final File f = getBookmark();
     	Glk.getInstance().onSelect(new Runnable() {
     		public void run() {
 		    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_WRITE, 0);
@@ -77,7 +87,11 @@ public class Nitfol extends Activity {
     	});
     }
     
-    @Override
+    private File getBookmark() {
+		return new File(mDataDir, "bookmark");
+	}
+
+	@Override
     protected void onStop() {
     	// so we don't have to cleanup which would be a major pain in the ass
     	// because the interps weren't designed to be run again in the same process

@@ -57,6 +57,8 @@ public class Glk extends Thread {
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
 	protected boolean _done;
 	private Context _context;
+	private File mSaveDir;
+	private File mTranscriptDir;
 
 	@Override
 	public void run() {
@@ -155,20 +157,15 @@ public class Glk extends Thread {
 	 * @return Directory to place the files in. <code>null</code> if this type of files cannot be stored.
 	 */
 	public File getFilesDir(int usage) {
-		String name;
 		switch (usage) {
 		case FileRef.FILEUSAGE_SAVEDGAME:
-			name = "savedgames";
-			break;
+			return getSaveDir();
 		case FileRef.FILEUSAGE_TRANSCRIPT:
-			name = "transcripts";
-			break;
+			return getTranscriptDir();
 		default:
 			Log.e("Glk", "I don't know where to place files with usage = " + Integer.toString(usage));
 			return null;
 		}
-		
-		return getContext().getDir(name, Context.MODE_PRIVATE);
 	}
 	
 	/** Query Glk capabilities.
@@ -255,5 +252,21 @@ public class Glk extends Thread {
 
 	public void onSelect(Runnable runnable) {
 		postEvent(new SystemEvent(runnable));
+	}
+
+	public void setTranscriptDir(File transcriptDir) {
+		mTranscriptDir = transcriptDir;
+	}
+
+	public File getTranscriptDir() {
+		return mTranscriptDir;
+	}
+
+	public void setSaveDir(File saveDir) {
+		mSaveDir = saveDir;
+	}
+
+	public File getSaveDir() {
+		return mSaveDir;
 	}
 }
