@@ -260,21 +260,23 @@ public class TextGridWindow extends Window {
 					backspace();
 					return true;
 				}
-				if ((!mCharEventPending && !mLineEventPending) || !event.isPrintingKey())
+				if (mCharEventPending) {
+					Event ev = CharInputEvent.fromKeyEvent(TextGridWindow.this, event);
+					if (ev != null) {
+						mGlk.postEvent(ev);
+						cancelCharEvent();
+						return true;
+					}
+				}
+
+				if (!mLineEventPending)
 					break;
 	
 				int c = event.getUnicodeChar();
 				if (c < 0 || c > 255)
 					break;
-				
-				if (mCharEventPending) {
-					cancelCharEvent();
-					
-					Event e = new CharInputEvent(TextGridWindow.this, c);
-					mGlk.postEvent(e);
-				} else {
-					addToLine(c);
-				}
+	
+				addToLine(c);
 				return true;
 			} while (false);
 			
