@@ -9,6 +9,7 @@
 	</style>
 	
 	<style name="TextGridWindow" parent="@android:style/Widget.TextView">
+<!--	makes the whole window white, why?	<item name="android:background">?android:attr/colorBackground</item>-->
 		<item name="android:typeface">monospace</item> <!-- we don't use this, only here for completeness -->
 	</style>
 	

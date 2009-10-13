@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.Paint.Style;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -108,6 +110,8 @@ public class TextGridWindow extends Window {
 		private int mLineInputStart;
 		private int mDefaultColor;
 		protected boolean mIsClear;
+		private Rect mRect = new Rect();
+		private Paint mBackPaint;
 
 		public View(Context context) {
 			super(context, null, R.attr.textGridWindowStyle);
@@ -126,7 +130,11 @@ public class TextGridWindow extends Window {
 			mPaint.setAntiAlias(true);
 			mPaint.setTextSize(_fontSize);
 			mPaint.setColor(mDefaultColor);
-			
+
+			mBackPaint = new Paint();
+			mBackPaint.setColor(0xffffffff);
+			mBackPaint.setStyle(Style.FILL);
+
 			_charsW = _charsH = 0;
 		}
 
@@ -182,6 +190,9 @@ public class TextGridWindow extends Window {
 			for (int y = 0; y < Math.min(oldh, _charsH); ++y)
 				for (int x = 0; x < Math.min(oldw, _charsW); ++x)
 					_framebuf[y * _charsW + x] = oldfb[y * oldw + x];
+			
+			mRect.right = getWidth();
+			mRect.bottom = getHeight();
 		}
 
 		/** Get recommended descent. Useful for determining bottom padding needed. */
@@ -229,7 +240,8 @@ public class TextGridWindow extends Window {
 			
 			if (mIsClear)
 				return;
-			
+
+			canvas.drawRect(mRect, mBackPaint);
 			int px = getPaddingLeft();
 			int py = getPaddingTop();
 			float ch = measureCharacterHeight();
