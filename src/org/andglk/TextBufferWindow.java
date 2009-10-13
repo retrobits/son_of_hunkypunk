@@ -358,6 +358,7 @@ public class TextBufferWindow extends Window {
 		/* see TextBufferWindow.clear() */
 		public void clear() {
 			setText("", BufferType.EDITABLE);
+			scrollTo(getScrollX(), 0);
 		}
 
 		public void enableCharInput() {
