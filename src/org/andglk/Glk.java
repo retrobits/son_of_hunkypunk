@@ -52,11 +52,11 @@ public class Glk extends Thread {
 	public final static int GESTALT_UNICODE = 15;
 
 	private Stream mCurrentStream;
-	private FrameLayout _frame;
-	private Handler _uiHandler = new Handler();
+	private FrameLayout mFrame;
+	private Handler mUiHandler = new Handler();
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
 	protected boolean _done;
-	private Context _context;
+	private Context mContext;
 	private File mSaveDir;
 	private File mTranscriptDir;
 
@@ -70,7 +70,7 @@ public class Glk extends Thread {
 	public Glk(Context context) {
 		assert (_instance == null);
 		_instance = this;
-		_frame = new FrameLayout(context) {
+		mFrame = new FrameLayout(context) {
 			@Override
 			protected void onLayout(boolean changed, int left, int top,
 					int right, int bottom) {
@@ -79,7 +79,7 @@ public class Glk extends Thread {
 					postEvent(new ArrangeEvent());
 			}
 		};
-		_context = context;
+		mContext = context;
 	}
 	
 	public void setWindow(Window window) {
@@ -105,11 +105,11 @@ public class Glk extends Thread {
 	}
 	
 	public ViewGroup getView() {
-		return _frame;
+		return mFrame;
 	}
 
 	public Handler getUiHandler() {
-		return _uiHandler;
+		return mUiHandler;
 	}
 
 	public void postEvent(Event e) {
@@ -117,13 +117,13 @@ public class Glk extends Thread {
 	}
 
 	public synchronized void waitForUi(final Runnable runnable) {
-		if (Thread.currentThread().equals(_uiHandler.getLooper().getThread())) {
+		if (Thread.currentThread().equals(mUiHandler.getLooper().getThread())) {
 			runnable.run();
 			return;
 		}
 		
 		_done = false;
-		_uiHandler.post(new Runnable() {
+		mUiHandler.post(new Runnable() {
 			@Override
 			public void run() {
 				synchronized(Glk.this) {
@@ -142,7 +142,7 @@ public class Glk extends Thread {
 	}
 
 	public Context getContext() {
-		return _context;
+		return mContext;
 	}
 
 	public static Glk getInstance() {
@@ -222,7 +222,7 @@ public class Glk extends Thread {
 	}
 
 	public void onConfigurationChanged(Configuration newConfig) {
-		_frame.requestLayout();
+		mFrame.requestLayout();
 	}
 
 	public void setCurrentStream(Stream stream) {
