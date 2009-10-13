@@ -75,8 +75,13 @@ public class Nitfol extends Activity {
     @Override
     protected void onPause() {
     	super.onPause();
-    	
     	final File f = getBookmark();
+
+    	if (!glk.isAlive()) {
+    		f.delete();
+    		return;
+    	}
+    	
     	Glk.getInstance().onSelect(new Runnable() {
     		public void run() {
 		    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_WRITE, 0);
@@ -103,6 +108,9 @@ public class Nitfol extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
     	super.onSaveInstanceState(outState);
+
+    	if (!glk.isAlive())
+    		return;
 
     	ArrayList<Parcelable> states = new ArrayList<Parcelable>();
     	
