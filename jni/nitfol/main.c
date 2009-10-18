@@ -37,7 +37,7 @@ static void set_zfile(strid_t file)
     current_zfile = NULL;
     return;
   }
-  
+
   glk_stream_set_position(file, zfile_offset, seekmode_Start);
 }
 
@@ -129,4 +129,9 @@ void glk_main(void)
   }
   init_undo();
   decode();
+}
+
+void set_savefile(strid_t file)
+{
+	savefile = file;
 }

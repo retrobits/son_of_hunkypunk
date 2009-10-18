@@ -35,10 +35,7 @@ void Java_org_andglk_Nitfol_saveGame(JNIEnv *env, jobject *this, strid_t saveFil
 	savequetzal(saveFile);
 }
 
-void Java_org_andglk_Nitfol_restoreGame(JNIEnv *env, jobject *this, strid_t saveFile, int upperHeight)
+void Java_org_andglk_Nitfol_restoreGame(JNIEnv *env, jobject *this, strid_t saveFile)
 {
-	restorequetzal(saveFile);
-
-	operand[0] = upperHeight;
-	op_split_window();
+	set_savefile(saveFile);
 }

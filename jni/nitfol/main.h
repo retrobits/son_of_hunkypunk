@@ -11,4 +11,6 @@
 int game_use_file (strid_t file );
 void glk_main (void);
 
+void set_savefile(strid_t file);
+
 #endif /* CFH_MAIN_H */

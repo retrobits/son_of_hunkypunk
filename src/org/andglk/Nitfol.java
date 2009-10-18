@@ -32,10 +32,10 @@ public class Nitfol extends Activity {
         glk.setSaveDir(saveDir);
         glk.setTranscriptDir(HunkyPunk.getTranscriptDir()); // there goes separation, and so cheaply...
         useFile(new FileStream(uri.getPath(), FileRef.FILEMODE_READ, 0).getPointer());
-    	glk.start();
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)
         	restore(savedInstanceState.getParcelableArrayList("windowStates"));
+    	glk.start();
     }
     
     private void restore(final ArrayList<Parcelable> windowStates) {
@@ -57,18 +57,13 @@ public class Nitfol extends Activity {
 			    	    			break;
 	    	    		}
 	    	    	});
-
-    	    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
-    	    	
-    	    	PairWindow root = (PairWindow) Window.getRoot();
-    	    	int height = -1;
-    	    	if (root != null)
-    	    		height = root.getLeftChild().getSize()[1];
-    	    	restoreGame(fs.getPointer(), height);
-    	    	fs.close();
     		}
     	});
-	}
+
+    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
+    	
+    	restoreGame(fs.getPointer());
+    }
 
 	@Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -126,7 +121,7 @@ public class Nitfol extends Activity {
     }
     
     private native void saveGame(int fs);
-    private native void restoreGame(int fs, int height);
+    private native void restoreGame(int fs);
 
 	native void useFile(int str_p);
 }
