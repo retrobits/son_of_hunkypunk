@@ -315,7 +315,21 @@ public class TextBufferWindow extends Window {
 		private boolean mLineInputEnabled;
 		private int mLineInputStart;
 		private Object mLineInputSpan;
-		private final InputFilter[] mNoFilters = {};
+		private final InputFilter mNewLinesFilter = new InputFilter() {
+			@Override
+			public CharSequence filter(CharSequence source, int start, int end,
+					Spanned dest, int dstart, int dend) {
+				if (dstart != 0)
+					return null;
+				
+				int goodStart = start;
+				while(goodStart < end && source.charAt(goodStart) == '\n')
+					goodStart++;
+				
+				return source.subSequence(goodStart, end);
+			}
+		};
+		private final InputFilter[] mNoFilters = { mNewLinesFilter };
 		private final InputFilter[] mFilters = { new InputFilter() {
 			SpannableStringBuilder mSsb = new SpannableStringBuilder();
 
@@ -352,6 +366,7 @@ public class TextBufferWindow extends Window {
 			setFocusable(false);
 			mScroller = new Scroller(context);
 			setScroller(mScroller);
+			setFilters(mNoFilters);
 		}
 		
 
