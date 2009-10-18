@@ -1,6 +1,8 @@
 package org.andglk;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -150,6 +152,11 @@ public class TextBufferWindow extends Window {
 	private int mLineEventBuffer;
 	private long mLineEventBufferLength;
 	private int mLineEventBufferRock;
+
+	static final Pattern sOpeningQuote = Pattern.compile("(\\s)\"(\\S)");
+	static final Pattern sClosingQuote = Pattern.compile("(\\S)\"(\\s)");
+	static final Pattern sMDash = Pattern.compile("---");
+	static final Pattern sNDash = Pattern.compile("--");
 	
 	private class _View extends TextView implements OnEditorActionListener {
 		public class _MovementMethod implements MovementMethod {
@@ -219,7 +226,7 @@ public class TextBufferWindow extends Window {
 		
 		@Override
 		public void onRestoreInstanceState(Parcelable state) {
-			setFilters(mNoFilters);
+			setFilters(mNormalFilters);
 			TextBufferWindow._SavedState ss = (_SavedState) state;
 			mLineInputEnabled = ss.mLineInputEnabled;
 			if (mCharInputEnabled && !ss.mCharInputEnabled)
@@ -315,21 +322,48 @@ public class TextBufferWindow extends Window {
 		private boolean mLineInputEnabled;
 		private int mLineInputStart;
 		private Object mLineInputSpan;
-		private final InputFilter mNewLinesFilter = new InputFilter() {
+		private final InputFilter mBeautifyingFilter = new InputFilter() {
 			@Override
 			public CharSequence filter(CharSequence source, int start, int end,
 					Spanned dest, int dstart, int dend) {
-				if (dstart != 0)
-					return null;
+				if (dstart == 0)
+					while(start < end && source.charAt(start) == '\n')
+						start++;
+
+				if (start == end)
+					return "";
 				
-				int goodStart = start;
-				while(goodStart < end && source.charAt(goodStart) == '\n')
-					goodStart++;
+				final SpannableStringBuilder e = new SpannableStringBuilder(source.subSequence(start, end));
+
+				Matcher matcher = sOpeningQuote.matcher(e);
+				while (matcher.find()) {
+					e.replace(matcher.start(), matcher.end(), matcher.group(1) + "“" + matcher.group(2));
+					matcher = sOpeningQuote.matcher(e);
+				}
+
+				matcher = sClosingQuote.matcher(e);
+				while (matcher.find()) {
+					e.replace(matcher.start(), matcher.end(), matcher.group(1) + "”" + matcher.group(2));
+					matcher = sClosingQuote.matcher(e);
+				}
+
+				matcher = sMDash.matcher(e);
+				while (matcher.find()) {
+					e.replace(matcher.start(), matcher.end(), "—");
+					matcher = sMDash.matcher(e);
+				}
+
+				matcher = sNDash.matcher(e);
+				while (matcher.find()) {
+					e.replace(matcher.start(), matcher.end(), "–");
+					matcher = sNDash.matcher(e);
+				}
 				
-				return source.subSequence(goodStart, end);
+				return e;
 			}
 		};
-		private final InputFilter[] mNoFilters = { mNewLinesFilter };
+		
+		private final InputFilter[] mNormalFilters = { mBeautifyingFilter };
 		private final InputFilter[] mFilters = { new InputFilter() {
 			SpannableStringBuilder mSsb = new SpannableStringBuilder();
 
@@ -346,7 +380,7 @@ public class TextBufferWindow extends Window {
 				
 				return mSsb;
 			}
-		}};
+		}, mBeautifyingFilter };
 		
 		private Scroller mScroller;
 		private _MovementMethod mMovementMethod;
@@ -366,7 +400,7 @@ public class TextBufferWindow extends Window {
 			setFocusable(false);
 			mScroller = new Scroller(context);
 			setScroller(mScroller);
-			setFilters(mNoFilters);
+			setFilters(mNormalFilters);
 		}
 		
 
@@ -464,7 +498,7 @@ public class TextBufferWindow extends Window {
 
 		private CharSequence finishLineInput() {
 			disableInput();
-			setFilters(mNoFilters);
+			setFilters(mNormalFilters);
 			
 			final Editable e = getEditableText();
 			final int len = e.length();
