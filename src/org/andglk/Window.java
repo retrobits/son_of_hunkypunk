@@ -5,6 +5,7 @@ import java.io.IOException;
 import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 
 public abstract class Window extends CPointed {
 	public class BlankStream extends Stream {
@@ -121,8 +122,10 @@ public abstract class Window extends CPointed {
 		if (pair != null) {
 			pair.notifyGone(this);
 			pair.dissolve(this);
-		} else
+		} else {
 			_root = null;
+			((ViewGroup) getView().getParent()).removeAllViews();
+		}
 		release();
 	}
 
