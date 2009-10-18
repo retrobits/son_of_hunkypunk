@@ -46,13 +46,8 @@ public class Nitfol extends Activity {
     	Glk.getInstance().onSelect(new Runnable() {
     		@Override
     		public void run() {
-    	    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
-    	    	
-    	    	restoreGame(fs.getPointer());
-    	    	fs.close();
-
     	    	if (windowStates != null)
-	    	    	Glk.getInstance().getUiHandler().post(new Runnable() {
+	    	    	Glk.getInstance().waitForUi(new Runnable() {
 	    	    		public void run() {
 			    	    	Window w = null;
 			    	    	for (Parcelable p : windowStates)
@@ -62,6 +57,15 @@ public class Nitfol extends Activity {
 			    	    			break;
 	    	    		}
 	    	    	});
+
+    	    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
+    	    	
+    	    	PairWindow root = (PairWindow) Window.getRoot();
+    	    	int height = -1;
+    	    	if (root != null)
+    	    		height = root.getLeftChild().getSize()[1];
+    	    	restoreGame(fs.getPointer(), height);
+    	    	fs.close();
     		}
     	});
 	}
@@ -122,7 +126,7 @@ public class Nitfol extends Activity {
     }
     
     private native void saveGame(int fs);
-    private native void restoreGame(int fs);
+    private native void restoreGame(int fs, int height);
 
 	native void useFile(int str_p);
 }

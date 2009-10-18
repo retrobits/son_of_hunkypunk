@@ -222,6 +222,8 @@ public class TextBufferWindow extends Window {
 			setFilters(mNoFilters);
 			TextBufferWindow._SavedState ss = (_SavedState) state;
 			mLineInputEnabled = ss.mLineInputEnabled;
+			if (mCharInputEnabled && !ss.mCharInputEnabled)
+				disableCharInput();
 			mCharInputEnabled = ss.mCharInputEnabled;
 			mLineInputStart = ss.mLineInputStart;
 			super.onRestoreInstanceState(ss.mSuperState);
@@ -378,7 +380,7 @@ public class TextBufferWindow extends Window {
 			Selection.setSelection(getEditableText(), length());
 		}
 
-		private void disableCharInput() {
+		protected void disableCharInput() {
 			mCharInputEnabled = false;
 			
 			disableInput();
@@ -487,8 +489,12 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void cancelCharEvent() {
-		// TODO Auto-generated method stub
-		
+		mGlk.getUiHandler().post(new Runnable() {
+			@Override
+			public void run() {
+				mView.disableCharInput();	
+			}
+		});
 	}
 
 	@Override

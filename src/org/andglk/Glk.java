@@ -18,7 +18,6 @@ import android.view.ViewGroup;
 import android.view.View.MeasureSpec;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /** <strong>DO NOT EVER INSTANTIATE OR START THIS CLASS MORE THAN ONCE IN A PROCESS' LIFETIME</strong> */
 public class Glk extends Thread {

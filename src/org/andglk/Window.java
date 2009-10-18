@@ -105,6 +105,11 @@ public abstract class Window extends CPointed {
 	
 	public abstract View getView();
 	public abstract void clear();
+	
+	/** Returns window size.
+	 * 
+	 * @return [width, height]
+	 */
 	public abstract int[] getSize();
 	
 	public long close() {

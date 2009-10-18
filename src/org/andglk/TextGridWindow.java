@@ -16,11 +16,18 @@ import android.view.KeyEvent;
 
 public class TextGridWindow extends Window {
 	 public static class TextGridParcelable implements Parcelable {
-	     private char[] _frameBuf;
+		public char[] mFrameBuf;
+		public int mHeight;
+		public int mWidth;
+		public boolean mLineEventPending;
+		public boolean mCharEventPending;
 	     
 	     public void writeToParcel(Parcel out, int flags) {
-	    	 out.writeInt(_frameBuf.length);
-	         out.writeCharArray(_frameBuf);
+	    	 out.writeInt(mHeight);
+	    	 out.writeInt(mWidth);
+	    	 assert (mFrameBuf.length == mHeight * mWidth);
+	         out.writeCharArray(mFrameBuf);
+	         out.writeBooleanArray(new boolean[] { mLineEventPending, mCharEventPending });
 	     }
 
 	     public static final Parcelable.Creator<TextGridParcelable> CREATOR
@@ -35,23 +42,24 @@ public class TextGridWindow extends Window {
 	     };
 	     
 	     private TextGridParcelable(Parcel in) {
-	    	 _frameBuf = new char[in.readInt()];
-	    	 in.readCharArray(_frameBuf);
+	    	 mHeight = in.readInt();
+	    	 mWidth = in.readInt();
+	    	 mFrameBuf = new char[mHeight * mWidth];
+	    	 in.readCharArray(mFrameBuf);
+	    	 boolean[] val = new boolean[2];
+	    	 in.readBooleanArray(val);
+	    	 mLineEventPending = val[0];
+	    	 mCharEventPending = val[1];
 	     }
 
-		public TextGridParcelable(char[] framebuf) {
-			_frameBuf = framebuf;
+		public TextGridParcelable() {
 		}
 
 		@Override
 		public int describeContents() {
 			return 0;
 		}
-
-		public char[] getFrameBuffer() {
-			return _frameBuf;
-		}
-	 }
+	}
 
 	 @Override
 	public Parcelable saveInstanceState() {
@@ -76,10 +84,10 @@ public class TextGridWindow extends Window {
 		
 		@Override
 		protected void doPutChar(char c) throws IOException {
-			if (mView._pos >= mView._charsW * mView._charsH)
+			if (mView._pos >= mView.mWidth * mView.mHeight)
 				return;
 			
-			mView._framebuf[mView._pos++] = c;
+			mView.mFrameBuf[mView._pos++] = c;
 			
 			mView.mIsClear = false;
 		}
@@ -100,9 +108,9 @@ public class TextGridWindow extends Window {
 	protected class View extends android.view.View {
 		private int _fontSize;
 		private Paint mPaint;
-		protected int _charsW;
-		protected int _charsH;
-		protected char[] _framebuf;
+		protected int mWidth;
+		protected int mHeight;
+		protected char[] mFrameBuf;
 		protected int _pos;
 		private boolean mCharEventPending;
 		private boolean mLineEventPending;
@@ -136,7 +144,7 @@ public class TextGridWindow extends Window {
 			mBackPaint.setColor(0xffffffff);
 			mBackPaint.setStyle(Style.FILL);
 
-			_charsW = _charsH = 0;
+			mWidth = mHeight = 0;
 		}
 
 		public void setStyle(int styl) {
@@ -150,7 +158,7 @@ public class TextGridWindow extends Window {
 				pos += _pos;
 				break;
 			case Stream.SEEKMODE_END:
-				pos += _charsH * _charsW;
+				pos += mHeight * mWidth;
 				break;
 			case Stream.SEEKMODE_START:
 			default:
@@ -174,23 +182,23 @@ public class TextGridWindow extends Window {
 		
 		@Override
 		protected synchronized void onSizeChanged(int w, int h, int oldw, int oldh) {
-			oldw = _charsW;
-			oldh = _charsH;
+			oldw = mWidth;
+			oldh = mHeight;
 			w -= getPaddingLeft() + getPaddingRight();
 			h -= getPaddingBottom() + getPaddingTop() - getDescent();
 			if (w < 0)
 				w = 0;
 			if (h < 0)
 				h = 0;
-			_charsW = (int) (w / measureCharacterWidth());
-			_charsH = (int) (h / measureCharacterHeight());
+			mWidth = (int) (w / measureCharacterWidth());
+			mHeight = (int) (h / measureCharacterHeight());
 			
-			char[] oldfb = _framebuf;
-			_framebuf = new char[_charsW * _charsH];
+			char[] oldfb = mFrameBuf;
+			mFrameBuf = new char[mWidth * mHeight];
 			
-			for (int y = 0; y < Math.min(oldh, _charsH); ++y)
-				for (int x = 0; x < Math.min(oldw, _charsW); ++x)
-					_framebuf[y * _charsW + x] = oldfb[y * oldw + x];
+			for (int y = 0; y < Math.min(oldh, mHeight); ++y)
+				for (int x = 0; x < Math.min(oldw, mWidth); ++x)
+					mFrameBuf[y * mWidth + x] = oldfb[y * oldw + x];
 			
 			mRect.right = getWidth();
 			mRect.bottom = getHeight();
@@ -202,34 +210,34 @@ public class TextGridWindow extends Window {
 		}
 
 		public synchronized void clear() {
-			for (int i = 0; i < _charsW * _charsH; ++i)
-				_framebuf[i] = ' ';
+			for (int i = 0; i < mWidth * mHeight; ++i)
+				mFrameBuf[i] = ' ';
 			
 			_pos = 0;
 			mIsClear = true;
 		}
 
 		public synchronized int[] getSize() {
-			return new int[] { _charsW, _charsH };
+			return new int[] { mWidth, mHeight };
 		}
 
 		public synchronized void moveCursor(long x, long y) {
-			_pos = (int) (y * _charsW + x);
+			_pos = (int) (y * mWidth + x);
 			if (_pos < 0)
 				_pos = 0;
 		}
 
 		public synchronized void putString(String str) {
-			if (_pos >= _framebuf.length)
+			if (_pos >= mFrameBuf.length)
 				return;
 			
 			int end = str.length();
-			if (end > _charsW * _charsH - _pos)
-				end = _charsW * _charsH - _pos;
+			if (end > mWidth * mHeight - _pos)
+				end = mWidth * mHeight - _pos;
 			
 			if (end == 0)
 				return;
-			str.getChars(0, end, _framebuf, _pos);
+			str.getChars(0, end, mFrameBuf, _pos);
 			_pos += end;
 			
 			mIsClear = false;
@@ -246,8 +254,8 @@ public class TextGridWindow extends Window {
 			int px = getPaddingLeft();
 			int py = getPaddingTop();
 			float ch = measureCharacterHeight();
-			for (int y = 0; y < _charsH; y++)
-				canvas.drawText(_framebuf, y * _charsW, _charsW, px, py + ch * (y + 1), mPaint);
+			for (int y = 0; y < mHeight; y++)
+				canvas.drawText(mFrameBuf, y * mWidth, mWidth, px, py + ch * (y + 1), mPaint);
 		}
 
 		public void requestCharEvent() {
@@ -319,7 +327,7 @@ public class TextGridWindow extends Window {
 			if (_pos == mLineInputStart)
 				return;
 			
-			_framebuf[--_pos] = ' ';
+			mFrameBuf[--_pos] = ' ';
 			postInvalidate();
 		}
 
@@ -327,7 +335,7 @@ public class TextGridWindow extends Window {
 			if (_pos == mLineInputEnd)
 				return;
 			
-			_framebuf[_pos++] = (char) c;
+			mFrameBuf[_pos++] = (char) c;
 			mIsClear = false;
 			postInvalidate();
 		}
@@ -341,8 +349,8 @@ public class TextGridWindow extends Window {
 		public void requestLineEvent(String initial) {
 			mLineEventPending = true;
 			mLineInputStart = _pos;
-			mLineInputEnd = _pos + _charsW;
-			mLineInputEnd -= mLineInputEnd % _charsW;
+			mLineInputEnd = _pos + mWidth;
+			mLineInputEnd -= mLineInputEnd % mWidth;
 			
 			if (mLineInputEnd - mLineInputStart > mMaxLen)
 				mLineInputEnd = mLineInputStart + mMaxLen;
@@ -356,9 +364,9 @@ public class TextGridWindow extends Window {
 			if (!mLineEventPending)
 				return null;
 			
-			final String result = String.copyValueOf(_framebuf, mLineInputStart, _pos - mLineInputStart);
-			_pos = _pos + _charsW;
-			_pos -= _pos % _charsW;
+			final String result = String.copyValueOf(mFrameBuf, mLineInputStart, _pos - mLineInputStart);
+			_pos = _pos + mWidth;
+			_pos -= _pos % mWidth;
 			mLineEventPending = false;
 			setEnabled(false);
 			setFocusable(false);
@@ -376,12 +384,24 @@ public class TextGridWindow extends Window {
 		
 		@Override
 		public Parcelable onSaveInstanceState() {
-			return new TextGridParcelable(_framebuf);
+			TextGridParcelable ss = new TextGridParcelable();
+			ss.mFrameBuf = mFrameBuf;
+			ss.mHeight = mHeight;
+			ss.mWidth = mWidth;
+			ss.mLineEventPending = mLineEventPending;
+			ss.mCharEventPending = mCharEventPending;
+			return ss;
 		}
 		
 		@Override
 		protected void onRestoreInstanceState(Parcelable state) {
-			_framebuf = ((TextGridParcelable) state).getFrameBuffer();
+			TextGridParcelable ss = (TextGridParcelable) state;
+			mFrameBuf = ss.mFrameBuf;
+			mHeight = ss.mHeight;
+			mWidth = ss.mWidth;
+			mLineEventPending = ss.mLineEventPending;
+			if (mCharEventPending && !ss.mCharEventPending)
+				cancelCharEvent();
 		}
 	}
 	
