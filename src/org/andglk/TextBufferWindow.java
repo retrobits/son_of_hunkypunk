@@ -338,6 +338,8 @@ public class TextBufferWindow extends Window {
 			final int DASH = 2;
 			final int SPACEQUOTE = 3;
 			final int NDASH = 4;
+			final int DOT = 5;
+			final int DOUBLEDOT = 6;
 			
 			int state = NOTHING;
 			
@@ -362,6 +364,9 @@ public class TextBufferWindow extends Window {
 					case '-':
 						state = DASH;
 						continue;
+					case '.':
+						state = DOT;
+						continue;
 					default:
 						continue;
 					}
@@ -377,6 +382,9 @@ public class TextBufferWindow extends Window {
 					case '-':
 						state = DASH;
 						continue;
+					case '.':
+						state = DOT;
+						continue;
 					default:
 						state = NOTHING;
 						continue;
@@ -390,6 +398,9 @@ public class TextBufferWindow extends Window {
 						continue;
 					case '-':
 						state = NDASH;
+						continue;
+					case '.':
+						state = DOT;
 						continue;
 					case '"':
 						e.replace(position, position + 1, "”");
@@ -407,6 +418,10 @@ public class TextBufferWindow extends Window {
 					case '-':
 						e.replace(position - 1, position, "“");
 						state = DASH;
+						continue;
+					case '.':
+						e.replace(position - 1, position, "“");
+						state = DOT;
 						continue;
 					case '"':
 						e.replace(position, position + 1, "”");
@@ -427,19 +442,61 @@ public class TextBufferWindow extends Window {
 					case '"':
 						e.replace(position, position + 1, "”");
 					default:
-						e.replace(position - 2, position, "–");
-						position--;
-						len--;
 						state = NOTHING;
+						break;
+					case '.':
+						state = DOT;
+						break;
+					case ' ':
+					case '\n':
+						state = SPACE;
+						break;
+					}
+					e.replace(position - 2, position, "–");
+					position--;
+					len--;
+					continue;
+				
+				case DOT:
+					switch (c) {
+					case '.':
+						state = DOUBLEDOT;
 						continue;
 					case ' ':
 					case '\n':
-						e.replace(position - 2, position, "–");
-						position--;
-						len--;
 						state = SPACE;
 						continue;
+					case '-':
+						state = DASH;
+						continue;
+					case '"':
+						e.replace(position, position + 1, "”");
+					default:
+						state = NOTHING;
+						continue;
 					}
+
+				case DOUBLEDOT:
+					switch (c) {
+					case ' ':
+					case '\n':
+						state = SPACE;
+						continue;
+					case '-':
+						state = DASH;
+						continue;
+					case '"':
+						e.replace(position, position + 1, "”");
+						break;
+					case '.':
+						e.replace(position - 2, position + 1, "…");
+						position -= 2;
+						len -= 2;
+						break;
+					default:
+					}
+					state = NOTHING;
+					continue;
 				}
 			} while (++position < len);
 		}
