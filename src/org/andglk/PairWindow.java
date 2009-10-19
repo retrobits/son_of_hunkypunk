@@ -140,6 +140,7 @@ public class PairWindow extends Window {
 		} else {
 			// we have the root, so the parent is a framelayout, not a linearlayout
 			keepv.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
+			setRoot(keep);
 		}
 	}
 	

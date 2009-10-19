@@ -37,6 +37,10 @@ public abstract class Window extends CPointed {
 		return _root;
 	}
 	
+	static protected void setRoot(Window w) {
+		_root = w;
+	}
+	
 	static public Window iterate(Window w) {
 		if (w == null)
 			return _root;
