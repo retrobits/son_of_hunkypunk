@@ -196,14 +196,6 @@ void glk_exit(void)
 {
 	JNIEnv *env = JNU_GetEnv();
 
-	static jmethodID mid = 0;
-	if (mid == 0)
-		if (!(mid = (*env)->GetMethodID(env, _class, "exit", "()V")))
-			goto end;
-
-	(*env)->CallVoidMethod(env, _this, mid);
-
-	end:
 	(*env)->DeleteGlobalRef(env, _this);
 	_this = 0;
 	_vm_reg_array = 0;
