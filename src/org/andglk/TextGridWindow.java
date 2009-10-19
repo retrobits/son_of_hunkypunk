@@ -87,7 +87,7 @@ public class TextGridWindow extends Window {
 			if (mView._pos >= mView.mWidth * mView.mHeight)
 				return;
 			
-			mView.mFrameBuf[mView._pos++] = c;
+			mView.mFrameBufTemp[mView._pos++] = c;
 			
 			mView.mIsClear = false;
 		}
@@ -110,7 +110,7 @@ public class TextGridWindow extends Window {
 		private Paint mPaint;
 		protected int mWidth;
 		protected int mHeight;
-		protected char[] mFrameBuf;
+		protected char[] mFrameBuf, mFrameBufTemp;
 		protected int _pos;
 		private boolean mCharEventPending;
 		private boolean mLineEventPending;
@@ -195,10 +195,13 @@ public class TextGridWindow extends Window {
 			
 			char[] oldfb = mFrameBuf;
 			mFrameBuf = new char[mWidth * mHeight];
+			mFrameBufTemp = new char[mWidth * mHeight];
 			
 			for (int y = 0; y < Math.min(oldh, mHeight); ++y)
 				for (int x = 0; x < Math.min(oldw, mWidth); ++x)
 					mFrameBuf[y * mWidth + x] = oldfb[y * oldw + x];
+			
+			System.arraycopy(mFrameBuf, 0, mFrameBufTemp, 0, mWidth * mHeight);
 			
 			mRect.right = getWidth();
 			mRect.bottom = getHeight();
@@ -211,7 +214,7 @@ public class TextGridWindow extends Window {
 
 		public synchronized void clear() {
 			for (int i = 0; i < mWidth * mHeight; ++i)
-				mFrameBuf[i] = ' ';
+				mFrameBufTemp[i] = ' ';
 			
 			_pos = 0;
 			mIsClear = true;
@@ -228,7 +231,7 @@ public class TextGridWindow extends Window {
 		}
 
 		public synchronized void putString(String str) {
-			if (_pos >= mFrameBuf.length)
+			if (_pos >= mFrameBufTemp.length)
 				return;
 			
 			int end = str.length();
@@ -237,7 +240,7 @@ public class TextGridWindow extends Window {
 			
 			if (end == 0)
 				return;
-			str.getChars(0, end, mFrameBuf, _pos);
+			str.getChars(0, end, mFrameBufTemp, _pos);
 			_pos += end;
 			
 			mIsClear = false;
@@ -397,11 +400,20 @@ public class TextGridWindow extends Window {
 		protected void onRestoreInstanceState(Parcelable state) {
 			TextGridParcelable ss = (TextGridParcelable) state;
 			mFrameBuf = ss.mFrameBuf;
+			mFrameBufTemp = new char[mFrameBuf.length];
+			System.arraycopy(mFrameBuf, 0, mFrameBufTemp, 0, mFrameBuf.length);
 			mHeight = ss.mHeight;
 			mWidth = ss.mWidth;
 			mLineEventPending = ss.mLineEventPending;
 			if (mCharEventPending && !ss.mCharEventPending)
 				cancelCharEvent();
+		}
+
+		public void flush() {
+			char tmp[] = mFrameBuf;
+			mFrameBuf = mFrameBufTemp;
+			mFrameBufTemp = tmp;
+			postInvalidate();
 		}
 	}
 	
@@ -493,6 +505,6 @@ public class TextGridWindow extends Window {
 
 	@Override
 	public void flush() {
-		mView.postInvalidate();
+		mView.flush();
 	}
 }
