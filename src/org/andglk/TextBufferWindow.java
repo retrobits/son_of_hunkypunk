@@ -1,8 +1,6 @@
 package org.andglk;
 
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -153,11 +151,6 @@ public class TextBufferWindow extends Window {
 	private long mLineEventBufferLength;
 	private int mLineEventBufferRock;
 
-	static final Pattern sOpeningQuote = Pattern.compile("(\\s)\"(\\S)");
-	static final Pattern sClosingQuote = Pattern.compile("(\\S)\"(\\s)");
-	static final Pattern sMDash = Pattern.compile("---");
-	static final Pattern sNDash = Pattern.compile("--");
-	
 	private class _View extends TextView implements OnEditorActionListener {
 		public class _MovementMethod implements MovementMethod {
 			@Override
@@ -322,7 +315,7 @@ public class TextBufferWindow extends Window {
 		private boolean mLineInputEnabled;
 		private int mLineInputStart;
 		private Object mLineInputSpan;
-		private final InputFilter mBeautifyingFilter = new InputFilter() {
+		private final InputFilter mNewLineFilter = new InputFilter() {
 			@Override
 			public CharSequence filter(CharSequence source, int start, int end,
 					Spanned dest, int dstart, int dend) {
@@ -333,37 +326,125 @@ public class TextBufferWindow extends Window {
 				if (start == end)
 					return "";
 				
-				final SpannableStringBuilder e = new SpannableStringBuilder(source.subSequence(start, end));
-
-				Matcher matcher = sOpeningQuote.matcher(e);
-				while (matcher.find()) {
-					e.replace(matcher.start(), matcher.end(), matcher.group(1) + "“" + matcher.group(2));
-					matcher = sOpeningQuote.matcher(e);
-				}
-
-				matcher = sClosingQuote.matcher(e);
-				while (matcher.find()) {
-					e.replace(matcher.start(), matcher.end(), matcher.group(1) + "”" + matcher.group(2));
-					matcher = sClosingQuote.matcher(e);
-				}
-
-				matcher = sMDash.matcher(e);
-				while (matcher.find()) {
-					e.replace(matcher.start(), matcher.end(), "—");
-					matcher = sMDash.matcher(e);
-				}
-
-				matcher = sNDash.matcher(e);
-				while (matcher.find()) {
-					e.replace(matcher.start(), matcher.end(), "–");
-					matcher = sNDash.matcher(e);
-				}
-				
-				return e;
+				return source.subSequence(start, end);
 			}
 		};
 		
-		private final InputFilter[] mNormalFilters = { mBeautifyingFilter };
+		private void beautify(Editable e, int position) {
+			int len = e.length();
+			
+			final int NOTHING = 0;
+			final int SPACE = 1;
+			final int DASH = 2;
+			final int SPACEQUOTE = 3;
+			final int NDASH = 4;
+			
+			int state = NOTHING;
+			
+			if (position < 0)
+				position = 0;
+			if (len == position)
+				return;
+			
+			do {
+				final char c = e.charAt(position); 
+				switch (state) {
+				
+				case NOTHING:
+					switch (c) {
+					case ' ':
+					case '\n':
+						state = SPACE;
+						continue;
+					case '"':
+						e.replace(position, position + 1, "”");
+						continue;
+					case '-':
+						state = DASH;
+						continue;
+					default:
+						continue;
+					}
+					
+				case SPACE:
+					switch (c) {
+					case ' ':
+					case '\n':
+						continue;
+					case '"':
+						state = SPACEQUOTE;
+						continue;
+					case '-':
+						state = DASH;
+						continue;
+					default:
+						state = NOTHING;
+						continue;
+					}
+
+				case DASH:
+					switch (c) {
+					case ' ':
+					case '\n':
+						state = SPACE;
+						continue;
+					case '-':
+						state = NDASH;
+						continue;
+					case '"':
+						e.replace(position, position + 1, "”");
+					default:
+						state = NOTHING;
+						continue;
+					}
+					
+				case SPACEQUOTE:
+					switch (c) {
+					case ' ':
+					case '\n':
+						state = SPACE;
+						continue;
+					case '-':
+						e.replace(position - 1, position, "“");
+						state = DASH;
+						continue;
+					case '"':
+						e.replace(position, position + 1, "”");
+					default:
+						e.replace(position - 1, position, "“");
+						state = NOTHING;
+						continue;
+					}
+					
+				case NDASH:
+					switch (c) {
+					case '-':
+						e.replace(position - 2, position + 1, "—");
+						position -= 2;
+						len -= 2;
+						state = NOTHING;
+						continue;
+					case '"':
+						e.replace(position, position + 1, "”");
+					default:
+						e.replace(position - 2, position, "–");
+						position--;
+						len--;
+						state = NOTHING;
+						continue;
+					case ' ':
+					case '\n':
+						e.replace(position - 2, position, "–");
+						position--;
+						len--;
+						state = SPACE;
+						continue;
+					}
+				}
+			} while (++position < len);
+		}
+		
+		private final InputFilter[] mNormalFilters = { mNewLineFilter };
 		private final InputFilter[] mFilters = { new InputFilter() {
 			SpannableStringBuilder mSsb = new SpannableStringBuilder();
 
@@ -380,7 +461,7 @@ public class TextBufferWindow extends Window {
 				
 				return mSsb;
 			}
-		}, mBeautifyingFilter };
+		}, mNewLineFilter };
 		
 		private Scroller mScroller;
 		private _MovementMethod mMovementMethod;
@@ -405,7 +486,10 @@ public class TextBufferWindow extends Window {
 		
 
 		public void print(CharSequence text) {
+			final int start = length() - 1;
 			append(text);
+			Editable e = getEditableText();
+			beautify(e, start);
 		}
 
 		/* see TextBufferWindow.clear() */
