@@ -115,10 +115,13 @@ public class FileRef extends CPointed {
 				.setItems(list, new OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						if (allowNew && which == 0)
-							new NewFileDialog(FilePrompt.this, usage);
-						else
-							makeSure(list[which]);
+						if (allowNew) { 
+							if (which == 0)
+								new NewFileDialog(FilePrompt.this, usage);
+							else
+								makeSure(list[which]);
+						} else
+							publishResult(new File(mBaseDir, list[which]));
 					}})
 				.setOnCancelListener(new OnCancelListener() {
 					@Override
