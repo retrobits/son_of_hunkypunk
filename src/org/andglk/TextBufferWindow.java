@@ -139,7 +139,13 @@ public class TextBufferWindow extends Window {
 				}
 			});
 			
+			// not clear() since it's been handed down to view
 			mSsb = new SpannableStringBuilder();
+		}
+
+		protected void discardBuffers() {
+			mBuffer.setLength(0);
+			mSsb.clear();
 		}
 }
 
@@ -695,6 +701,7 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void clear() {
+		((_Stream) mStream).discardBuffers();
 		mHandler.post(new Runnable() {
 			@Override
 			public void run() {
