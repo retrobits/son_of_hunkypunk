@@ -1,7 +1,5 @@
 - add "by" to the author field
 - consider design of game list item layout (show cover thumb, perhaps)
-- game info screen
-- automatic save/load on suspend/resume
 - style support in text grid window
 - editing metadata
 - list filtering (aka search)
@@ -12,7 +10,5 @@
 - cut off descenders in top grid window
 - window title - from story title
 - window title - smart detection
-- scrolling
+- touch scrolling
 - command history
-- save separation
-- transcripts on sdcard
