@@ -1,4 +1,4 @@
-package org.andglk;
+package org.andglk.glk;
 
 public class Event {
 	public Event(Window w) {

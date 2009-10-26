@@ -1,8 +1,10 @@
-package org.andglk;
+package org.andglk.glk;
 
 import java.io.File;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.andglk.hunkypunk.R;
 
 import android.content.Context;
 import android.content.res.Configuration;

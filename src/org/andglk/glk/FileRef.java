@@ -1,4 +1,4 @@
-package org.andglk;
+package org.andglk.glk;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +21,10 @@ import android.view.KeyEvent;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
+
+/* ugly, ugly, ugly. is there a better way? 
+ * it'd be best to have a separate R file for the package. */
+import org.andglk.hunkypunk.R;
 
 public class FileRef extends CPointed {
 	public final static int FILEUSAGE_DATA = 0x00;

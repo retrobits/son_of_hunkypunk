@@ -1,4 +1,4 @@
-package org.andglk;
+package org.andglk.glk;
 
 
 public abstract class CPointed {

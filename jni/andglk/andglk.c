@@ -35,43 +35,43 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 	if ((*jvm)->GetEnv(jvm, (void **)&env, GLK_JNI_VERSION))
 		return JNI_ERR;
 
-	jclass cls = (*env)->FindClass(env, "org/andglk/Glk");
+	jclass cls = (*env)->FindClass(env, "org/andglk/glk/Glk");
 	_class = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/Event");
+	cls = (*env)->FindClass(env, "org/andglk/glk/Event");
 	_Event = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/LineInputEvent");
+	cls = (*env)->FindClass(env, "org/andglk/glk/LineInputEvent");
 	_LineInputEvent = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/CharInputEvent");
+	cls = (*env)->FindClass(env, "org/andglk/glk/CharInputEvent");
 	_CharInputEvent = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/ArrangeEvent");
+	cls = (*env)->FindClass(env, "org/andglk/glk/ArrangeEvent");
 	_ArrangeEvent = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/Window");
+	cls = (*env)->FindClass(env, "org/andglk/glk/Window");
 	_Window = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/PairWindow");
+	cls = (*env)->FindClass(env, "org/andglk/glk/PairWindow");
 	_PairWindow = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/TextGridWindow");
+	cls = (*env)->FindClass(env, "org/andglk/glk/TextGridWindow");
 	_TextGridWindow = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/FileRef");
+	cls = (*env)->FindClass(env, "org/andglk/glk/FileRef");
 	_FileRef = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/Stream");
+	cls = (*env)->FindClass(env, "org/andglk/glk/Stream");
 	_Stream = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/MemoryStream");
+	cls = (*env)->FindClass(env, "org/andglk/glk/MemoryStream");
 	_MemoryStream = (*env)->NewGlobalRef(env, cls);
 
 	cls = (*env)->FindClass(env, "java/lang/Character");
 	_Character = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/CPointed");
+	cls = (*env)->FindClass(env, "org/andglk/glk/CPointed");
 	_CPointed = (*env)->NewGlobalRef(env, cls);
 
 	_getRock = (*env)->GetMethodID(env, cls, "getRock", "()I");
@@ -100,10 +100,10 @@ static glui32 jstring2latin1(JNIEnv *env, jstring str, char *buf, glui32 maxlen)
 	return len;
 }
 
-void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
+void Java_org_andglk_glk_Glk_runProgram(JNIEnv *env, jobject this)
 {
 	if (_this) {
-		(*env)->ThrowNew(env, (*env)->FindClass(env, "org/andglk/Glk/AlreadyRunning"),
+		(*env)->ThrowNew(env, (*env)->FindClass(env, "org/andglk/glk/Glk/AlreadyRunning"),
 				"you can't run more than one glk instance");
 		return;
 	}
@@ -117,7 +117,7 @@ void Java_org_andglk_Glk_runProgram(JNIEnv *env, jobject this)
 
 #define GDROCK2INT(a) *((glui32 *) &(a))
 
-int Java_org_andglk_Window_retainVmArray(JNIEnv *env, jobject this, int buffer, long length)
+int Java_org_andglk_glk_Window_retainVmArray(JNIEnv *env, jobject this, int buffer, long length)
 {
 	if (_vm_reg_array) {
 		gidispatch_rock_t rock = _vm_reg_array((void *)buffer, length, gidispatch_char_array);
@@ -125,7 +125,7 @@ int Java_org_andglk_Window_retainVmArray(JNIEnv *env, jobject this, int buffer, 
 	}
 }
 
-jint Java_org_andglk_CPointed_makePoint(JNIEnv *env, jobject this)
+jint Java_org_andglk_glk_CPointed_makePoint(JNIEnv *env, jobject this)
 {
 
 	jobject *ptr = malloc(sizeof(jobject));
@@ -144,7 +144,7 @@ jint Java_org_andglk_CPointed_makePoint(JNIEnv *env, jobject this)
 
 #define INT2GDROCK(a) (*(gidispatch_rock_t *) &(a))
 
-void Java_org_andglk_CPointed_releasePoint(JNIEnv *env, jobject this, jint point)
+void Java_org_andglk_glk_CPointed_releasePoint(JNIEnv *env, jobject this, jint point)
 {
 	if (!point)
 		return;
@@ -160,7 +160,7 @@ void Java_org_andglk_CPointed_releasePoint(JNIEnv *env, jobject this, jint point
 	free(ptr);
 }
 
-void Java_org_andglk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativeBuf, jarray jbuf)
+void Java_org_andglk_glk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativeBuf, jarray jbuf)
 {
 	char *nbuf = (char *)nativeBuf;
 	int len = (*env)->GetArrayLength(env, jbuf);
@@ -174,12 +174,12 @@ void Java_org_andglk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativ
 	(*env)->ReleasePrimitiveArrayCritical(env, jbuf, jbufcontents, JNI_ABORT);
 }
 
-int Java_org_andglk_MemoryStream_retainVmArray(JNIEnv *env, jobject this, int buffer, long len)
+int Java_org_andglk_glk_MemoryStream_retainVmArray(JNIEnv *env, jobject this, int buffer, long len)
 {
-	Java_org_andglk_Window_retainVmArray(env, this, buffer, len);
+	Java_org_andglk_glk_Window_retainVmArray(env, this, buffer, len);
 }
 
-void Java_org_andglk_MemoryStream_releaseVmArray(JNIEnv *env, jobject this, int buffer, int length, int dispatchRock)
+void Java_org_andglk_glk_MemoryStream_releaseVmArray(JNIEnv *env, jobject this, int buffer, int length, int dispatchRock)
 {
 	if (_vm_unreg_array)
 		_vm_unreg_array((void *)buffer, length, gidispatch_char_array, INT2GDROCK(dispatchRock));
@@ -276,7 +276,7 @@ winid_t glk_window_get_root(void)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Window, "getRoot", "()Lorg/andglk/Window;");
+		mid = (*env)->GetStaticMethodID(env, _Window, "getRoot", "()Lorg/andglk/glk/Window;");
 
 	jobject obj = (*env)->CallStaticObjectMethod(env, _Window, mid);
 
@@ -296,7 +296,7 @@ winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Window, "open", "(Lorg/andglk/Window;IIII)I");
+		mid = (*env)->GetStaticMethodID(env, _Window, "open", "(Lorg/andglk/glk/Window;IIII)I");
 
 	return (winid_t) (*env)->CallStaticIntMethod(env, _this, mid, split ? *split : 0, (jint) method, (jint) size, (jint) wintype, (jint) rock);
 }
@@ -345,7 +345,7 @@ void glk_window_set_arrangement(winid_t win, glui32 method,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _PairWindow, "setArrangement", "(IILorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _PairWindow, "setArrangement", "(IILorg/andglk/glk/Window;)V");
 
 	(*env)->CallVoidMethod(env, *win, mid, (jint) method, (jint) size, keywin ? *keywin : 0);
 }
@@ -356,7 +356,7 @@ void glk_window_get_arrangement(winid_t win, glui32 *methodptr,
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "window_get_arrangement", "(Lorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _class, "window_get_arrangement", "(Lorg/andglk/glk/Window;)V");
 
 	(*env)->CallVoidMethod(env, _this, mid, win, methodptr, sizeptr, keywinptr);
 
@@ -367,7 +367,7 @@ winid_t glk_window_iterate(winid_t win, glui32 *rockptr)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Window, "iterate", "(Lorg/andglk/Window;)Lorg/andglk/Window;");
+		mid = (*env)->GetStaticMethodID(env, _Window, "iterate", "(Lorg/andglk/glk/Window;)Lorg/andglk/glk/Window;");
 
 	jobject nextwin = (*env)->CallStaticObjectMethod(env, _Window, mid, win ? *win : 0);
 
@@ -406,7 +406,7 @@ winid_t glk_window_get_parent(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "getParent", "()Lorg/andglk/PairWindow;");
+		mid = (*env)->GetMethodID(env, _Window, "getParent", "()Lorg/andglk/glk/PairWindow;");
 
 	jobject parent = (*env)->CallObjectMethod(env, *win, mid);
 	winid_t ret;
@@ -425,7 +425,7 @@ winid_t glk_window_get_sibling(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "getSibling", "()Lorg/andglk/Window;");
+		mid = (*env)->GetMethodID(env, _Window, "getSibling", "()Lorg/andglk/glk/Window;");
 
 	jobject sibling = (*env)->CallObjectMethod(env, *win, mid);
 	winid_t ret;
@@ -470,7 +470,7 @@ strid_t glk_window_get_stream(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "getStream", "()Lorg/andglk/Stream;");
+		mid = (*env)->GetMethodID(env, _Window, "getStream", "()Lorg/andglk/glk/Stream;");
 
 	jobject obj = (*env)->CallObjectMethod(env, *win, mid);
 
@@ -491,7 +491,7 @@ void glk_window_set_echo_stream(winid_t win, strid_t str)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "setEchoStream", "(Lorg/andglk/Stream;)V");
+		mid = (*env)->GetMethodID(env, _Window, "setEchoStream", "(Lorg/andglk/glk/Stream;)V");
 
 	(*env)->CallVoidMethod(env, *win, mid, (str) ? *str : 0);
 }
@@ -514,7 +514,7 @@ void glk_set_window(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "setWindow", "(Lorg/andglk/Window;)V");
+		mid = (*env)->GetMethodID(env, _class, "setWindow", "(Lorg/andglk/glk/Window;)V");
 
 	(*env)->CallVoidMethod(env, _this, mid, win ? *win : NULL);
 }
@@ -527,7 +527,7 @@ strid_t glk_stream_open_file(frefid_t fileref, glui32 fmode, glui32 rock)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Stream, "openFile", "(Lorg/andglk/FileRef;II)I");
+		mid = (*env)->GetStaticMethodID(env, _Stream, "openFile", "(Lorg/andglk/glk/FileRef;II)I");
 
 	return (strid_t) (*env)->CallStaticIntMethod(env, _Stream, mid, *fileref, (jint) fmode, (jint) rock);
 }
@@ -585,7 +585,7 @@ strid_t glk_stream_iterate(strid_t str, glui32 *rockptr)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Stream, "iterate", "(Lorg/andglk/Stream;)Lorg/andglk/Stream;");
+		mid = (*env)->GetStaticMethodID(env, _Stream, "iterate", "(Lorg/andglk/glk/Stream;)Lorg/andglk/glk/Stream;");
 
 	jobject nextstr = (*env)->CallStaticObjectMethod(env, _Stream, mid, str ? *str : 0);
 
@@ -634,7 +634,7 @@ void glk_stream_set_current(strid_t str)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Stream, "setCurrent", "(Lorg/andglk/Stream;)V");
+		mid = (*env)->GetStaticMethodID(env, _Stream, "setCurrent", "(Lorg/andglk/glk/Stream;)V");
 
 	(*env)->CallStaticVoidMethod(env, _Stream, mid, str ? *str : 0);
 }
@@ -644,7 +644,7 @@ strid_t glk_stream_get_current(void)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Stream, "getCurrent", "()Lorg/andglk/Stream;");
+		mid = (*env)->GetStaticMethodID(env, _Stream, "getCurrent", "()Lorg/andglk/glk/Stream;");
 
 	jobject str = (*env)->CallStaticObjectMethod(env, _Stream, mid);
 
@@ -839,7 +839,7 @@ frefid_t glk_fileref_create_temp(glui32 usage, glui32 rock)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _FileRef, "createTemp", "(II)Lorg/andglk/FileRef;");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "createTemp", "(II)Lorg/andglk/glk/FileRef;");
 
 	jobject fref = (*env)->CallStaticObjectMethod(env, _FileRef, mid, (jint) usage, (jint) rock);
 
@@ -857,7 +857,7 @@ frefid_t glk_fileref_create_by_name(glui32 usage, char *name, glui32 rock)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _FileRef, "createByName", "(ILjava/lang/string;I)Lorg/andglk/FileRef;");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "createByName", "(ILjava/lang/string;I)Lorg/andglk/glk/FileRef;");
 
 	int len = strnlen(name, 255);
 	jchar jnamechars[len];
@@ -895,7 +895,7 @@ frefid_t glk_fileref_create_from_fileref(glui32 usage, frefid_t fileref, glui32 
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _FileRef, "createFromFileRef", "(ILorg/andglk/FileRef;I)Lorg/andglk/FileRef;");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "createFromFileRef", "(ILorg/andglk/glk/FileRef;I)Lorg/andglk/glk/FileRef;");
 
 	jobject fref = (*env)->CallStaticObjectMethod(env, _FileRef, mid, (jint) usage, *fileref, (jint) rock);
 	if (!fref)
@@ -925,7 +925,7 @@ frefid_t glk_fileref_iterate(frefid_t fref, glui32 *rockptr)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _FileRef, "iterate", "(Lorg/andglk/FileRef;)Lorg/andglk/FileRef;");
+		mid = (*env)->GetStaticMethodID(env, _FileRef, "iterate", "(Lorg/andglk/glk/FileRef;)Lorg/andglk/glk/FileRef;");
 
 	jobject nextfref = (*env)->CallStaticObjectMethod(env, _FileRef, mid, fref ? *fref : 0);
 
@@ -1029,7 +1029,7 @@ void glk_select(event_t *event)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _class, "select", "()Lorg/andglk/Event;");
+		mid = (*env)->GetMethodID(env, _class, "select", "()Lorg/andglk/glk/Event;");
 
 	jobject ev = (*env)->CallObjectMethod(env, _this, mid);
 	event2glk(env, ev, event);
@@ -1099,7 +1099,7 @@ void glk_cancel_line_event(winid_t win, event_t *event)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "cancelLineEvent", "()Lorg/andglk/LineInputEvent;");
+		mid = (*env)->GetMethodID(env, _Window, "cancelLineEvent", "()Lorg/andglk/glk/LineInputEvent;");
 
 	jobject ev = (*env)->CallObjectMethod(env, *win, mid);
 	if (event)

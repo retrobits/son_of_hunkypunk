@@ -1,4 +1,4 @@
-package org.andglk;
+package org.andglk.glk;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -84,7 +84,7 @@ public abstract class Stream extends CPointed {
 	 * 
 	 * @return Total number of bytes read[0] and written[1] to the stream.
 	 */
-	int[] close() {
+	public int[] close() {
 		try {
 			doClose();
 		} catch (IOException e) {

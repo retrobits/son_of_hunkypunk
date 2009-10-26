@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="org.andglk"
+      package="org.andglk.hunkypunk"
       android:versionCode="1"
       android:versionName="1.0">
       
 	<uses-permission android:name="android.permission.INTERNET"/>
     <application android:icon="@drawable/icon" android:label="@string/app_name">
-        <activity android:name=".Nitfol"
+        <activity android:name="org.andglk.nitfol.Nitfol"
                   android:label="@string/app_name"
                   android:configChanges="orientation|keyboard|keyboardHidden"
 			>
@@ -16,10 +16,10 @@
                 <data android:mimeType="application/x-zmachine" />
             </intent-filter>
         </activity>
-    	<provider android:name=".hunkypunk.HunkyPunkProvider"
+    	<provider android:name=".HunkyPunkProvider"
     		android:authorities="org.andglk.hunkypunk.HunkyPunk"
     	/>
-    	<activity android:name=".hunkypunk.GamesList"
+    	<activity android:name=".GamesList"
     		android:label="@string/hunky_punk"
     	>
 			<intent-filter>
@@ -27,7 +27,7 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>		
-    	<activity android:name=".hunkypunk.GameDetails"
+    	<activity android:name=".GameDetails"
     		android:label="@string/game_details"
     	>
 			<intent-filter>
@@ -38,8 +38,8 @@
     	</activity>
     	<activity-alias
     		android:label="@string/hunky_punk"
-    		android:name=".hunkypunk.InstallGame"
-    		android:targetActivity=".hunkypunk.GameDetails"
+    		android:name=".InstallGame"
+    		android:targetActivity=".GameDetails"
     	>
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />

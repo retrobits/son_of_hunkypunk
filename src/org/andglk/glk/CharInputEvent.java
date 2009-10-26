@@ -1,4 +1,4 @@
-package org.andglk;
+package org.andglk.glk;
 
 import android.view.KeyEvent;
 

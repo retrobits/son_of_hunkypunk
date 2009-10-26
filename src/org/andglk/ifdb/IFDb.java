@@ -9,7 +9,7 @@ import java.net.URL;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.andglk.Utils;
+import org.andglk.glk.Utils;
 import org.andglk.hunkypunk.HunkyPunk;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.xml.sax.Attributes;

@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.andglk.Utils;
 import org.andglk.babel.Babel;
+import org.andglk.glk.Utils;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 
 import android.content.ContentResolver;

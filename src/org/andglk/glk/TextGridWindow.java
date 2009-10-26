@@ -1,6 +1,8 @@
-package org.andglk;
+package org.andglk.glk;
 
 import java.io.IOException;
+
+import org.andglk.hunkypunk.R;
 
 import android.content.Context;
 import android.content.res.TypedArray;

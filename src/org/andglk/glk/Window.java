@@ -1,6 +1,8 @@
-package org.andglk;
+package org.andglk.glk;
 
 import java.io.IOException;
+
+import org.andglk.hunkypunk.R;
 
 import android.os.Parcelable;
 import android.util.Log;
@@ -156,7 +158,7 @@ public abstract class Window extends CPointed {
 		mStream.setStyle(styl);
 	}
 	
-	public void setEchoStream(org.andglk.Stream echoStream) {
+	public void setEchoStream(org.andglk.glk.Stream echoStream) {
 		mStream.setEchoStream(echoStream);
 	}
 	
@@ -225,12 +227,12 @@ public abstract class Window extends CPointed {
 	
 	public abstract int getType();
 	
-	public org.andglk.Stream getStream() {
+	public org.andglk.glk.Stream getStream() {
 		return mStream;
 	}
 	
-	public abstract class Stream extends org.andglk.Stream {
-		protected org.andglk.Stream mEchoStream;
+	public abstract class Stream extends org.andglk.glk.Stream {
+		protected org.andglk.glk.Stream mEchoStream;
 
 		protected Stream() {
 			super(0);
@@ -247,7 +249,7 @@ public abstract class Window extends CPointed {
 				return 0;
 		}
 
-		public void setEchoStream(org.andglk.Stream echoStream) {
+		public void setEchoStream(org.andglk.glk.Stream echoStream) {
 			if (mEchoStream != null)
 				mEchoStream.echoOff(this);
 			mEchoStream = echoStream;
@@ -261,7 +263,7 @@ public abstract class Window extends CPointed {
 		}
 		
 		@Override
-		int[] close() {
+		public int[] close() {
 			// can only be closed by closing its window
 			_streams.remove(this);
 			if (mGlk.getCurrentStream() == this)

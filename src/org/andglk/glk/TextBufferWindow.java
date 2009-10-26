@@ -1,6 +1,8 @@
-package org.andglk;
+package org.andglk.glk;
 
 import java.io.IOException;
+
+import org.andglk.hunkypunk.R;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -25,6 +27,7 @@ import android.view.View;
 import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
+
 
 public class TextBufferWindow extends Window {
 	public static class _SavedState implements Parcelable {
@@ -671,7 +674,7 @@ public class TextBufferWindow extends Window {
 	}
 	
 	public void lineInputAccepted(String result) {
-		final org.andglk.Stream echo = mStream.mEchoStream;
+		final org.andglk.glk.Stream echo = mStream.mEchoStream;
 		if (echo != null) {
 			echo.putString(result);
 			echo.putChar('\n');

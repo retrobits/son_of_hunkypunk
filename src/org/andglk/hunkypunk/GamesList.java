@@ -1,6 +1,5 @@
 package org.andglk.hunkypunk;
 
-import org.andglk.R;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.andglk.ifdb.IFDb;
 

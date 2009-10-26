@@ -1,4 +1,4 @@
-package org.andglk;
+package org.andglk.glk;
 
 public class SystemEvent extends Event implements Runnable {
 	private final Runnable mRunnable;

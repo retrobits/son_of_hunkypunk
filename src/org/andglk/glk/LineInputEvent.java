@@ -1,4 +1,4 @@
-package org.andglk;
+package org.andglk.glk;
 
 public class LineInputEvent extends Event {
 	public String line;

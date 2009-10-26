@@ -24,18 +24,18 @@ void intd_filehandle_make(strid_t savefile)
 {
 }
 
-void Java_org_andglk_Nitfol_useFile(JNIEnv *env, jobject *this, strid_t gameFile)
+void Java_org_andglk_nitfol_Nitfol_useFile(JNIEnv *env, jobject *this, strid_t gameFile)
 {
 	game_use_file(gameFile);
 	ignore_errors = TRUE;
 }
 
-void Java_org_andglk_Nitfol_saveGame(JNIEnv *env, jobject *this, strid_t saveFile)
+void Java_org_andglk_nitfol_Nitfol_saveGame(JNIEnv *env, jobject *this, strid_t saveFile)
 {
 	savequetzal(saveFile);
 }
 
-void Java_org_andglk_Nitfol_restoreGame(JNIEnv *env, jobject *this, strid_t saveFile)
+void Java_org_andglk_nitfol_Nitfol_restoreGame(JNIEnv *env, jobject *this, strid_t saveFile)
 {
 	set_savefile(saveFile);
 }

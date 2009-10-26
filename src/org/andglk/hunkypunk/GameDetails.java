@@ -2,10 +2,9 @@ package org.andglk.hunkypunk;
 
 import java.io.File;
 
-import org.andglk.Nitfol;
-import org.andglk.R;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.andglk.ifdb.IFDb;
+import org.andglk.nitfol.Nitfol;
 
 import android.app.Activity;
 import android.app.ProgressDialog;

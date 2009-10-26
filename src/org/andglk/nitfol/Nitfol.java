@@ -1,9 +1,14 @@
-package org.andglk;
+package org.andglk.nitfol;
 
 import java.io.File;
 import java.util.ArrayList;
 
+import org.andglk.glk.FileRef;
+import org.andglk.glk.FileStream;
+import org.andglk.glk.Glk;
+import org.andglk.glk.Window;
 import org.andglk.hunkypunk.HunkyPunk;
+import org.andglk.hunkypunk.R;
 
 import android.app.Activity;
 import android.content.Intent;

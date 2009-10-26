@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, GlkTest!</string>
     <string name="app_name">AndGlk</string>
     <string name="new_saved_game">New saved game</string>
     <string name="pick_saved_game">Pick saved game</string>
