@@ -46,8 +46,7 @@ public final class HunkyPunk {
 	}
 
 	public static File getCover(String ifid) {
-		if (!DIRECTORY.exists())
-			DIRECTORY.mkdir();
+		ensureDirectoryExists();
 		if (!COVER_DIRECTORY.exists())
 			COVER_DIRECTORY.mkdir();
 		return new File(COVER_DIRECTORY, ifid);
@@ -57,5 +56,10 @@ public final class HunkyPunk {
 		File f = new File(DIRECTORY, "transcripts");
 		f.mkdir();
 		return f;
+	}
+
+	public static void ensureDirectoryExists() {
+		if (!DIRECTORY.exists())
+			DIRECTORY.mkdir();
 	}
 }

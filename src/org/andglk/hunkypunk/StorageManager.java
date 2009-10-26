@@ -53,6 +53,8 @@ public class StorageManager {
 	}
 	
 	public void checkExisting() {
+		HunkyPunk.ensureDirectoryExists();
+		
 		Cursor c = mContentResolver.query(Games.CONTENT_URI, PROJECTION, Games.FILENAME + " IS NOT NULL", null, null);
 		
 		while (c.moveToNext())

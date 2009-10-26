@@ -35,4 +35,13 @@
     <string name="lookup_failure">Could not connect to IFDb to lookup details about the story.</string>
     <string name="looking_up">Please wait while I\'m looking up details on IFDb...</string>
     <string name="install_with_hunky_punk">Install with Hunky Punk</string>
+    
+    <string name="empty_list">You seem to have no stories installed.
+    	To install one, just put it in the Interactive Fiction directory of the SD card.
+    	You may find many stories at IFDb, or you if you want quick start, you can just 
+    	install a few ones subjectively selected by your humble author right away.
+    	Please note only Z-Code files (ending in .z1-.z8) are currently supported.
+   	</string>
+   	<string name="go_to_ifdb">Go to IFDb</string>
+   	<string name="download_preselected">Download preselected</string> 
 </resources>

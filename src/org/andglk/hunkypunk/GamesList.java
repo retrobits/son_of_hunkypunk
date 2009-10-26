@@ -54,6 +54,8 @@ public class GamesList extends ListActivity {
 				new String[] { Games.TITLE, Games.AUTHOR }, new int[] { android.R.id.text1, android.R.id.text2 });
 		
 		setListAdapter(adapter);
+		
+		setContentView(R.layout.games_list);
 
 		startScan();
 	}
