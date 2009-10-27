@@ -19,7 +19,7 @@
 -->
 
 <resources>
-    <string name="app_name">AndGlk</string>
+    <string name="app_name">Hunky Punk</string>
     <string name="new_saved_game">New saved game</string>
     <string name="pick_saved_game">Pick saved game</string>
     <string name="replace_warning">This file already exists. Do you want to replace it?</string>
