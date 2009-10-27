@@ -1,0 +1,49 @@
+This is Hunky Punk, an interactive fiction interpreter for Android.
+
+== Overview ==
+Hunky Punk is an interactive fiction manager and interpreter,
+aimed to be a comprehensive multi-interpreter similar to Gargoyle,
+with metadata and story management support. Currently Z-Code
+stories are supported (via nitfol) and metadata and covers are
+fetched from IFDb.
+
+For quick start there is a handful of (subjectively selected 
+by your humble author) stories available for download at a single button touch.
+
+You should also be able to open Z-Code stories directly from the web
+(as long as the web server reports the correct mimetype) and have them
+installed; failing that, putting a story in Interactive Fiction directory
+of the SD card also makes it available in Hunky Punk.
+
+Saved games are stored per-game in the phone memory, so you can have
+same names in different games without the risk of name clash.
+
+Hunky Punk does its best to save current state and restore it on
+application suspend/resume and it works rather well, although occasionally
+it will fail due to interpreters not really having been designed for such thing.
+So remember to save your progress from time to time. 
+
+== Code overview ==
+It's based on Glk-based interpreters (as of 2009-10-27, only nitfol)
+and a Glk library dedicated for Android, wrapping Android calls with 
+JNI for C-to-Java interface.
+
+== Thanks ==
+Most of the inspiration for visual form comes from Gargoyle [1]
+and many thanks go to Tor Andersson and Ben Cressey.
+
+I'm also grateful to Mike Roberts of IFDb [2] and TADS fame, for
+creating IFDb in the first place and for letting me use the 
+alpha version of its web API.
+
+== Authorship ==
+Original code is GPL3+ (see COPYING) and copyright 2009 Rafał Rzepecki 
+<divided.mind@gmail.com> unless otherwise noted.
+
+Interpreter and babel/glk interface code may be copyright and licenced by their respective
+authors as specified in their source files. I (RR) have done some trivial modifications,
+so you might want to check before going to the original authors with bugreports.
+
+In particular, nitfol code is copyright (C) 1999 Evin Robertson and licenced with GPL2+.
+The particular codebase is taken from Gargoyle and I understand there are some
+modifications by Gargoyle authors.

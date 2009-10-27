@@ -1,0 +1,22 @@
+To install Hunky Punk on an Android device, your best bet is to go
+to Google's application Market and grab a precompiled binary there.
+
+Failing that, if you want to compile it yourself, you need to import it 
+in Eclipse project and make proper links to Android NDK.
+
+I'm not sure how to give precise instructions for the former, but the latter
+is accomplished by issuing the following commands in NDK root dir:
+
+cd apps
+ln -s $HUNKYPUNKDIR andglk
+cd ..
+cd sources
+ln -s ../apps/andglk/jni/* .
+cd ..
+
+After that, issuing make APP=andglk should compile native code.
+
+Depending on your distro you might have issues with inform.y in nitfol code;
+I've found that sometimes I needed to use bison manually to generate the parser. YMMV.
+
+Developed and tested with Android SDK version 1.6-r1 and NDK version 1.5-r1.

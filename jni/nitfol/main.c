@@ -1,5 +1,7 @@
 /*  Nitfol - z-machine interpreter using Glk for output.
     Copyright (C) 1999  Evin Robertson
+    Trivial modification in 2009 by Rafał Rzepecki <divided.mind@gmail.com>,
+    with no copyright claimed.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

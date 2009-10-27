@@ -3,7 +3,10 @@
    Get Cfunctions from `http://www.hayamasa.demon.co.uk/cfunctions'. */
 
 /* This file was generated with:
-`cfunctions -i main.c' */
+`cfunctions -i main.c'
+
+(Modified in 2009 by Rafał Rzepecki to insert set_savefile().)
+*/
 #ifndef CFH_MAIN_H
 #define CFH_MAIN_H
 

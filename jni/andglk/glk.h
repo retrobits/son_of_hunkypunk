@@ -1,6 +1,5 @@
 #ifndef GLK_H
 #define GLK_H
-#include <jni.h>
 
 /* glk.h: Header file for Glk API, version 0.7.0.
     Designed by Andrew Plotkin <erkyrath@eblong.com>
@@ -15,9 +14,16 @@
     shown above.
 */
 
+/* Some minor modifications (to adapt to platform and library capabilities)
+ * in the initial part of the file by Rafał Rzepecki <divided.mind@gmail.com>,
+ * though no copyright is claimed. */
+
 /* You may have to edit the definition of glui32 to make sure it's really a
     32-bit unsigned integer type, and glsi32 to make sure it's really a
     32-bit signed integer type. If they're not, horrible things will happen. */
+
+/*** Modifications start here. -- RRz. */
+#include <jni.h>
 #include <stdint.h>
 typedef uint32_t glui32;
 typedef int32_t glsi32;
@@ -35,6 +41,7 @@ typedef jobject *winid_t;
 typedef jobject *strid_t;
 typedef jobject *frefid_t;
 typedef jobject *schanid_t;
+/*** Modifications end here. -- RRz. */
 
 #define gestalt_Version (0)
 #define gestalt_CharInput (1)
