@@ -228,7 +228,7 @@ public class IFDb {
 		}.start();
 	}
 
-	protected void lookupGames() throws IOException {
+	public void lookupGames() throws IOException {
 		Cursor query = mContentResolver.query(Games.CONTENT_URI, PROJECTION, 
 				Games.LOOKED_UP + " IS NULL", null, null);
 		

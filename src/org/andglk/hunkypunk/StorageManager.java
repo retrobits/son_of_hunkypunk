@@ -67,7 +67,7 @@ public class StorageManager {
 		c.close();
 	}
 
-	private void scan(File dir, boolean foreign) {
+	public void scan(File dir, boolean foreign) {
 		if (!dir.exists() || !dir.isDirectory())
 			return;
 		
