@@ -658,7 +658,7 @@ public class TextBufferWindow extends Window {
 		public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 			if (!mLineInputEnabled)
 				return false;
-			if (event.getAction() != KeyEvent.ACTION_DOWN)
+			if (event != null && event.getAction() != KeyEvent.ACTION_DOWN)
 				return false;
 			
 			lineInputAccepted(finishLineInput().toString());

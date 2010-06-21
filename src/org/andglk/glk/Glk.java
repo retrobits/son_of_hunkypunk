@@ -25,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.andglk.hunkypunk.R;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -36,6 +37,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.View.MeasureSpec;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -128,6 +130,10 @@ public class Glk extends Thread {
 			}
 		};
 		mContext = context;
+
+		Activity activity = (Activity) context;
+		if (activity != null)
+			activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 	}
 	
 	public void setWindow(Window window) {
