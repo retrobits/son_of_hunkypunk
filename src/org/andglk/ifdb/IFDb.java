@@ -184,6 +184,7 @@ public class IFDb {
 			case DESCRIPTION:
 			case SERIES:
 			case SERIESNUMBER:
+			case FORGIVENESS:
 				mElement = BIBLIOGRAPHIC;
 				break;
 			case BIBLIOGRAPHIC:
