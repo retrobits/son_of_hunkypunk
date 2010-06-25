@@ -226,13 +226,18 @@ public class GameDetails extends Activity implements OnClickListener {
 		// Uri.fromFile doesn't work for some reason
 		mCover.setImageURI(Uri.parse(HunkyPunk.getCover(mQuery.getString(IFID)).getAbsolutePath()));
 		
-		final File bookmark = getBookmark();
-		if (bookmark.exists())
-			mRestartButton.setVisibility(View.VISIBLE);
+		mRestartButton.setVisibility(getBookmark().exists() ? View.VISIBLE : View.GONE);
 	}
 
 	private File getBookmark() {
 		return new File(getDir(mGameIfid, MODE_PRIVATE), "bookmark");	
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (mGameIfid != null)
+			mRestartButton.setVisibility(getBookmark().exists() ? View.VISIBLE : View.GONE);
 	}
 
 	@Override
