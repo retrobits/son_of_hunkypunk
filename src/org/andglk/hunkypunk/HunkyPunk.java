@@ -43,7 +43,7 @@ public final class HunkyPunk {
 		public static final String TITLE = "title";
 		public static final String AUTHOR = "author";
 
-		public static final String FILENAME = "filename";
+		public static final String PATH = "path";
 		public static final String LOOKED_UP = "looked_up";
 		
 		public static final String LANGUAGE = "language";
@@ -70,7 +70,7 @@ public final class HunkyPunk {
 			COVER_DIRECTORY.mkdir();
 		return new File(COVER_DIRECTORY, ifid);
 	}
-
+	
 	public static File getTranscriptDir() {
 		File f = new File(DIRECTORY, "transcripts");
 		f.mkdir();

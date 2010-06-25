@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+	Copyright © 2009-2010 Rafał Rzepecki <divided.mind@gmail.com>
 	
 	This file is part of Hunky Punk.
 	
@@ -42,6 +42,7 @@
     
     <string name="open">Open</string>
     <string name="remove">Remove</string>
+    <string name="restart">Restart</string>
     <string name="game_details">Story details</string>
     <string name="by_author">by %s</string> 
     <string name="first_published_s">First published: %s</string>
@@ -54,6 +55,7 @@
     <string name="lookup_failure">Could not connect to IFDb to lookup details about the story.</string>
     <string name="looking_up">Please wait while I\'m looking up details on IFDb...</string>
     <string name="install_with_hunky_punk">Install with Hunky Punk</string>
+    <string name="restart_warning">Do you want to restart the story? (This won\'t affect your saved states.)</string>
     
     <string name="empty_list">You seem to have no stories installed.
     	To install one, just put it in the Interactive Fiction directory of the SD card.

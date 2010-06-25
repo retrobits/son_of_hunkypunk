@@ -37,7 +37,7 @@ import android.text.TextUtils;
 
 public class HunkyPunkProvider extends ContentProvider {
 	private static final String DATABASE_NAME = "hunky_punk.db";
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 	private static final String GAMES_TABLE_NAME = "games";
 	
 	private static final int GAMES = 1;
@@ -70,7 +70,7 @@ public class HunkyPunkProvider extends ContentProvider {
 					+ Games.SERIESNUMBER + " INTEGER, "
 					+ Games.FORGIVENESS + " TEXT, "
 
-					+ Games.FILENAME + " TEXT, "
+					+ Games.PATH + " TEXT, "
 					+ Games.LOOKED_UP
 					+ ");";
 			db.execSQL(query);
@@ -78,6 +78,15 @@ public class HunkyPunkProvider extends ContentProvider {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+			if (oldVersion == 1) {
+				/* we don't need the old FILENAME column but there's nothing to be done */
+				final String query = 
+					"ALTER TABLE " + GAMES_TABLE_NAME + 
+					" ADD COLUMN "
+					+ Games.PATH + " TEXT;";
+				db.execSQL(query);
+				/* PATHs will get filled automatically on next scan */
+			}
 		}
 	}
 	
@@ -92,7 +101,7 @@ public class HunkyPunkProvider extends ContentProvider {
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 		SQLiteDatabase db;
-		db = mOpenHelper.getReadableDatabase();
+		db = mOpenHelper.getWritableDatabase();
 		
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 		

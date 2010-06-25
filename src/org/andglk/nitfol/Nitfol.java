@@ -59,6 +59,8 @@ public class Nitfol extends Activity {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)
         	restore(savedInstanceState.getParcelableArrayList("windowStates"));
+        else if (i.getBooleanExtra("loadBookmark", false))
+        	loadBookmark();
     	glk.start();
     }
     
@@ -84,9 +86,17 @@ public class Nitfol extends Activity {
     		}
     	});
 
+    	loadBookmark();
+    }
+
+	private void loadBookmark() {
+    	final File f = getBookmark(); 
+    	if (!f.exists())
+    		return;
+
     	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
     	
-    	restoreGame(fs.getPointer());
+    	restoreGame(fs.getPointer());	
     }
 
 	@Override

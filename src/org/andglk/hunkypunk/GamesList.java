@@ -38,6 +38,7 @@ import android.content.DialogInterface.OnCancelListener;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -54,7 +55,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 		Games.IFID,
 		Games.TITLE,
 		Games.AUTHOR,
-		Games.FILENAME
+		Games.PATH
 	};
 
 	protected static final String[] BEGINNER_GAMES = {
@@ -98,7 +99,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 		mScanner.setHandler(mHandler);
 		mScanner.checkExisting();
 
-		Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.FILENAME + " IS NOT NULL", null, null);
+		Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursor,
 				new String[] { Games.TITLE, Games.AUTHOR }, new int[] { android.R.id.text1, android.R.id.text2 });
 		
@@ -191,7 +192,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 				}
 				
 				try {
-					mScanner.scan(HunkyPunk.DIRECTORY, false);
+					mScanner.scan(Environment.getExternalStorageDirectory());
 					IFDb.getInstance(getContentResolver()).lookupGames();
 				} catch (IOException e) {
 					Log.e(TAG, "I/O error when fetching metadata", e);

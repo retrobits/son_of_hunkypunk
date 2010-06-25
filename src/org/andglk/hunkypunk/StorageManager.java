@@ -1,5 +1,5 @@
 /*
-	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+	Copyright © 2009-2010 Rafał Rzepecki <divided.mind@gmail.com>
 
 	This file is part of Hunky Punk.
 
@@ -20,14 +20,9 @@
 package org.andglk.hunkypunk;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.andglk.babel.Babel;
-import org.andglk.glk.Utils;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 
 import android.content.ContentResolver;
@@ -35,6 +30,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -45,12 +41,11 @@ public class StorageManager {
 	public static final int INSTALL_FAILED = 2;
 
 	private static final String TAG = "hunkypunk.MediaScanner";
-	private static final String[] PROJECTION = { Games._ID, Games.FILENAME };
+	private static final String[] PROJECTION = { Games._ID, Games.PATH };
 	private static final int _ID = 0;
-	private static final int FILENAME = 1;
+	private static final int PATH = 1;
 
 	private final ContentResolver mContentResolver;
-	private List<File> mExtraPaths = new LinkedList<File>();
 	private Handler mHandler;
 	
 	private StorageManager(ContentResolver contentResolver) {
@@ -74,32 +69,35 @@ public class StorageManager {
 	public void checkExisting() {
 		HunkyPunk.ensureDirectoryExists();
 		
-		Cursor c = mContentResolver.query(Games.CONTENT_URI, PROJECTION, Games.FILENAME + " IS NOT NULL", null, null);
+		Cursor c = mContentResolver.query(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
 		
 		while (c.moveToNext())
-			if (!new File(HunkyPunk.DIRECTORY, c.getString(FILENAME)).exists()) {
+			if (!new File(c.getString(PATH)).exists()) {
 				ContentValues cv = new ContentValues();
-				cv.putNull(Games.FILENAME);
+				cv.putNull(Games.PATH);
 				mContentResolver.update(ContentUris.withAppendedId(Games.CONTENT_URI, c.getLong(_ID)), cv, null, null);
 			}
 		
 		c.close();
 	}
 
-	public void scan(File dir, boolean foreign) {
+	public void scan(File dir) {
 		if (!dir.exists() || !dir.isDirectory())
 			return;
 		
 		for (File f : dir.listFiles())
 			if (!f.isDirectory())
 				try {
-					checkFile(f, foreign);
+					if (f.getName().matches(".*\\.z[1-8]$"))
+						checkFile(f);
 				} catch (IOException e) {
 					Log.w(TAG, "IO exception while checking " + f, e);
 				}
+			else
+				scan(f);
 	}
 
-	private String checkFile(File f, boolean foreign) throws IOException {
+	private String checkFile(File f) throws IOException {
 		String ifid = Babel.examine(f);
 		
 		if (ifid == null)
@@ -108,20 +106,8 @@ public class StorageManager {
 		Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, ifid);
 		Cursor query = mContentResolver.query(uri, PROJECTION, null, null, null);
 		
-		String filename = f.getName();
-		
-		// only copy file if we don't already have it
-		if (foreign && (!query.moveToNext() || query.isNull(FILENAME)))
-			try {
-				filename = installStory(f);
-			} catch (IOException e) {
-				Log.e(TAG, "IO error while installing story " + f, e);
-				query.close();
-				throw(e);
-			}
-		
 		ContentValues cv = new ContentValues();
-		cv.put(Games.FILENAME, filename);
+		cv.put(Games.PATH, f.getAbsolutePath());
 		
 		if (query == null || query.getCount() != 1) {
 			cv.put(Games.IFID, ifid);
@@ -135,42 +121,13 @@ public class StorageManager {
 		return ifid;
 	}
 
-	private String installStory(File f) throws IOException {
-		if (!HunkyPunk.DIRECTORY.exists())
-			HunkyPunk.DIRECTORY.mkdir();
-		
-		String name = f.getName();
-		File target;
-		while ((target = new File(HunkyPunk.DIRECTORY, name)).exists())
-			name = "_" + name;
-		
-		copyFile(f, target);
-
-		return name;
-	}
-
-	/* shouldn't this be a library function or something?! */
-	private void copyFile(File f, File target) throws IOException {
-		FileInputStream fis = new FileInputStream(f);
-		FileOutputStream fos = new FileOutputStream(target);
-
-		Utils.copyStream(fis, fos);
-		
-		fis.close();
-		fos.close();
-	}
-
-	public void addExtraSearchPath(File file) {
-		mExtraPaths.add(file);
-	}
-
 	public void startCheckingFile(final File file) {
 		new Thread() {
 			@Override
 			public void run() {
 				try {
 					String ifid;
-					if ((ifid = checkFile(file, true)) != null) {
+					if ((ifid = checkFile(file)) != null) {
 						Message.obtain(mHandler, INSTALLED, ifid).sendToTarget();
 						return;
 					}
@@ -186,9 +143,7 @@ public class StorageManager {
 		new Thread() {
 			@Override
 			public void run() {
-				scan(HunkyPunk.DIRECTORY, false);
-				for (File dir : mExtraPaths)
-					scan(dir, true);
+				scan(Environment.getExternalStorageDirectory());
 				Message.obtain(mHandler, DONE).sendToTarget();
 			}
 		}.start();

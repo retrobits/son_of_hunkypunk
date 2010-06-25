@@ -85,6 +85,14 @@
 			android:text="@string/open"
 		/>
 		<Button
+			android:id="@+id/restart"
+			android:layout_width="0dip"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:text="@string/restart"
+			android:visibility="gone"
+		/>
+		<Button
 			android:id="@+id/remove"
 			android:layout_width="0dip"
 			android:layout_height="wrap_content"

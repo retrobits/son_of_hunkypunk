@@ -1,5 +1,5 @@
 /*
-	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+	Copyright © 2009-2010 Rafał Rzepecki <divided.mind@gmail.com>
 
 	This file is part of Hunky Punk.
 
@@ -22,12 +22,15 @@ package org.andglk.hunkypunk;
 import java.io.File;
 
 import org.andglk.hunkypunk.HunkyPunk.Games;
+import org.andglk.hunkypunk.R.id;
 import org.andglk.ifdb.IFDb;
 import org.andglk.nitfol.Nitfol;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -47,7 +50,7 @@ public class GameDetails extends Activity implements OnClickListener {
 	private static final String[] PROJECTION = { 
 		Games._ID, Games.IFID, Games.TITLE, Games.HEADLINE, Games.AUTHOR, Games.DESCRIPTION,
 		Games.FIRSTPUBLISHED, Games.GENRE, Games.GROUP, Games.SERIES, Games.SERIESNUMBER, Games.FORGIVENESS,
-		Games.LANGUAGE, Games.LOOKED_UP, Games.FILENAME
+		Games.LANGUAGE, Games.LOOKED_UP, Games.PATH
 	};
 	private static final int IFID = 1;
 	private static final int TITLE = 2;
@@ -62,7 +65,7 @@ public class GameDetails extends Activity implements OnClickListener {
 	private static final int FORGIVENESS = 11;
 	private static final int LANGUAGE = 12;
 	private static final int LOOKED_UP = 13;
-	private static final int FILENAME = 14;
+	private static final int PATH = 14;
 
 	private ContentObserver mContentObserver = new ContentObserver(new Handler()) {
 		@Override
@@ -110,7 +113,8 @@ public class GameDetails extends Activity implements OnClickListener {
 			}
 		};
 	};
-	private String mFileName;
+	private String mFilePath;
+	private View mRestartButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -146,9 +150,11 @@ public class GameDetails extends Activity implements OnClickListener {
 		mCover = (ImageView) findViewById(R.id.cover);
 		mDescriptionLayout = findViewById(R.id.description_layout);
 		mDetails = (TextView) findViewById(R.id.details);
+		mRestartButton = findViewById(id.restart);
 		
 		((Button) findViewById(R.id.open)).setOnClickListener(this);
 		((Button) findViewById(R.id.remove)).setOnClickListener(this);
+		mRestartButton.setOnClickListener(this);
 		
 		mQuery = managedQuery(game, PROJECTION, null, null, null);
 		mQuery.registerContentObserver(mContentObserver);
@@ -209,7 +215,7 @@ public class GameDetails extends Activity implements OnClickListener {
 			sb.append('\n');
 		}
 		
-		mFileName = mQuery.getString(FILENAME);
+		mFilePath = mQuery.getString(PATH);
 		
 		final int len = sb.length(); 
 		if (len != 0)
@@ -219,19 +225,56 @@ public class GameDetails extends Activity implements OnClickListener {
 		
 		// Uri.fromFile doesn't work for some reason
 		mCover.setImageURI(Uri.parse(HunkyPunk.getCover(mQuery.getString(IFID)).getAbsolutePath()));
+		
+		final File bookmark = getBookmark();
+		if (bookmark.exists())
+			mRestartButton.setVisibility(View.VISIBLE);
+	}
+
+	private File getBookmark() {
+		return new File(getDir(mGameIfid, MODE_PRIVATE), "bookmark");	
 	}
 
 	@Override
 	public void onClick(View arg0) {
 		switch (arg0.getId()) {
+		case R.id.restart:
+			askRestartGame();
+			break;
 		case R.id.open:
-			Intent intent = new Intent(Intent.ACTION_VIEW, 
-					Uri.withAppendedPath(HunkyPunk.DIRECTORY_URI, mFileName), this, Nitfol.class);
-			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			intent.putExtra("ifid", mGameIfid);
-			startActivity(intent);
+			openGame();
 		case R.id.remove:
 			// TODO
 		}
+	}
+
+	private void openGame() {
+		Intent intent = new Intent(Intent.ACTION_VIEW, 
+				Uri.parse(mFilePath), this, Nitfol.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.putExtra("ifid", mGameIfid);
+		intent.putExtra("loadBookmark", true);
+		startActivity(intent);
+	}
+
+	private void askRestartGame() {
+		new AlertDialog.Builder(this)
+			.setMessage(R.string.restart_warning)
+			.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					getBookmark().delete();
+					openGame();
+				}
+			})
+			.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.cancel();
+				}
+			})
+			.setTitle(android.R.string.dialog_alert_title)
+			.setIcon(android.R.drawable.ic_dialog_alert)
+			.show();
 	}
 }
