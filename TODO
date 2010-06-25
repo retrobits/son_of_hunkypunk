@@ -1,6 +1,4 @@
-- search all SD card
 - backup/restore of saves and database
-- "back" button shouldn't be destructive
 - add "by" to the author field
 - consider design of game list item layout (show cover thumb, perhaps)
 - style support in text grid window
