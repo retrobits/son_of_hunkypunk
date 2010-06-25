@@ -85,7 +85,11 @@ public class StorageManager {
 		if (!dir.exists() || !dir.isDirectory())
 			return;
 		
-		for (File f : dir.listFiles())
+		final File[] files = dir.listFiles();
+		if (files == null)
+			return;
+
+		for (File f : files)
 			if (!f.isDirectory())
 				try {
 					if (f.getName().matches(".*\\.z[1-8]$"))
