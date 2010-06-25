@@ -1,0 +1,70 @@
+body {
+	background: black;
+	color: #aaa;
+	font-family: GraublauWeb, Lucida Sans, Luxi Sans, Tahoma, Helvetica, sans-serif;
+}
+
+h1 {
+	font-size: 8.8em;
+	font-weight: lighter;
+	text-align: center;
+	margin-bottom: -0.1em;
+	margin-top: -0.3em;
+}
+
+h2 {
+	color: white;
+	font-size: 2.81em;
+	text-align: center;
+  margin-top: 0em;
+  margin-bottom: 0em;
+}
+
+.verb {
+	color: white;
+	font-weight: bold;
+}
+
+a {
+    color: inherit;
+    text-decoration: inherit;
+    border-bottom: thin dotted #333;
+}
+
+p {
+  max-width: 41.3em;
+  margin: auto auto;
+  margin-top: 0em;
+  text-align: justify;
+}
+
+#promo {
+  text-align: center;
+  margin-top: 0em;
+  margin-bottom: 0em;
+}
+
+img {
+  border: none;
+}
+
+#directions {
+  margin: auto auto;
+  margin-top: 1em;
+  width: 300px;
+  vertical-align: bottom;
+}
+
+#directions > a {
+  display: inline-block;
+  text-align: center;
+  border: none;
+}
+
+#market {
+  width: 130px;
+}
+
+#sf {
+  width: 160px;
+}
