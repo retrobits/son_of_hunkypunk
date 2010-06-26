@@ -20,6 +20,8 @@
 package org.andglk.glk;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import org.andglk.hunkypunk.R;
 
@@ -334,10 +336,18 @@ public abstract class Window extends CPointed {
 		}
 	}
 	
-	static int getTextAppearanceId(int style) {
+	public static class NoStyleException extends Exception
+	{
+		public NoStyleException(int style) {
+		}
+
+		private static final long serialVersionUID = -2973852656407342179L;
+	}
+	
+	static int getTextAppearanceId(int style) throws NoStyleException {
 		switch(style) {
 		case Glk.STYLE_NORMAL:
-			return 0;
+			throw new NoStyleException(style);
 		case Glk.STYLE_EMPHASIZED:
 			return R.style.emphasized;
 		case Glk.STYLE_PREFORMATTED:
@@ -360,7 +370,7 @@ public abstract class Window extends CPointed {
 			return R.style.user2;
 		default:
 			Log.w("Glk/Window", "unknown style: " + Integer.toString(style));
-			return 0;
+			throw new NoStyleException(style);
 		}
 	}
 	
@@ -384,5 +394,11 @@ public abstract class Window extends CPointed {
 	}
 
 	public void restoreInstanceState(Parcelable p) {
+	}
+
+	public void writeState(ObjectOutputStream stream) throws IOException {
+	}
+
+	public void readState(ObjectInputStream stream) throws IOException {
 	}
 }

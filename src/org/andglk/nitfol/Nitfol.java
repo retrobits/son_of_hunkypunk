@@ -20,6 +20,11 @@
 package org.andglk.nitfol;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import org.andglk.glk.FileRef;
@@ -35,9 +40,11 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 
 public class Nitfol extends Activity {
-    private Glk glk;
+    private static final String TAG = "Nitfol";
+	private Glk glk;
 	private File mDataDir;
 
 	/** Called when the activity is first created. */
@@ -64,7 +71,43 @@ public class Nitfol extends Activity {
     	glk.start();
     }
     
-    private void restore(final ArrayList<Parcelable> windowStates) {
+    private void loadBookmark() {
+    	final File f = getBookmark(); 
+    	if (!f.exists())
+    		return;
+
+    	final File ws = getWindowStates();
+    	if (ws.exists()) try {
+    		final FileInputStream fis = new FileInputStream(ws);
+    		if (fis != null) {
+    			final ObjectInputStream ois = new ObjectInputStream(fis);
+		    	Glk.getInstance().onSelect(new Runnable() {
+		    		@Override
+		    		public void run() {
+		    	    	Glk.getInstance().waitForUi(new Runnable() {
+		    	    		public void run() {
+				    	    	Window w = null;
+				    	    	try {
+				    	    		while ((w = Window.iterate(w)) != null)
+				    	    			w.readState(ois);
+									ois.close();
+					    	    	fis.close();
+								} catch (IOException e) {
+									Log.w(TAG, "error while reading window states", e);
+								}
+		    	    		}
+		    	    	});
+		    		}
+		    	});
+			}
+    	} catch (IOException e) {
+			Log.e(TAG, "error while opening window state stream", e);
+    	}
+
+    	loadBookmarkState();
+	}
+
+	private void restore(final ArrayList<Parcelable> windowStates) {
     	final File f = getBookmark(); 
     	if (!f.exists())
     		return;
@@ -86,10 +129,10 @@ public class Nitfol extends Activity {
     		}
     	});
 
-    	loadBookmark();
+    	loadBookmarkState();
     }
 
-	private void loadBookmark() {
+	private void loadBookmarkState() {
     	final File f = getBookmark(); 
     	if (!f.exists())
     		return;
@@ -123,9 +166,26 @@ public class Nitfol extends Activity {
 		    	fs.close();
     		}
     	});
+    	
+    	final File ws = getWindowStates();
+    	try {
+			final FileOutputStream fos = new FileOutputStream(ws);
+			final ObjectOutputStream oos = new ObjectOutputStream(fos);
+	    	Window w = null;
+	    	while ((w = Window.iterate(w)) != null)
+	    		w.writeState(oos);
+	    	oos.close();
+	    	fos.close();
+		} catch (IOException e) {
+			Log.e(TAG, "error while writing windowstates", e);
+		}
     }
     
-    private File getBookmark() {
+    private File getWindowStates() {
+		return new File(mDataDir, "windowStates");
+	}
+
+	private File getBookmark() {
 		return new File(mDataDir, "bookmark");
 	}
 
