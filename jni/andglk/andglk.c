@@ -317,7 +317,7 @@ winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
 	if (mid == 0)
 		mid = (*env)->GetStaticMethodID(env, _Window, "open", "(Lorg/andglk/glk/Window;IIII)I");
 
-	return (winid_t) (*env)->CallStaticIntMethod(env, _this, mid, split ? *split : 0, (jint) method, (jint) size, (jint) wintype, (jint) rock);
+	return (winid_t) (*env)->CallStaticIntMethod(env, _Window, mid, split ? *split : 0, (jint) method, (jint) size, (jint) wintype, (jint) rock);
 }
 
 void glk_window_close(winid_t win, stream_result_t *result)
