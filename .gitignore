@@ -1,6 +1,6 @@
 bin
 libs
 gen
-src/org/andglk/CopyOf*
+obj
 
 *.trace

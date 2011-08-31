@@ -1,8 +1,24 @@
 To install Hunky Punk on an Android device, your best bet is to go
 to Google's application Market and grab a precompiled binary there.
 
-Failing that, if you want to compile it yourself, you need to import it 
-in Eclipse project and make proper links to Android NDK.
+Failing that, if you want to compile it yourself, follow instructions
+in one of the following sections:
+
+
+==============================================================
+ Using ant and your favorite editor (i.e. Emacs)
+==============================================================
+
+1. install the latest ant from http://ant.apache.org/
+2. edit build.properties to point to your sdk-location, ndk-location
+3. type ant
+
+
+======================================
+ Using Eclipse
+======================================
+
+import it in Eclipse project and make proper links to Android NDK.
 
 I'm not sure how to give precise instructions for the former, but the latter
 is accomplished by issuing the following commands in NDK root dir:

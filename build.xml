@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="HunkyPunk" default="hunkypunk-debug">
+
+    <property file="local.properties"/>
+    <property file="build.properties"/>
+    <property file="default.properties"/>
+
+    <target name="hunkypunk-release" depends="clean, jnilibs, release" />
+
+    <target name="hunkypunk-debug"   depends="jnilibs, debug" />
+
+<!--
+    ************************************************************************
+    *                                                                      *
+    *  Plugins                                                             *
+    *                                                                      *
+    ************************************************************************
+-->
+    <target name="jnilibs">
+<!--
+ todo: depends="javah"
+-->
+        <exec executable="sh" 
+	      failonerror="true"
+	      dir=".">
+	      <arg value="${ndk-location}/ndk-build"/>
+		</exec>
+	</target>
+
+<!--
+    ************************************************************************
+    *                                                                      *
+    *  Clean                                                               *
+    *                                                                      *
+    ************************************************************************
+-->
+    <target name="clean-plugins">
+<!--
+ todo: ...
+-->
+    </target>
+
+    <target name="clean" depends="clean-plugins">
+		<delete includeemptydirs="true" failonerror="false">
+		  <fileset dir="bin" includes="**/*"/>
+		</delete>
+		<delete includeemptydirs="true">
+		  <fileset dir="gen" includes="**/*"/>
+		</delete>
+		<delete includeemptydirs="true">
+		  <fileset dir="libs/armeabi" includes="**/*"/>
+		</delete>
+    </target>
+
+
+<!--
+    ************************************************************************
+    *                                                                      *
+    *  Android SDK Setup, etc                                              *
+    *                                                                      *
+    ************************************************************************
+-->
+
+    <target name="obfuscate" depends="hunkypunk-release">
+	<proguard>
+	    -libraryjars ${android.jar}: ${external-libs-folder}
+	    -injars      ${out-classes-location}
+	    -outjars     ${obfuscate-location}/classes.min.jar
+	    -keep public class * extends android.app.Activity
+	    -optimizations !code/simplification/cast
+       </proguard>
+    </target>
+    
+    <path id="android.antlibs">
+        <pathelement path="${sdk-location}/tools/lib/anttasks.jar" />
+        <pathelement path="${sdk-location}/tools/lib/sdklib.jar" />
+        <pathelement path="${sdk-location}/tools/lib/androidprefs.jar" />
+        <pathelement path="${sdk-location}/tools/lib/apkbuilder.jar" />
+        <pathelement path="${sdk-location}/tools/lib/jarutils.jar" />
+    </path>
+
+    <taskdef name="setup"
+        classname="com.android.ant.SetupTask"
+        classpathref="android.antlibs"/>
+
+    <setup/>
+
+</project>

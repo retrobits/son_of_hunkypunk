@@ -16,5 +16,4 @@
 #	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 
 APP_MODULES      := nitfol andglk babel
-APP_PROJECT_PATH := /home/divide/projekty/AndGlk
 APP_OPTIM	 := release
