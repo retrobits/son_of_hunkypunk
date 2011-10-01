@@ -129,7 +129,8 @@ public class IFDb {
 			String str = new String(ch, start, length);
 			switch (mElement) {
 			case TITLE:
-				mValues.put(Games.TITLE, str);
+				String soFar = mValues.getAsString(Games.TITLE);
+				mValues.put(Games.TITLE, soFar == null ? str : soFar + str);
 				break;
 			case AUTHOR:
 				mValues.put(Games.AUTHOR, str);
@@ -150,8 +151,8 @@ public class IFDb {
 				mValues.put(Games.GROUP, str);
 				break;
 			case DESCRIPTION: {
-				String soFar = mValues.getAsString(Games.DESCRIPTION);
-				mValues.put(Games.DESCRIPTION, soFar == null ? str : soFar + str);
+				String soFarD = mValues.getAsString(Games.DESCRIPTION);
+				mValues.put(Games.DESCRIPTION, soFarD == null ? str : soFarD + str);
 				break;
 			}
 			case SERIES:
@@ -168,10 +169,45 @@ public class IFDb {
 				break;
 			}
 		}
-		
+
 		@Override
-		public void endElement(String uri, String localName, String name)
-				throws SAXException {
+		public void endElement(String uri, String localName, String name) 
+				throws SAXException { 
+			String tag = null;
+			switch (mElement) {
+			case TITLE:
+				tag = Games.TITLE;
+				break;
+			case AUTHOR:
+				tag = Games.AUTHOR;
+				break;
+			case LANGUAGE:
+				tag = Games.LANGUAGE;
+				break;
+			case HEADLINE:
+				tag = Games.HEADLINE;
+				break;
+			case FIRSTPUBLISHED:
+				tag = Games.FIRSTPUBLISHED;
+				break;
+			case GENRE:
+				tag = Games.GENRE;
+				break;
+			case GROUP:
+				tag = Games.GROUP;
+				break;
+			case DESCRIPTION:
+				tag = Games.DESCRIPTION;
+				break;
+			case SERIES:
+				tag = Games.SERIES;
+				break;
+			}
+			if (tag != null) {
+				String str = mValues.getAsString(tag);
+				mValues.put(tag, StringHelper.unescapeHTML(str));
+			}
+
 			/* we assume well-formed IFiction here */
 			switch (mElement) {
 			case TITLE:
@@ -313,6 +349,8 @@ public class IFDb {
 	}
 
 	private static void fetchCover(String ifid, String coverArt) throws IOException {
+		if (coverArt == null || coverArt.length() == 0) return;
+
 		URL source = new URL(coverArt);
 		File destination = HunkyPunk.getCover(ifid);
 
