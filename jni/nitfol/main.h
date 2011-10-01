@@ -4,8 +4,6 @@
 
 /* This file was generated with:
 `cfunctions -i main.c'
-
-(Modified in 2009 by Rafał Rzepecki to insert set_savefile().)
 */
 #ifndef CFH_MAIN_H
 #define CFH_MAIN_H
@@ -13,7 +11,5 @@
 /* From `main.c': */
 int game_use_file (strid_t file );
 void glk_main (void);
-
-void set_savefile(strid_t file);
 
 #endif /* CFH_MAIN_H */

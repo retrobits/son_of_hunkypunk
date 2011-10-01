@@ -25,7 +25,27 @@ void decode(void)
   int maxoperands;
 
   while(!exit_decoder) {
+
+#ifdef ANDGLK
+	extern int do_autosave;
+	extern char AUTOSAVE_FILE[];
+	extern offset stack_pointer;
+	extern zword *local_vars;
+	extern zword frame_count;
+	offset save_pcp = PC;
+	offset save_oldpcp = oldPC;
+	offset save_sp = stack_pointer;
+	zword* save_fp = local_vars;
+	zword save_optypes = optypes;
+	zword save_maxoperands = maxoperands;
+	int save_frame_count = frame_count;
+	zword save_zargs[8] = { operand[0], operand[1], operand[2], operand[3], 
+							operand[4], operand[5], operand[6], operand[7] };
+	int zarg_ix, save_zargc = 0; //zargc;
+#endif
+
     zbyte opcode = HIBYTE(PC);
+	//LOGD("state: PC:%x op:%x", (glui32)PC, (glui32)opcode);
 
     oldPC = PC;
 
@@ -160,5 +180,29 @@ void decode(void)
       break;
     }
     opcodetable[opcode]();
+
+#ifdef ANDGLK
+	if (do_autosave) {
+
+	    PC = save_pcp;
+	    oldPC = save_oldpcp;
+	    stack_pointer = save_sp;
+	    local_vars = save_fp;
+	    numoperands = save_zargc;
+	    frame_count = save_frame_count;
+	    for (zarg_ix=0; zarg_ix<8; ++zarg_ix)
+			operand[zarg_ix] = save_zargs[zarg_ix];
+		optypes = save_optypes;
+		maxoperands = save_maxoperands;
+
+		savegame();
+
+		do_autosave = 0;
+		AUTOSAVE_FILE[0] = '\0';
+	    continue;
+	}       
+#endif
+
+
   }
 }

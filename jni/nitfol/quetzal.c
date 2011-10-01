@@ -128,6 +128,8 @@ BOOL savequetzal(strid_t stream)
   zbyte *original = (zbyte *) n_malloc(dynamic_size);
   zbyte *diff = NULL;
 
+  LOGD("savequetzal.0");
+
   glk_stream_set_position(current_zfile, zfile_offset, seekmode_Start);
   glk_get_buffer_stream(current_zfile, (char *) original, dynamic_size);
 
@@ -220,6 +222,8 @@ BOOL restorequetzal(strid_t stream)
   char desttype[4];
   glui32 chunksize;
   glui32 start;
+
+  LOGD("restorequetzal.0");
 
   if(!ifffindchunk(stream, "FORM", &chunksize, 0)) {
     n_show_error(E_SAVE, "no FORM chunk", 0);

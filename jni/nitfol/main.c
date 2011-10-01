@@ -123,17 +123,36 @@ void glk_main(void)
   z_init(current_zfile);
   if(savefile) {
     if(restorequetzal(savefile)) {
-      if(zversion <= 3)
-	mop_take_branch();
-      else
-	mop_store_result(2);
+
+		/* for ANDGLK, autosaves do not require this post processing */
+#ifndef ANDGLK
+		if(zversion <= 3)
+			mop_take_branch();
+		else
+			mop_store_result(2);
+#endif
     }
   }
   init_undo();
   decode();
 }
 
-void set_savefile(strid_t file)
+
+#ifdef ANDGLK
+extern char AUTOSAVE_FILE[];
+extern int do_autosave;
+strid_t andglk_openpath(const char *filepath, glui32 gusage, glui32 gmode);
+
+void andglk_set_autosave(const char* saveFileName)
 {
-	savefile = file;
+	strcpy(AUTOSAVE_FILE, saveFileName);
+	do_autosave = 1;
 }
+void andglk_set_autorestore(const char* saveFileName)
+{
+	savefile = andglk_openpath(saveFileName,
+							   fileusage_SavedGame | fileusage_BinaryMode, 
+							   filemode_Read);
+}
+#endif
+

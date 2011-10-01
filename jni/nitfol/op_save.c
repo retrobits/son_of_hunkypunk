@@ -19,6 +19,26 @@
 */
 #include "nitfol.h"
 
+#ifdef ANDGLK
+#include <limits.h>
+char AUTOSAVE_FILE[PATH_MAX];
+int do_autosave = 0;
+strid_t andglk_openpath(char *filepath, glui32 gusage, glui32 gmode)
+{
+	frefid_t fref;
+	strid_t stm;
+
+	fref = glk_fileref_create_by_path(gusage, filepath, 0);
+	if (!fref)
+		return NULL;
+
+	stm = glk_stream_open_file(fref, gmode, 0);
+
+	glk_fileref_destroy(fref);
+
+	return stm;
+}
+#endif
 BOOL savegame(void)
 {
   BOOL result;
@@ -27,6 +47,15 @@ BOOL savegame(void)
   if(automap_unexplore())
     return FALSE;
 
+#if ANDGLK
+  if (do_autosave) {
+	  file = andglk_openpath(AUTOSAVE_FILE, 
+							 fileusage_SavedGame | fileusage_BinaryMode, 
+							 filemode_Write);
+	  do_autosave = 0;
+  }
+  else 
+#endif
   file = n_file_prompt(fileusage_SavedGame | fileusage_BinaryMode,
 		       filemode_Write);
   if(!file)

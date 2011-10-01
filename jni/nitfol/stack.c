@@ -35,6 +35,23 @@ struct Stack_frame {
   int result_variable;       /* Where to place the result upon returning */
 };
 
+#ifdef ANDGLK
+extern offset stack_pointer;
+extern zword *local_vars;
+extern zword frame_count;
+
+static zword *stack_stack = NULL; /* Holds local variables and pushed values */
+offset stack_pointer;      /* Current offset into stack_stack */
+static offset stack_min;  /* Minimum for stack_pointer (how much we can pop) */
+static offset stack_max;  /* Maximum for stack_pointer (size of stack) */
+zword *local_vars; /* Pointer to local variables for current frame */
+
+static Stack_frame *stack_frames = NULL;
+zword frame_count;    /* number of frames on the stack */
+static zword frame_max;
+
+#else
+
 static zword *stack_stack = NULL; /* Holds local variables and pushed values */
 static offset stack_pointer;      /* Current offset into stack_stack */
 static offset stack_min;  /* Minimum for stack_pointer (how much we can pop) */
@@ -45,6 +62,7 @@ static Stack_frame *stack_frames = NULL;
 static zword frame_count;    /* number of frames on the stack */
 static zword frame_max;
 
+#endif
 
 void init_stack(offset initialstack_stack_size, zword initialframe_size)
 {
