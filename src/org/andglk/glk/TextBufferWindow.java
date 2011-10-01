@@ -143,8 +143,7 @@ public class TextBufferWindow extends Window {
 
 		@Override
 		protected void doPutString(String str) throws IOException {
-			// TODO Auto-generated method stub
-
+			mBuffer.append(str);
 		}
 
 		@Override
@@ -243,8 +242,18 @@ public class TextBufferWindow extends Window {
 
 			@Override
 			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
-				// TODO
-				return false;
+				if (event.getAction()==MotionEvent.ACTION_UP) {
+					int x = (int) event.getX();
+					int y = (int) event.getY();
+
+					if (y > getHeight()/2)
+						scrollDown();
+					else
+						scrollUp();			
+					return true;
+				}
+				else 
+					return false;
 			}
 
 			@Override
@@ -339,7 +348,7 @@ public class TextBufferWindow extends Window {
 			mLineInputStart = lineInputStart;
 			if (mLineInputEnabled) {
 				mLineInputSpan = makeInputSpan();
-				getEditableText().setSpan(mLineInputSpan, mLineInputStart - 1, length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+				ed.setSpan(mLineInputSpan, mLineInputStart - 1, length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
 				setFilters(mFilters);
 			}
 			scrollTo(getScrollX(), Math.max(0, (getUltimateBottom()) - getInnerHeight()));
@@ -722,11 +731,17 @@ public class TextBufferWindow extends Window {
 		}
 
 		public void enableLineInput(String initial) {
+
+			final Editable e = getEditableText();
+			
+			/* don't allow overlapping input spans */
+			if (mLineInputEnabled && mLineInputSpan != null) 
+				e.removeSpan(mLineInputSpan);
+
 			mLineInputEnabled = true;
 			mLineInputSpan = makeInputSpan(); 
 			append("\u200b"); // to attach the span to
 			mLineInputStart = length();
-			final Editable e = getEditableText();
 			e.setSpan(mLineInputSpan, mLineInputStart - 1, mLineInputStart, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
 			if (initial != null)
 				e.append(initial);
@@ -831,7 +846,7 @@ public class TextBufferWindow extends Window {
 	@Override
 	public int[] getSize() {
 		// TODO Auto-generated method stub
-		return null;
+		return new int[] {0,0};
 	}
 
 	@Override
