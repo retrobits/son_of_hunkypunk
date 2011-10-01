@@ -169,7 +169,7 @@ void z_piracy (void)
 static int myargc;
 static char **myargv;
 
-glkunix_argumentlist_t glkunix_arguments[] =
+glk1unix_argumentlist_t glkunix_arguments[] =
 {
 { "-a", glkunix_arg_NoValue, "-a: watch attribute setting" },
 { "-A", glkunix_arg_NoValue, "-A: watch attribute testing" },
@@ -202,6 +202,7 @@ int glkunix_startup_code(glkunix_startup_t *data)
 {
 #if ANDGLK
 	andglk_set_autosave_hook = andglk_set_autosave;
+	andglk_set_autorestore_hook = andglk_set_autosave;
 	andglk_exit_hook = andglk_exit;
 #endif
 
@@ -222,8 +223,14 @@ int glkunix_startup_code(glkunix_startup_t *data)
     init_undo ();
     z_restart ();
 
+    return TRUE;
+}
+
+void glk_main (void)
+{
 #if ANDGLK
 	extern int do_autosave;
+	LOGD("glk_main.start");
 	if (do_autosave) {
 		//frame_count = restore_frame_count;
 		//split_window(h_version > 3 ? top_win_height : top_win_height-1);
@@ -235,12 +242,6 @@ int glkunix_startup_code(glkunix_startup_t *data)
 	}
 #endif
 
-    return TRUE;
-}
-
-void glk_main (void)
-{
-	LOGD("glk_main.start");
     interpret ();
     reset_memory ();
 }
