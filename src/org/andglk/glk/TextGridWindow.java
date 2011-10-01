@@ -84,42 +84,58 @@ public class TextGridWindow extends Window {
 
 	 @Override
 	public Parcelable saveInstanceState() {
-		return mView.onSaveInstanceState();
+		 if (mView == null) return null; 
+		 return mView.onSaveInstanceState();
 	}
 	
 	@Override
 	public void restoreInstanceState(Parcelable p) {
+		if (mView == null) return;
 		mView.onRestoreInstanceState(p);
 	}
 	
 	private class Stream extends Window.Stream {
 		@Override
 		public int getPosition() {
+			if (mView == null) return 0; 
 			return mView.getPosition();
 		}
 		
 		@Override
 		public void setPosition(int pos, int seekMode) {
+			if (mView == null) return; 
 			mView.setPosition(pos, seekMode);
 		}
 		
 		@Override
 		protected void doPutChar(char c) throws IOException {
-			if (mView._pos >= mView.mWidth * mView.mHeight)
-				return;
+			if (mView == null) return; 
+
+			if (c == 0x0a) {
+				mView._pos += mView.mWidth;
+				mView._pos -= mView._pos % mView.mWidth;
+			}
+			else {
+				if (mView._pos >= mView.mWidth * mView.mHeight)
+					return;
 			
-			mView.mFrameBufTemp[mView._pos++] = c;
+				mView.mFrameBufTemp[mView._pos++] = c;
+			}
 			
 			mView.mIsClear = false;
 		}
 
 		@Override
 		protected void doPutString(String str) throws IOException {
+			if (mView == null || str == null) return; 
+
 			mView.putString(str);
 		}
 
 		@Override
 		public void setStyle(long styl) {
+			if (mView == null) return; 
+
 			mView.setStyle((int) styl);
 		}
 	}
@@ -214,15 +230,15 @@ public class TextGridWindow extends Window {
 			mWidth = (int) (w / measureCharacterWidth());
 			mHeight = (int) (h / measureCharacterHeight());
 			
-			char[] oldfb = mFrameBuf;
+			char[] oldfb = mFrameBufTemp;
 			mFrameBuf = new char[mWidth * mHeight];
 			mFrameBufTemp = new char[mWidth * mHeight];
 			
 			for (int y = 0; y < Math.min(oldh, mHeight); ++y)
 				for (int x = 0; x < Math.min(oldw, mWidth); ++x)
-					mFrameBuf[y * mWidth + x] = oldfb[y * oldw + x];
+					mFrameBufTemp[y * mWidth + x] = oldfb[y * oldw + x];
 			
-			System.arraycopy(mFrameBuf, 0, mFrameBufTemp, 0, mWidth * mHeight);
+			//System.arraycopy(mFrameBuf, 0, mFrameBufTemp, 0, mWidth * mHeight);
 			
 			mRect.right = getWidth();
 			mRect.bottom = getHeight();
@@ -242,7 +258,17 @@ public class TextGridWindow extends Window {
 		}
 
 		public synchronized int[] getSize() {
-			return new int[] { mWidth, mHeight };
+			/*
+				this is a hack until the native side
+				is synchronized with the java UI.  For now,
+				just report standard screen size if still zero.
+				This allows many games to run that would otherwise
+				just give up.
+			*/
+
+			int w = mWidth == 0 ? 50:mWidth;
+			int h = mHeight == 0 ? 20:mHeight;
+			return new int[] { w, h };
 		}
 
 		public synchronized void moveCursor(long x, long y) {
@@ -252,7 +278,7 @@ public class TextGridWindow extends Window {
 		}
 
 		public synchronized void putString(String str) {
-			if (_pos >= mFrameBufTemp.length)
+			if (mFrameBufTemp == null || str == null || _pos >= mFrameBufTemp.length)
 				return;
 			
 			int end = str.length();
@@ -279,7 +305,7 @@ public class TextGridWindow extends Window {
 			int py = getPaddingTop();
 			float ch = measureCharacterHeight();
 			for (int y = 0; y < mHeight; y++)
-				canvas.drawText(mFrameBuf, y * mWidth, mWidth, px, py + ch * (y + 1), mPaint);
+				canvas.drawText(mFrameBufTemp, y * mWidth, mWidth, px, py + ch * (y + 1), mPaint);
 		}
 
 		public void requestCharEvent() {
@@ -351,7 +377,7 @@ public class TextGridWindow extends Window {
 			if (_pos == mLineInputStart)
 				return;
 			
-			mFrameBuf[--_pos] = ' ';
+			mFrameBufTemp[--_pos] = ' ';
 			postInvalidate();
 		}
 
@@ -359,7 +385,7 @@ public class TextGridWindow extends Window {
 			if (_pos == mLineInputEnd)
 				return;
 			
-			mFrameBuf[_pos++] = (char) c;
+			mFrameBufTemp[_pos++] = (char) c;
 			mIsClear = false;
 			postInvalidate();
 		}
@@ -388,7 +414,7 @@ public class TextGridWindow extends Window {
 			if (!mLineEventPending)
 				return null;
 			
-			final String result = String.copyValueOf(mFrameBuf, mLineInputStart, _pos - mLineInputStart);
+			final String result = String.copyValueOf(mFrameBufTemp, mLineInputStart, _pos - mLineInputStart);
 			_pos = _pos + mWidth;
 			_pos -= _pos % mWidth;
 			mLineEventPending = false;
@@ -409,7 +435,7 @@ public class TextGridWindow extends Window {
 		@Override
 		public Parcelable onSaveInstanceState() {
 			TextGridParcelable ss = new TextGridParcelable();
-			ss.mFrameBuf = mFrameBuf;
+			ss.mFrameBuf = mFrameBufTemp;
 			ss.mHeight = mHeight;
 			ss.mWidth = mWidth;
 			ss.mLineEventPending = mLineEventPending;
@@ -420,9 +446,9 @@ public class TextGridWindow extends Window {
 		@Override
 		protected void onRestoreInstanceState(Parcelable state) {
 			TextGridParcelable ss = (TextGridParcelable) state;
-			mFrameBuf = ss.mFrameBuf;
-			mFrameBufTemp = new char[mFrameBuf.length];
-			System.arraycopy(mFrameBuf, 0, mFrameBufTemp, 0, mFrameBuf.length);
+			mFrameBufTemp = ss.mFrameBuf;
+			//mFrameBufTemp = new char[mFrameBuf.length];
+			//System.arraycopy(mFrameBuf, 0, mFrameBufTemp, 0, mFrameBuf.length);
 			mHeight = ss.mHeight;
 			mWidth = ss.mWidth;
 			mLineEventPending = ss.mLineEventPending;
@@ -431,9 +457,11 @@ public class TextGridWindow extends Window {
 		}
 
 		public void flush() {
+			/*
 			char tmp[] = mFrameBuf;
 			mFrameBuf = mFrameBufTemp;
 			mFrameBufTemp = tmp;
+			*/
 			postInvalidate();
 		}
 	}
@@ -467,26 +495,31 @@ public class TextGridWindow extends Window {
 	
 	@Override
 	public void clear() {
+		if (mView == null) return; 
 		mView.clear();
 	}
 	
 	@Override
 	public int[] getSize() {
+		if (mView == null) return new int[]{0,0,0,0}; 
 		return mView.getSize();
 	}
 	
 	public void moveCursor(int x, int y) {
+		if (mView == null) return;
 		mView.moveCursor(x, y);
 	}
 
 	@Override
 	public int measureHeight(int size) {
+		if (mView == null) return 0;
 		return ((int) Math.ceil(mView.measureCharacterHeight())) * size 
 			+ mView.getPaddingBottom() + mView.getPaddingTop() + ((int) Math.floor(mView.getDescent()));
 	}
 
 	@Override
 	public int measureWidth(int size) {
+		if (mView == null) return 0;
 		return ((int) Math.ceil(mView.measureCharacterWidth())) * size + mView.getPaddingLeft() + mView.getPaddingRight();
 	}
 
@@ -497,11 +530,14 @@ public class TextGridWindow extends Window {
 
 	@Override
 	public void requestCharEvent() {
+		if (mView == null) return;
 		mView.requestCharEvent();
 	}
 
 	@Override
 	public void requestLineEvent(String initial, long maxlen, int buffer) {
+		if (mView == null) return;
+
 		mLineBuffer = buffer;
 		mMaxLen = (int) maxlen;
 		mDispatchRock = retainVmArray(buffer, maxlen);
@@ -510,11 +546,15 @@ public class TextGridWindow extends Window {
 
 	@Override
 	public void cancelCharEvent() {
+		if (mView == null) return;
+
 		mView.cancelCharEvent();
 	}
 
 	@Override
 	public LineInputEvent cancelLineEvent() {
+		if (mView == null) return null;
+
 		return mView.cancelLineEvent();
 	}
 
@@ -526,6 +566,8 @@ public class TextGridWindow extends Window {
 
 	@Override
 	public void flush() {
+		if (mView == null) return;
+
 		mView.flush();
 	}
 }
