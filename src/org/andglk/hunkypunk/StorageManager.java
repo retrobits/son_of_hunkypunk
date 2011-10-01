@@ -92,7 +92,17 @@ public class StorageManager {
 		for (File f : files)
 			if (!f.isDirectory())
 				try {
-					if (f.getName().matches(".*\\.z[1-8]$"))
+					if (f.getName().matches(".*\\.z[1-9]$")
+						|| f.getName().matches(".*\\.zblorb$")
+						|| f.getName().matches(".*\\.zlb$")
+/* todo:
+						|| f.getName().matches(".*\\.blorb$")
+						|| f.getName().matches(".*\\.gblorb$")
+						|| f.getName().matches(".*\\.blb$")
+						|| f.getName().matches(".*\\.glb$")
+						|| f.getName().matches(".*\\.ulx$")
+						|| f.getName().matches(".*\\.gam$"))
+*/
 						checkFile(f);
 				} catch (IOException e) {
 					Log.w(TAG, "IO exception while checking " + f, e);
@@ -147,7 +157,10 @@ public class StorageManager {
 		new Thread() {
 			@Override
 			public void run() {
-				scan(Environment.getExternalStorageDirectory());
+				/* seems like overkill to scan the whole sdcard...
+					scan(Environment.getExternalStorageDirectory());
+				*/
+				scan(HunkyPunk.DIRECTORY);
 				Message.obtain(mHandler, DONE).sendToTarget();
 			}
 		}.start();
