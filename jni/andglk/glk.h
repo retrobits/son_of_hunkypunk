@@ -1,11 +1,33 @@
+/******************************************************************************
+ *                                                                            *
+ * Copyright (C) 2006-2009 by Tor Andersson, Andrew Plotkin.                  *
+ *                                                                            *
+ * This file is part of Gargoyle.                                             *
+ *                                                                            *
+ * Gargoyle is free software; you can redistribute it and/or modify           *
+ * it under the terms of the GNU General Public License as published by       *
+ * the Free Software Foundation; either version 2 of the License, or          *
+ * (at your option) any later version.                                        *
+ *                                                                            *
+ * Gargoyle is distributed in the hope that it will be useful,                *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+ * GNU General Public License for more details.                               *
+ *                                                                            *
+ * You should have received a copy of the GNU General Public License          *
+ * along with Gargoyle; if not, write to the Free Software                    *
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+ *                                                                            *
+ *****************************************************************************/
+
 #ifndef GLK_H
 #define GLK_H
 
-/* glk.h: Header file for Glk API, version 0.7.0.
+/* glk.h: Header file for Glk API, version 0.7.1.
     Designed by Andrew Plotkin <erkyrath@eblong.com>
-    http://www.eblong.com/zarf/glk/index.html
+    http://eblong.com/zarf/glk/
 
-    This file is copyright 1998-2004 by Andrew Plotkin. You may copy,
+    This file is copyright 1998-2011 by Andrew Plotkin. You may copy,
     distribute, and incorporate it into your own programs, by any means
     and under any conditions, as long as you do not modify it. You may
     also modify this file, incorporate it into your own programs,
@@ -18,30 +40,52 @@
  * in the initial part of the file by Rafał Rzepecki <divided.mind@gmail.com>,
  * though no copyright is claimed. */
 
-/* You may have to edit the definition of glui32 to make sure it's really a
-    32-bit unsigned integer type, and glsi32 to make sure it's really a
-    32-bit signed integer type. If they're not, horrible things will happen. */
+/* If your system does not have <stdint.h>, you'll have to remove this
+    include line. Then edit the definition of glui32 to make sure it's
+    really a 32-bit unsigned integer type, and glsi32 to make sure
+    it's really a 32-bit signed integer type. If they're not, horrible
+    things will happen. */
+
+#ifdef ANDGLK
+#include <jni.h>
 
 /*** Modifications start here. -- RRz. */
-#include <jni.h>
 #include <stdint.h>
 typedef uint32_t glui32;
 typedef int32_t glsi32;
 
 /* These are the compile-time conditionals that reveal various Glk optional
     modules. */
+//#define GLK_MODULE_LINE_ECHO
+//#define GLK_MODULE_LINE_TERMINATORS
 //#define GLK_MODULE_UNICODE
-//#define GLK_MODULE_IMAGE
+//#define GLK_MODULE_UNICODE_NORM
+#define GLK_MODULE_IMAGE
 //#define GLK_MODULE_SOUND
 //#define GLK_MODULE_HYPERLINKS
+//#define GLK_MODULE_DATETIME
 
 /* These types are opaque object identifiers. They're pointers to opaque
     C structures, which are defined differently by each library. */
 typedef jobject *winid_t;
-typedef jobject *strid_t;
-typedef jobject *frefid_t;
+typedef struct glk_stream_struct *strid_t;
+typedef struct glk_fileref_struct *frefid_t;
 typedef jobject *schanid_t;
+
+extern void ( * andglk_exit_hook ) (void); 
+extern void ( * andglk_set_autosave_hook ) (const char* filename); 
+extern void ( * andglk_set_autorestore_hook ) (const char* filename);
+ 
+#include <android/log.h>
+#define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "HunkyPunk", __VA_ARGS__)
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "HunkyPunk", __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO   , "HunkyPunk", __VA_ARGS__)
+#define LOGW(...) __android_log_print(ANDROID_LOG_WARN   , "HunkyPunk", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR  , "HunkyPunk", __VA_ARGS__) 
+#define LOG(...)  __android_log_print(ANDROID_LOG_DEBUG  , "HunkyPunk", __VA_ARGS__)
+
 /*** Modifications end here. -- RRz. */
+#endif
 
 #define gestalt_Version (0)
 #define gestalt_CharInput (1)
@@ -62,6 +106,11 @@ typedef jobject *schanid_t;
 #define gestalt_SoundMusic (13)
 #define gestalt_GraphicsTransparency (14)
 #define gestalt_Unicode (15)
+#define gestalt_UnicodeNorm (16)
+#define gestalt_LineInputEcho (17)
+#define gestalt_LineTerminators (18)
+#define gestalt_LineTerminatorKey (19)
+#define gestalt_DateTime (20)
 
 #define evtype_None (0)
 #define evtype_Timer (1)
@@ -141,6 +190,10 @@ typedef struct stream_result_struct {
 #define winmethod_Fixed (0x10)
 #define winmethod_Proportional (0x20)
 #define winmethod_DivisionMask (0xf0)
+
+#define winmethod_Border   (0x000)
+#define winmethod_NoBorder (0x100)
+#define winmethod_BorderMask (0x100)
 
 #define fileusage_Data (0x00)
 #define fileusage_SavedGame (0x01)
@@ -248,7 +301,9 @@ extern glui32 glk_style_measure(winid_t win, glui32 styl, glui32 hint,
     glui32 *result);
 
 extern frefid_t glk_fileref_create_temp(glui32 usage, glui32 rock);
-extern frefid_t glk_fileref_create_by_name(glui32 usage, char *name,
+extern frefid_t glk_fileref_create_by_name(glui32 usage, const char *name,
+    glui32 rock);
+extern frefid_t glk_fileref_create_by_path(glui32 usage, const char *path,
     glui32 rock);
 extern frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode,
     glui32 rock);
@@ -273,6 +328,15 @@ extern void glk_request_mouse_event(winid_t win);
 extern void glk_cancel_line_event(winid_t win, event_t *event);
 extern void glk_cancel_char_event(winid_t win);
 extern void glk_cancel_mouse_event(winid_t win);
+
+#ifdef GLK_MODULE_LINE_ECHO
+extern void glk_set_echo_line_event(winid_t win, glui32 val);
+#endif /* GLK_MODULE_LINE_ECHO */
+
+#ifdef GLK_MODULE_LINE_TERMINATORS
+extern void glk_set_terminators_line_event(winid_t win, glui32 *keycodes,
+    glui32 count);
+#endif /* GLK_MODULE_LINE_TERMINATORS */
 
 #ifdef GLK_MODULE_UNICODE
 
@@ -304,6 +368,15 @@ extern void glk_request_line_event_uni(winid_t win, glui32 *buf,
     glui32 maxlen, glui32 initlen);
 
 #endif /* GLK_MODULE_UNICODE */
+
+#ifdef GLK_MODULE_UNICODE_NORM
+
+extern glui32 glk_buffer_canon_decompose_uni(glui32 *buf, glui32 len,
+    glui32 numchars);
+extern glui32 glk_buffer_canon_normalize_uni(glui32 *buf, glui32 len,
+    glui32 numchars);
+
+#endif /* GLK_MODULE_UNICODE_NORM */
 
 #ifdef GLK_MODULE_IMAGE
 
@@ -353,5 +426,77 @@ extern void glk_request_hyperlink_event(winid_t win);
 extern void glk_cancel_hyperlink_event(winid_t win);
 
 #endif /* GLK_MODULE_HYPERLINKS */
+
+#ifdef GLK_MODULE_DATETIME
+
+typedef struct glktimeval_struct {
+    glsi32 high_sec;
+    glui32 low_sec;
+    glsi32 microsec;
+} glktimeval_t;
+
+typedef struct glkdate_struct {
+    glsi32 year;     /* full (four-digit) year */
+    glsi32 month;    /* 1-12, 1 is January */
+    glsi32 day;      /* 1-31 */
+    glsi32 weekday;  /* 0-6, 0 is Sunday */
+    glsi32 hour;     /* 0-23 */
+    glsi32 minute;   /* 0-59 */
+    glsi32 second;   /* 0-59, maybe 60 during a leap second */
+    glsi32 microsec; /* 0-999999 */
+} glkdate_t;
+
+extern void glk_current_time(glktimeval_t *time);
+extern glsi32 glk_current_simple_time(glui32 factor);
+extern void glk_time_to_date_utc(glktimeval_t *time, glkdate_t *date);
+extern void glk_time_to_date_local(glktimeval_t *time, glkdate_t *date);
+extern void glk_simple_time_to_date_utc(glsi32 time, glui32 factor,
+    glkdate_t *date);
+extern void glk_simple_time_to_date_local(glsi32 time, glui32 factor,
+    glkdate_t *date);
+extern void glk_date_to_time_utc(glkdate_t *date, glktimeval_t *time);
+extern void glk_date_to_time_local(glkdate_t *date, glktimeval_t *time);
+extern glsi32 glk_date_to_simple_time_utc(glkdate_t *date, glui32 factor);
+extern glsi32 glk_date_to_simple_time_local(glkdate_t *date, glui32 factor);
+
+#endif /* GLK_MODULE_DATETIME */
+
+/* XXX non-official Glk functions that may or may not exist */
+
+#define GARGLK 1
+
+extern char* garglk_fileref_get_name(frefid_t fref);
+
+extern void garglk_set_program_name(const char *name);
+extern void garglk_set_program_info(const char *info);
+extern void garglk_set_story_name(const char *name);
+extern void garglk_set_story_title(const char *title);
+extern void garglk_set_config(const char *name);
+
+/* garglk_unput_string - removes the specified string from the end of the output buffer, if
+ * indeed it is there. */
+extern void garglk_unput_string(char *str);
+extern void garglk_unput_string_uni(glui32 *str);
+
+#define zcolor_Transparent   (-4)
+#define zcolor_Cursor        (-3)
+#define zcolor_Current       (-2)
+#define zcolor_Default       (-1)
+
+//extern void garglk_set_zcolors(glui32 fg, glui32 bg);
+#define garglk_set_zcolors(x,y) {;}
+//extern void garglk_set_zcolors_stream(strid_t str, glui32 fg, glui32 bg);
+#define garglk_set_zcolors_stream(x,y,z) {;}
+//extern void garglk_set_reversevideo(glui32 reverse);
+#define garglk_set_reversevideo(x) {;}
+//extern void garglk_set_reversevideo_stream(strid_t str, glui32 reverse);
+#define garglk_set_reversevideo_stream(x,y) {;}
+
+#define wintitle() {;}
+
+/* non standard keycodes */
+#define keycode_Erase               (0xffffef7f)
+#define keycode_MouseWheelUp        (0xffffeffe)
+#define keycode_MouseWheelDown      (0xffffefff)
 
 #endif /* GLK_H */

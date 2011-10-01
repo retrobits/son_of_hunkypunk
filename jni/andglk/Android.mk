@@ -20,8 +20,9 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := andglk
-LOCAL_SRC_FILES := andglk.c gi_dispa.c
-LOCAL_CPPFLAGS	:= -W -Wall
+LOCAL_SRC_FILES := andglk.c cgblorb.c cgfref.c cgmisc.c cgstream.c \
+				   gi_blorb.c gi_dispa.c imgnull.c
+LOCAL_CFLAGS	:= -DANDGLK 
 LOCAL_LDLIBS	:= -llog
 
 include $(BUILD_STATIC_LIBRARY)
