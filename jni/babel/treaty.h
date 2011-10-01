@@ -87,5 +87,10 @@
 
 typedef int32 (*TREATY)(int32 selector, void *, int32, void *, int32);
 
+#ifdef ANDGLK
+typedef unsigned int uint32;
+#endif
+
+
 #endif
 

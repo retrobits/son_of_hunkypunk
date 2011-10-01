@@ -20,6 +20,7 @@
 #include <jni.h>
 
 #include "treaty.h"
+#include "babel_handler.h"
 
 jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 {
@@ -27,24 +28,46 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 }
 
 extern "C" int32 zcode_treaty(int32 selector, void *story_file, int32 extent, void *output, int32 output_extent);
+extern "C" int32 glulx_treaty(int32 selector, void *story_file, int32 extent, void *output, int32 output_extent);
+extern "C" int32 tads2_treaty(int32 selector, void *story_file, int32 extent, void *output, int32 output_extent);
+extern "C" int32 tads3_treaty(int32 selector, void *story_file, int32 extent, void *output, int32 output_extent);
 
-extern "C" jstring Java_org_andglk_babel_Babel_examine(JNIEnv *env, jclass cls, jobject jbuf)
+extern "C" jstring Java_org_andglk_babel_Babel_examine(JNIEnv *env, jclass cls, jstring filepath)
 {
-	void *buffer = env->GetDirectBufferAddress(jbuf);
-	if (!buffer)
-		return 0;
-	jlong len = env->GetDirectBufferCapacity(jbuf);
-	if (!len)
-		return 0;
+	const char* copy_filepath = env->GetStringUTFChars(filepath, 0);
+	babel_init(copy_filepath);
+
+	void* sf = babel_get_story_file();
+	uint32 sl = babel_get_story_length();
 
 #define IFID_BUFLEN 128
 	char ifid_buffer[IFID_BUFLEN];
 	ifid_buffer[0] = 0;
 
-	if (zcode_treaty(	CLAIM_STORY_FILE_SEL, buffer, len, 0, 0) == VALID_STORY_FILE_RV)
-		zcode_treaty(GET_STORY_FILE_IFID_SEL, buffer, len, ifid_buffer, IFID_BUFLEN);
+	// should be able to do this... why not?  todo: redo libbabel.so from upstream dist
+	//babel_treaty(GET_STORY_FILE_IFID_SEL, ifid_buffer, IFID_BUFLEN);
+
+	if (zcode_treaty(CLAIM_STORY_FILE_SEL, sf, sl, 0, 0) == VALID_STORY_FILE_RV)
+		zcode_treaty(GET_STORY_FILE_IFID_SEL, sf, sl, ifid_buffer, IFID_BUFLEN);
+
+	/* todo: glulx support
+	else if (glulx_treaty(CLAIM_STORY_FILE_SEL, sf, sl, 0, 0) == VALID_STORY_FILE_RV)
+		glulx_treaty(GET_STORY_FILE_IFID_SEL, sf, sl, ifid_buffer, IFID_BUFLEN);
+	*/
+
+	/* todo: tads support
+	else if (tads2_treaty(CLAIM_STORY_FILE_SEL, sf, sl, 0, 0) == VALID_STORY_FILE_RV)
+		tads2_treaty(GET_STORY_FILE_IFID_SEL, sf, sl, ifid_buffer, IFID_BUFLEN);
+	else if (tads3_treaty(CLAIM_STORY_FILE_SEL, sf, sl, 0, 0) == VALID_STORY_FILE_RV)
+		tads3_treaty(GET_STORY_FILE_IFID_SEL, sf, sl, ifid_buffer, IFID_BUFLEN);
+	*/
+	
+	babel_release();
+
+	env->ReleaseStringUTFChars(filepath, copy_filepath);	
+
+	if (ifid_buffer[0])
+		return env->NewStringUTF(ifid_buffer);
 	else
 		return 0;
-
-	return env->NewStringUTF(ifid_buffer);
 }
