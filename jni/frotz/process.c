@@ -24,7 +24,6 @@
 #include "djfrotz.h"
 #endif
 
-
 zword zargs[8];
 int zargc;
 
@@ -254,16 +253,27 @@ static void load_all_operands (zbyte specifier)
  * Z-code interpreter main loop
  *
  */
-
 void interpret (void)
 {
     do {
+
+#if ANDGLK
+	extern int do_autosave;
+	extern char AUTOSAVE_FILE[];
+	zbyte *save_pcp = pcp;
+	zword *save_sp = sp,  *save_fp = fp;
+        int save_frame_count = frame_count;
+	zword save_zargs[5] = { zargs[0], zargs[1], zargs[2], zargs[3], zargs[4] };
+	int j, save_zargc = 0; //zargc;
+#endif
 
 	zbyte opcode;
 
 	CODE_BYTE (opcode)
 
 	zargc = 0;
+
+	//LOGD("interpret.opcode: %x %x",pcp,opcode);
 
 	if (opcode < 0x80) {			/* 2OP opcodes */
 
@@ -300,6 +310,24 @@ void interpret (void)
 	    var_opcodes[opcode - 0xc0] ();
 
 	}
+
+#ifdef ANDGLK
+	if (do_autosave) {
+	    pcp = save_pcp;
+	    sp = save_sp;
+	    fp = save_fp;
+	    zargc = save_zargc;
+	    frame_count = save_frame_count;
+	    for (j=0; j<5; ++j)
+		zargs[j] = save_zargs[j];
+
+		z_save();
+
+		do_autosave = 0;
+		AUTOSAVE_FILE[0] = '\0';
+	    continue;
+	}       
+#endif
 
 #if defined(DJGPP) && defined(SOUND_SUPPORT)
     if (end_of_sound_flag)

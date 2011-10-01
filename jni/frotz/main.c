@@ -189,8 +189,22 @@ glkunix_argumentlist_t glkunix_arguments[] =
 { NULL, glkunix_arg_End, NULL }
 };
 
+#if ANDGLK
+int andglk_set_autosave (const char* fileName);
+
+void andglk_exit() {
+    reset_memory ();
+	glk_exit();
+}
+#endif
+
 int glkunix_startup_code(glkunix_startup_t *data)
 {
+#if ANDGLK
+	andglk_set_autosave_hook = andglk_set_autosave;
+	andglk_exit_hook = andglk_exit;
+#endif
+
 	myargc = data->argc;
 	myargv = data->argv;
 
@@ -207,12 +221,26 @@ int glkunix_startup_code(glkunix_startup_t *data)
 
     init_undo ();
     z_restart ();
+
+#if ANDGLK
+	extern int do_autosave;
+	if (do_autosave) {
+		//frame_count = restore_frame_count;
+		//split_window(h_version > 3 ? top_win_height : top_win_height-1);
+        
+		split_window(0);
+
+		z_restore ();
+		do_autosave = 0;
+	}
+#endif
+
     return TRUE;
 }
 
 void glk_main (void)
 {
+	LOGD("glk_main.start");
     interpret ();
     reset_memory ();
 }
-

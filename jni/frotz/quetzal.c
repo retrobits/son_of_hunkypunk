@@ -116,6 +116,8 @@ zword restore_quetzal (FILE *svf, FILE *stf, int blorb_ofs)
     zbyte skip, progress = GOT_NONE;
     int x, y;
 
+	LOGD("restore_quetzal.0");
+
     /* Check it's really an `IFZS' file. */
     if (!read_long (svf, &tmpl)
 	|| !read_long (svf, &ifzslen)
@@ -403,6 +405,8 @@ zword save_quetzal (FILE *svf, FILE *stf, int blorb_ofs)
     long cmempos, stkspos;
     int c;
 
+	LOGD("save_quetzal.0");
+
     /* Write `IFZS' header. */
     if (!write_chnk (svf, ID_FORM, 0))			return 0;
     if (!write_long (svf, ID_IFZS))			return 0;
@@ -423,7 +427,7 @@ zword save_quetzal (FILE *svf, FILE *stf, int blorb_ofs)
     /* j holds current run length. */
     for (i=0, j=0, cmemlen=0; i < h_dynamic_size; ++i)
     {
-	if ((c = get_c (stf)) == EOF)			return 0;
+	if ((c = get_c (stf)) == EOF) 			return 0; 
 	c ^= (int) zmp[i];
 	if (c == 0)
 	    ++j;	/* It's a run of equal bytes. */

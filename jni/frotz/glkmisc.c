@@ -122,7 +122,7 @@ void os_process_arguments(int argc, char *argv[])
 
 	/* Parse the options */
 	do {
-		c = zgetopt(argc, argv, "aAiI:oOPQs:S:tu:xZ:");
+		c = zgetopt(argc, argv, "aAiI:oOPQs:S:tu:xZ:r:");
 		switch (c)
 		{
 			case 'a': f_setup.attribute_assignment = 1; break;
@@ -143,6 +143,13 @@ void os_process_arguments(int argc, char *argv[])
 							  (f_setup.err_report_mode > ERR_REPORT_FATAL))
 						  f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 					  break;
+#if ANDGLK
+			case 'r': {
+				extern int ( * andglk_set_autosave_hook ) (const char* fileName); 
+				if (andglk_set_autosave_hook) andglk_set_autosave_hook(zoptarg); 
+				break;
+			}
+#endif
 		}
 	} while (c != EOF);
 
@@ -339,6 +346,9 @@ zchar os_read_key (int timeout, bool show_cursor)
 		if (ev.type == evtype_Arrange) {
 			gos_update_height();
 			gos_update_width();
+#if ANDGLK
+			//	glk_select_poll(NULL);
+#endif
 		}
 		else if (ev.type == evtype_Timer)
 		{
@@ -494,6 +504,24 @@ strid_t frotzopen(char *filename, int flag)
 	glui32 gmode = flag2mode(flag);
 
 	fref = glk_fileref_create_by_name(gusage, filename, 0);
+	if (!fref)
+		return NULL;
+
+	stm = glk_stream_open_file(fref, gmode, 0);
+
+	glk_fileref_destroy(fref);
+
+	return stm;
+}
+
+strid_t frotzopenpath(char *filepath, int flag)
+{
+	frefid_t fref;
+	strid_t stm;
+	glui32 gusage = flag2usage(flag);
+	glui32 gmode = flag2mode(flag);
+
+	fref = glk_fileref_create_by_path(gusage, filepath, 0);
 	if (!fref)
 		return NULL;
 

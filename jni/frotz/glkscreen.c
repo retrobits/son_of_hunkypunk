@@ -27,6 +27,10 @@
 
 #include "glkfrotz.h"
 
+#if ANDGLK
+extern int do_autosave;
+#endif
+
 static unsigned char statusline[256];
 static int oldstyle = 0;
 static int curstyle = 0;
@@ -59,12 +63,16 @@ int os_string_width (const zchar *s)
 
 void os_prepare_sample (int a)
 {
+#ifndef ANDGLK
 	glk_sound_load_hint(a, 1);
+#endif
 }
 
 void os_finish_with_sample (int a)
 {
+#ifndef ANDGLK
 	glk_sound_load_hint(a, 0);
+#endif
 }
 
 /*
@@ -81,6 +89,7 @@ void os_finish_with_sample (int a)
 
 void os_start_sample (int number, int volume, int repeats, zword eos)
 {
+#ifndef ANDGLK
 	int vol;
 
 	if (!gos_channel)
@@ -106,13 +115,16 @@ void os_start_sample (int number, int volume, int repeats, zword eos)
 	/* we dont do repeating or eos-callback for now... */
 	glk_schannel_play_ext(gos_channel, number, 1, 0);
 	glk_schannel_set_volume(gos_channel, vol);
+#endif
 }
 
 void os_stop_sample (int a)
 {
+#ifndef ANDGLK
 	if (!gos_channel)
 		return;
 	glk_schannel_stop(gos_channel);
+#endif
 }
 
 void os_beep (int volume)
@@ -203,14 +215,23 @@ void split_window (int lines)
 	}
 	gos_update_width();
 
-	if (h_version == V3)
+	if (h_version == V3
+#if ANDGLK
+		&& !do_autosave
+#endif
+		)
 		glk_window_clear(gos_upper);
 }
 
 void restart_screen (void)
 {
+#if ANDGLK
+    if (!do_autosave)
+#endif
+	{
 	erase_window(0);
 	erase_window(1);
+	}
 	split_window(0);
 }
 

@@ -28,6 +28,8 @@
 
 #include "frotz.h"
 
+#include <limits.h>
+
 #include "glk.h"
 #include "glkio.h"
 #include "glkstart.h"
@@ -580,6 +582,16 @@ void z_restart (void)
 
 }/* z_restart */
 
+#ifdef ANDGLK
+char AUTOSAVE_FILE[PATH_MAX];
+int do_autosave = 0;
+void andglk_set_autosave(const char* saveFileName)
+{
+	strcpy(AUTOSAVE_FILE,saveFileName);
+	do_autosave = 1;
+}
+#endif
+
 /*
  * z_restore, restore [a part of] a Z-machine state from disk
  *
@@ -595,7 +607,11 @@ void z_restore (void)
 
 	zword success = 0;
 
-	if (zargc != 0) {
+    if (
+#if ANDGLK
+	!do_autosave && 
+#endif
+	zargc != 0) {
 
 		/* Get the file name */
 
@@ -620,7 +636,13 @@ void z_restore (void)
 		int i;
 
 		/* Open game file */
-
+#if ANDGLK
+        if (do_autosave) {
+			if ((gfp = frotzopenpath(AUTOSAVE_FILE, FILE_RESTORE)) == NULL)
+				goto finished;
+		}
+        else 
+#endif
 		if ((gfp = frotzopenprompt(FILE_RESTORE)) == NULL)
 			goto finished;
 
@@ -704,7 +726,11 @@ void z_restore (void)
 				 * the screen sizes may vary a lot. Erasing the status window
 				 * seems to cover up most of the resulting badness.
 				 */
-				if (h_version > V3 && h_version != V6
+				if (
+#ifdef ANDGLK
+					!do_autosave && 
+#endif
+					h_version > V3 && h_version != V6
 						&& (h_screen_rows != old_screen_rows
 							|| h_screen_cols != old_screen_cols))
 					erase_window (1);
@@ -714,6 +740,18 @@ void z_restore (void)
 	}
 
 finished:
+#ifdef ANDGLK
+    if (do_autosave) {
+		do_autosave = 0;
+	return;
+    }
+
+    if (*pcp == 228) { // z_read; normally would never be right after a z_restore/z_save instruction, but if the
+	    // user tried to restore an autosave file directly, this would likely be the next instruction.  Detect & recover.
+		print_string("[Restored autosave file]\n> ");
+	return;
+    }
+#endif
 
 	if (h_version <= V3)
 		branch (success);
@@ -869,7 +907,11 @@ void z_save (void)
 
 	zword success = 0;
 
-	if (zargc != 0) {
+    if (
+#if ANDGLK
+	!do_autosave && 
+#endif
+	zargc != 0) {
 
 		/* Open auxilary file */
 
@@ -894,6 +936,12 @@ void z_save (void)
 
 		/* Open game file */
 
+#if ANDGLK
+	if (do_autosave) {
+		if ((gfp = frotzopenpath(AUTOSAVE_FILE, FILE_SAVE)) == NULL) 
+			goto finished;
+        } else
+#endif
 		if ((gfp = frotzopenprompt (FILE_SAVE)) == NULL)
 			goto finished;
 
@@ -950,6 +998,16 @@ void z_save (void)
 	}
 
 finished:
+#if ANDGLK
+    //if (success > 0)
+	//os_mark_recent_save();
+
+     if (do_autosave) {
+         do_autosave = 0; 
+         //autosave_done = 1;
+         return;
+     }  
+#endif
 
 	if (h_version <= V3)
 		branch (success);
