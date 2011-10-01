@@ -94,9 +94,11 @@ public class FileRef extends CPointed {
 			mUiHandler.post(new Runnable() {
 				@Override
 				public void run() {
-					if (mode == FILEMODE_WRITE)
+					/* allow user to choose existing file...
+					  if (mode == FILEMODE_WRITE)
 						new NewFileDialog(FilePrompt.this, usage);
-					else
+					  else
+					*/
 						buildExistingFileDialog(usage, mode != FILEMODE_READ);
 				}
 			});
@@ -358,6 +360,17 @@ public class FileRef extends CPointed {
 		} catch (Exception e) {
 			Log.e("Glk/FileRef", "error while prompting for fileref", e);
 			return 0;
+		}
+	}
+
+	public static String getPathByPrompt(int usage, int mode, int rock) {
+		try {
+			Future<File> filename = new FilePrompt(usage & FILEUSAGE_TYPEMASK, mode);
+			File fname = filename.get();
+			return fname.getAbsolutePath();
+		} catch (Exception e) {
+			Log.e("Glk/FileRef", "error while prompting for fileref", e);
+			return null;
 		}
 	}
 

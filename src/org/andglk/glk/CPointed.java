@@ -44,7 +44,7 @@ public abstract class CPointed {
 	private native void releasePoint(int ptr);
 	
 	public void release() {
-		releasePoint(mPointer);
+		if (mPointer != 0) releasePoint(mPointer);
 		mPointer = 0;
 	}
 
