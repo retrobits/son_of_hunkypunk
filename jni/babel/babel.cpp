@@ -71,3 +71,7 @@ extern "C" jstring Java_org_andglk_babel_Babel_examine(JNIEnv *env, jclass cls, 
 	else
 		return 0;
 }
+extern "C" jstring Java_org_andglkmod_babel_Babel_examine(JNIEnv *env, jclass cls, jstring filepath)
+{
+	return Java_org_andglk_babel_Babel_examine(env,cls,filepath);
+}

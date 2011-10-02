@@ -52,6 +52,49 @@
 		</delete>
     </target>
 
+<!--
+    ************************************************************************
+    *                                                                      *
+    *  Hunky Punk Mod builder                                              *
+    *                                                                      *
+    ************************************************************************
+-->
+    <target name="mod-debug" depends="mod-copy,mod-debug-override">
+	  <ant inheritAll="false" dir="./alt-apk/mod" antfile="build.xml" target="hunkypunk-debug" />
+	  <move file="./alt-apk/mod/bin/HunkyPunk-debug.apk" tofile="./alt-apk/mod/bin/HunkyPunkMod-debug.apk"/>
+    </target>
+	<target name="mod-copy">
+	  <copy todir="./alt-apk/mod">
+		<fileset dir=".">
+		  <exclude name="**/alt-apk/**" />
+		  <exclude name="**/bin/**" />
+		  <exclude name="**/obj/**" />
+		  <exclude name="**/gen/**" />
+		  <exclude name="**/libs/armeabi/**" />
+		  <exclude name="**/override/**" />
+		  <exclude name="**/web/**" />
+		  <exclude name="**/artwork/**" />
+		</fileset>
+	  </copy>
+	  <exec dir="./alt-apk/mod" executable="${bash-location}">
+		<arg value="fix-mod.sh"/>
+	  </exec>
+	  <delete> 
+		<fileset dir="./alt-apk/mod" defaultexcludes="false">
+		  <include name="**/*~"/>		  
+		</fileset>
+	  </delete>
+	  <copy todir="./alt-apk/mod" overwrite="true">
+		<fileset dir="./alt-apk/override/mod" />
+	  </copy>
+    </target>
+	<target name="mod-debug-override">
+	  <!-- todo
+	  <copy todir="./alt-apk/mod" overwrite="true">
+		<fileset dir="./alt-apk/override/mod-debug" />
+	  </copy>
+	  -->
+    </target>
 
 <!--
     ************************************************************************

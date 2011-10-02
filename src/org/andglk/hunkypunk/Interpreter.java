@@ -180,6 +180,7 @@ public class Interpreter extends Activity {
 
 	@Override
     protected void onDestroy() {
+		super.onDestroy();
 		glk.postExitEvent();
     }
     
