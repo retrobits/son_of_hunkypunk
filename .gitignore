@@ -2,5 +2,6 @@ bin
 libs
 gen
 obj
+alt-apk/mod
 
 *.trace
