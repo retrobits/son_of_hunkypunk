@@ -608,11 +608,17 @@ extern void ( * andglk_exit_hook ) (void);
 void andglk_set_autosave(const char* fileName); //in main.c
 void andglk_set_autorestore(const char* saveFileName); //in main.c
 
+void andglk_exit()
+{
+  z_close();
+  glk_exit();
+}
+
 int glkunix_startup_code(glkunix_startup_t *data)
 {
   set_defaults();
 
-  andglk_exit_hook = op_quit;
+  andglk_exit_hook = andglk_exit;
   andglk_set_autosave_hook = andglk_set_autosave;
   andglk_set_autorestore_hook = andglk_set_autorestore;
 

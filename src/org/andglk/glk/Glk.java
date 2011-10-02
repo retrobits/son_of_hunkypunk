@@ -100,6 +100,7 @@ public class Glk extends Thread {
 	private String _autoSavePath = "";
 	private String[] _arguments = {};
 	private boolean _needToSave = false;
+	private boolean _exiting = false;
 
 	@Override
 	public void run() {
@@ -188,6 +189,7 @@ public class Glk extends Thread {
 	}
 
 	public void postExitEvent() {
+		setExiting(true);
 		_eventQueue.add(new ExitEvent(Window.getRoot()));
 	}
 
@@ -202,6 +204,8 @@ public class Glk extends Thread {
 	}
 
 	public synchronized void waitForUi(final Runnable runnable) {
+		if (_exiting) return;
+
 		if (Thread.currentThread().equals(mUiHandler.getLooper().getThread())) {
 			runnable.run();
 			return;
@@ -374,6 +378,14 @@ public class Glk extends Thread {
 
 	public File getSaveDir() {
 		return mSaveDir;
+	}
+
+	public void setExiting(boolean flag) {
+		_exiting = flag;
+	}
+
+	public boolean getExiting() {
+		return _exiting;
 	}
 
 	public void setArguments(String[] arguments) {

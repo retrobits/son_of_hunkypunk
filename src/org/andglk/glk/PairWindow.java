@@ -199,6 +199,7 @@ public class PairWindow extends Window {
 	}
 
 	synchronized private void waitForLayout() {
+		if (_glk.getExiting()) return;
 		while (mWaitingForLayout)
 			try {
 				wait(1000);
