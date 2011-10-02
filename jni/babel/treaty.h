@@ -67,12 +67,16 @@
 #ifndef VAX
 #if   SCHAR_MAX >= 0x7FFFFFFFL && SCHAR_MIN <= -0x7FFFFFFFL
       typedef signed char       int32;
+      typedef unsigned char       uint32;
 #elif SHRT_MAX >= 0x7FFFFFFFL  && SHRT_MIN <= -0x7FFFFFFFL
       typedef signed short int  int32;
+      typedef unsigned short int  uint32;
 #elif INT_MAX >= 0x7FFFFFFFL   && INT_MIN <= -0x7FFFFFFFL
       typedef signed int        int32;
+      typedef unsigned int        uint32;
 #elif LONG_MAX >= 0x7FFFFFFFL  && LONG_MIN <= -0x7FFFFFFFL
       typedef signed long int   int32;
+      typedef usigned long int   uint32;
 #else
 #error No type large enough to support 32-bit integers.
 #endif

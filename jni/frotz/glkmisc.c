@@ -122,7 +122,7 @@ void os_process_arguments(int argc, char *argv[])
 
 	/* Parse the options */
 	do {
-		c = zgetopt(argc, argv, "aAiI:oOPQs:S:tu:xZ:r:");
+		c = zgetopt(argc, argv, "aAiI:oOPQs:S:tu:xZ:");
 		switch (c)
 		{
 			case 'a': f_setup.attribute_assignment = 1; break;
@@ -143,13 +143,6 @@ void os_process_arguments(int argc, char *argv[])
 							  (f_setup.err_report_mode > ERR_REPORT_FATAL))
 						  f_setup.err_report_mode = ERR_DEFAULT_REPORT_MODE;
 					  break;
-#if ANDGLK
-			case 'r': {
-				extern int ( * andglk_set_autosave_hook ) (const char* fileName); 
-				if (andglk_set_autosave_hook) andglk_set_autosave_hook(zoptarg); 
-				break;
-			}
-#endif
 		}
 	} while (c != EOF);
 
@@ -346,9 +339,6 @@ zchar os_read_key (int timeout, bool show_cursor)
 		if (ev.type == evtype_Arrange) {
 			gos_update_height();
 			gos_update_width();
-#if ANDGLK
-			//	glk_select_poll(NULL);
-#endif
 		}
 		else if (ev.type == evtype_Timer)
 		{

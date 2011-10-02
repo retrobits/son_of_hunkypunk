@@ -101,8 +101,9 @@ public class StorageManager {
 						|| f.getName().matches(".*\\.blb$")
 						|| f.getName().matches(".*\\.glb$")
 						|| f.getName().matches(".*\\.ulx$")
-						|| f.getName().matches(".*\\.gam$"))
+						|| f.getName().matches(".*\\.gam$")
 */
+						)
 						checkFile(f);
 				} catch (IOException e) {
 					Log.w(TAG, "IO exception while checking " + f, e);

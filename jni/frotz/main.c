@@ -169,6 +169,7 @@ void z_piracy (void)
 static int myargc;
 static char **myargv;
 
+#ifndef ANDGLK
 glk1unix_argumentlist_t glkunix_arguments[] =
 {
 { "-a", glkunix_arg_NoValue, "-a: watch attribute setting" },
@@ -188,9 +189,10 @@ glk1unix_argumentlist_t glkunix_arguments[] =
 { "", glkunix_arg_ValueFollows, "filename: The game file to load." },
 { NULL, glkunix_arg_End, NULL }
 };
+#endif
 
 #if ANDGLK
-int andglk_set_autosave (const char* fileName);
+void andglk_set_autosave (const char* fileName);
 
 void andglk_exit() {
     reset_memory ();
