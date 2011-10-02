@@ -20,11 +20,11 @@
 package org.andglk.hunkypunk;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.andglk.hunkypunk.R.id;
 import org.andglk.ifdb.IFDb;
-import org.andglk.nitfol.Nitfol;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -38,6 +38,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -47,6 +48,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class GameDetails extends Activity implements OnClickListener {
+    private static final String TAG = "hunkypunk.GameDetails";
+
 	private static final String[] PROJECTION = { 
 		Games._ID, Games.IFID, Games.TITLE, Games.HEADLINE, Games.AUTHOR, Games.DESCRIPTION,
 		Games.FIRSTPUBLISHED, Games.GENRE, Games.GROUP, Games.SERIES, Games.SERIESNUMBER, Games.FORGIVENESS,
@@ -83,7 +86,6 @@ public class GameDetails extends Activity implements OnClickListener {
 	private View mDescriptionLayout;
 	private TextView mDetails;
 	private ProgressDialog mProgressDialog;
-	protected Uri mGameUri;
 	private Handler mLookupHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			setProgressBarIndeterminateVisibility(false);
@@ -214,8 +216,19 @@ public class GameDetails extends Activity implements OnClickListener {
 			sb.append(getString(R.string.language_s, string));
 			sb.append('\n');
 		}
-		
+
 		mFilePath = mQuery.getString(PATH);
+
+		String terp = getTerp(mFilePath);
+		sb.append("Interpreter: ");
+		sb.append(terp);
+		sb.append('\n');
+
+		if (terp.compareTo("frotz")==0 || terp.compareTo("nitfol")==0) {
+			sb.append("ZCode Version: ");
+			sb.append(getZcodeVer(mFilePath));
+			sb.append('\n');
+		}
 		
 		final int len = sb.length(); 
 		if (len != 0)
@@ -230,13 +243,13 @@ public class GameDetails extends Activity implements OnClickListener {
 	}
 
 	private File getBookmark() {
-		return new File(getDir(mGameIfid, MODE_PRIVATE), "bookmark");	
+		return new File(HunkyPunk.getGameDataDir(Uri.parse(mFilePath), mGameIfid), "bookmark");
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (mGameIfid != null)
+		if (mGameIfid != null && mFilePath != null)
 			mRestartButton.setVisibility(getBookmark().exists() ? View.VISIBLE : View.GONE);
 	}
 
@@ -253,10 +266,46 @@ public class GameDetails extends Activity implements OnClickListener {
 		}
 	}
 
+	private String getZcodeVer(String filePath) {
+		int zver = 0;
+		try {
+			RandomAccessFile f = new RandomAccessFile(filePath, "r");		
+			zver = f.read();
+			f.close();			
+		} catch(Exception ex){}
+		if (zver == 0) return "unknown";
+		else if (zver == 70) return "unknown (blorbed)";
+		else return Integer.toString(zver);
+	}
+
+	private String getTerp(String filePath) {
+		/* todo: tads & glulx
+		if (filePath.endsWith(".gam") || filePath.endsWith(".t2") || filePath.endsWith(".t3"))
+			return "tads";
+		else if (filePath.endsWith(".ulx") || filePath.endsWith(".blb")
+				 || filePath.endsWith(".blorb")  || filePath.endsWith(".glb")
+				 || filePath.endsWith(".gblorb"))
+			return "git";
+		else 
+		*/
+
+		if (filePath.endsWith(".zblorb") || filePath.endsWith(".zlb"))
+			return "frotz";
+		else { /* *.z[0-9] */
+			return (getZcodeVer(filePath).compareTo("6")==0) ? "nitfol" : "frotz";
+		}
+	}
+
 	private void openGame() {
+		//Log.d(TAG,"openGame "+mGameIfid+" "+mFilePath);
+
 		Intent intent = new Intent(Intent.ACTION_VIEW, 
-				Uri.parse(mFilePath), this, Nitfol.class);
+								   Uri.parse(mFilePath), 
+								   this, 
+								   Interpreter.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+		intent.putExtra("terp", getTerp(mFilePath));
 		intent.putExtra("ifid", mGameIfid);
 		intent.putExtra("loadBookmark", true);
 		startActivity(intent);

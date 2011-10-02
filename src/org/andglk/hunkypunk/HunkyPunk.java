@@ -26,9 +26,10 @@ import android.provider.BaseColumns;
 
 public final class HunkyPunk {
 	public static final String AUTHORITY = "org.andglk.hunkypunk.HunkyPunk";
-	public static final File DIRECTORY = new File("/sdcard/Interactive Fiction");
-	public static final File COVER_DIRECTORY = new File(DIRECTORY, "covers");
-	public static final Uri DIRECTORY_URI = Uri.fromFile(DIRECTORY);
+	public static final File IF_DIRECTORY = new File("/sdcard/Interactive Fiction");
+	public static final File DATA_DIRECTORY = new File("/sdcard/Android/data/org.andglk.hunkypunk");
+	public static final File COVER_DIRECTORY = new File(DATA_DIRECTORY, "covers");
+	public static final Uri IF_DIRECTORY_URI = Uri.fromFile(IF_DIRECTORY);
 	private HunkyPunk() {}
 	
 	public static final class Games implements BaseColumns {
@@ -72,13 +73,36 @@ public final class HunkyPunk {
 	}
 	
 	public static File getTranscriptDir() {
-		File f = new File(DIRECTORY, "transcripts");
+		File f = new File(IF_DIRECTORY, "transcripts");
 		f.mkdir();
 		return f;
 	}
 
 	public static void ensureDirectoryExists() {
-		if (!DIRECTORY.exists())
-			DIRECTORY.mkdir();
+		if (!IF_DIRECTORY.exists())
+			IF_DIRECTORY.mkdir();
+		if (!DATA_DIRECTORY.exists())
+			DATA_DIRECTORY.mkdir();
 	}
+
+	public static File getGameDataDir(Uri uri, String ifid) {
+		File fGame = new File(uri.getPath());
+
+		File fData = DATA_DIRECTORY;
+		if (!fData.exists()) fData.mkdir();
+
+		//search
+		String dirName = fGame.getName()+"."+ifid;
+		GameDataDirFilter filter = new GameDataDirFilter(ifid);		
+		File[] fs = fData.listFiles(filter);
+		if (fs != null && fs.length>0)
+			dirName = fs[0].getName();
+
+		File f = new File(fData, dirName);
+		if (!f.exists()) f.mkdir();
+		
+		return f;
+	}
+
+
 }

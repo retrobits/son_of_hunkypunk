@@ -160,7 +160,7 @@ public class StorageManager {
 				/* seems like overkill to scan the whole sdcard...
 					scan(Environment.getExternalStorageDirectory());
 				*/
-				scan(HunkyPunk.DIRECTORY);
+				scan(HunkyPunk.IF_DIRECTORY);
 				Message.obtain(mHandler, DONE).sendToTarget();
 			}
 		}.start();

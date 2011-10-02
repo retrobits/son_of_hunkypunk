@@ -17,7 +17,7 @@
     along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package org.andglk.nitfol;
+package org.andglk.hunkypunk;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,27 +42,40 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
 
-public class Nitfol extends Activity {
-    private static final String TAG = "Nitfol";
+public class Interpreter extends Activity {
+    private static final String TAG = "hunkypunk.Interpreter";
 	private Glk glk;
 	private File mDataDir;
 
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+    	System.loadLibrary("andglk-loader");
+
     	setTheme(R.style.theme);
-    	System.loadLibrary("nitfol");
-    	glk = new Glk(this);
-        setContentView(glk.getView());
         Intent i = getIntent();
         Uri uri = i.getData();
-        String dataDirName = i.getStringExtra("ifid");
-        mDataDir = getDir(dataDirName, MODE_PRIVATE);
+        String terp = i.getStringExtra("terp");
+        String ifid = i.getStringExtra("ifid");
+        mDataDir = HunkyPunk.getGameDataDir(uri, ifid);
         File saveDir = new File(mDataDir, "savegames");
         saveDir.mkdir();
+
+		glk = new Glk(this);
+
+        setContentView(glk.getView());
+        glk.setTerpPath(getFilesDir()+"/../lib/lib"+terp+".so");		
+		glk.setAutoSave(getBookmark(), 0);
         glk.setSaveDir(saveDir);
         glk.setTranscriptDir(HunkyPunk.getTranscriptDir()); // there goes separation, and so cheaply...
-        useFile(new FileStream(uri.getPath(), FileRef.FILEMODE_READ, 0).getPointer());
+		glk.setGameFilePath(uri.getPath());
+		glk.setArguments(
+			new String[]{
+				getFilesDir()+"/../lib/lib"+terp+".so", 
+				uri.getPath()
+			}
+		);
+
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)
         	restore(savedInstanceState.getParcelableArrayList("windowStates"));
@@ -70,7 +83,7 @@ public class Nitfol extends Activity {
         	loadBookmark();
     	glk.start();
     }
-    
+
     private void loadBookmark() {
     	final File f = getBookmark(); 
     	if (!f.exists())
@@ -103,8 +116,6 @@ public class Nitfol extends Activity {
     	} catch (IOException e) {
 			Log.e(TAG, "error while opening window state stream", e);
     	}
-
-    	loadBookmarkState();
 	}
 
 	private void restore(final ArrayList<Parcelable> windowStates) {
@@ -120,28 +131,18 @@ public class Nitfol extends Activity {
 	    	    		public void run() {
 			    	    	Window w = null;
 			    	    	for (Parcelable p : windowStates)
-			    	    		if ((w = Window.iterate(w)) != null)
+			    	    		if ((w = Window.iterate(w)) != null) {
 			    	    			w.restoreInstanceState(p);
+									w.flush();
+								}
 			    	    		else
 			    	    			break;
 	    	    		}
 	    	    	});
     		}
     	});
-
-    	loadBookmarkState();
     }
-
-	private void loadBookmarkState() {
-    	final File f = getBookmark(); 
-    	if (!f.exists())
-    		return;
-
-    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_READ, 0);
-    	
-    	restoreGame(fs.getPointer());	
-    }
-
+	
 	@Override
     public void onConfigurationChanged(Configuration newConfig) {
     	super.onConfigurationChanged(newConfig);
@@ -151,33 +152,21 @@ public class Nitfol extends Activity {
     @Override
     protected void onPause() {
     	super.onPause();
-    	final File f = getBookmark();
+		if (glk.isAlive()) {
+			glk.postAutoSaveEvent(getBookmark().getAbsolutePath());
 
-    	if (!glk.isAlive()) {
-    		f.delete();
-    		return;
-    	}
-    	
-    	Glk.getInstance().onSelect(new Runnable() {
-    		public void run() {
-		    	FileStream fs = new FileStream(f.getAbsolutePath(), FileRef.FILEMODE_WRITE, 0);
-		    	
-		    	saveGame(fs.getPointer());
-		    	fs.close();
-    		}
-    	});
-    	
-    	final File ws = getWindowStates();
-    	try {
-			final FileOutputStream fos = new FileOutputStream(ws);
-			final ObjectOutputStream oos = new ObjectOutputStream(fos);
-	    	Window w = null;
-	    	while ((w = Window.iterate(w)) != null)
-	    		w.writeState(oos);
-	    	oos.close();
-	    	fos.close();
-		} catch (IOException e) {
-			Log.e(TAG, "error while writing windowstates", e);
+			final File ws = getWindowStates();
+			try {
+				final FileOutputStream fos = new FileOutputStream(ws);
+				final ObjectOutputStream oos = new ObjectOutputStream(fos);
+				Window w = null;
+				while ((w = Window.iterate(w)) != null)
+					w.writeState(oos);
+				oos.close();
+				fos.close();
+			} catch (IOException e) {
+				Log.e(TAG, "error while writing windowstates", e);
+			}
 		}
     }
     
@@ -190,12 +179,8 @@ public class Nitfol extends Activity {
 	}
 
 	@Override
-    protected void onStop() {
-    	// so we don't have to cleanup which would be a major pain in the ass
-    	// because the interps weren't designed to be run again in the same process
-    	// (I know bc I've wasted whole day trying to figure out how to do that cleanly)
-    	// and we'll get thawed anyway
-    	System.exit(0);
+    protected void onDestroy() {
+		glk.postExitEvent();
     }
     
     @Override
@@ -213,9 +198,4 @@ public class Nitfol extends Activity {
     	
     	outState.putParcelableArrayList("windowStates", states);
     }
-    
-    private native void saveGame(int fs);
-    private native void restoreGame(int fs);
-
-	native void useFile(int str_p);
 }

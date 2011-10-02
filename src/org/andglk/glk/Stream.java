@@ -83,9 +83,8 @@ public abstract class Stream extends CPointed {
 		return (new FileStream(fileref, fmode, rock)).getPointer();
 	}
 	
-	static Stream openPathname(String path, int fmode, int rock) {
-		Stream ret = new FileStream(path, fmode, rock);
-		return ret;
+	static int openPathname(String path, int fmode, int rock) {
+		return (new FileStream(path, fmode, rock)).getPointer();
 	}
 	
 	public void putChar(char c) {

@@ -180,7 +180,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 					try {
 						final URL u = new URL(s);
 						final String fileName = Uri.parse(s).getLastPathSegment();
-						Utils.copyStream(u.openStream(), new FileOutputStream(new File(HunkyPunk.DIRECTORY, fileName)));
+						Utils.copyStream(u.openStream(), new FileOutputStream(new File(HunkyPunk.IF_DIRECTORY, fileName)));
 					} catch (MalformedURLException e) {
 						Log.e(TAG, "malformed URL when fetching " + s, e);
 					} catch (FileNotFoundException e) {

@@ -41,6 +41,7 @@ import android.view.WindowManager;
 import android.view.View.MeasureSpec;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /** <strong>DO NOT EVER INSTANTIATE OR START THIS CLASS MORE THAN ONCE IN A PROCESS' LIFETIME</strong> */
 public class Glk extends Thread {
@@ -91,10 +92,25 @@ public class Glk extends Thread {
 	private File mSaveDir;
 	private File mTranscriptDir;
 
+	private String _terpPath;
+	private String _gameFilePath;
+	private int _autoSaveStream;
+	private int _autoSaveLineEvent = 0;
+	private File _autoSave = null;
+	private String _autoSavePath = "";
+	private String[] _arguments = {};
+	private boolean _needToSave = false;
+
 	@Override
 	public void run() {
-		runProgram();
+		startTerp(_terpPath, _autoSavePath, _arguments.length, _arguments);
 		notifyQuit();
+		_instance = null;
+	}
+
+	// loader has successfully loaded and linked to glk interpreter and is about to start
+	public void notifyLinked() {
+		// just a concept, not sure if its useful
 	}
 	
 	private void notifyQuit() {
@@ -115,7 +131,7 @@ public class Glk extends Thread {
 		});
 	}
 
-	native private void runProgram();
+	native private void startTerp(String terpPath, String saveFilePath, int argc, String[] argv);
 	
 	public Glk(Context context) {
 		assert (_instance == null);
@@ -167,7 +183,22 @@ public class Glk extends Thread {
 	}
 
 	public void postEvent(Event e) {
+		_needToSave = _needToSave || (e instanceof CharInputEvent || e instanceof LineInputEvent);
 		_eventQueue.add(e);
+	}
+
+	public void postExitEvent() {
+		_eventQueue.add(new ExitEvent(Window.getRoot()));
+	}
+
+	public boolean postAutoSaveEvent(String fileName) {
+		if (_needToSave) {
+			Toast.makeText(mContext, "Save game.", Toast.LENGTH_SHORT).show();
+			_eventQueue.add(new AutoSaveEvent(Window.getRoot(),fileName, 1)); //_autoSaveLineEvent));
+			_needToSave = false;
+			return true;
+		}
+		return false;
 	}
 
 	public synchronized void waitForUi(final Runnable runnable) {
@@ -218,7 +249,8 @@ public class Glk extends Thread {
 			return getTranscriptDir();
 		default:
 			Log.e("Glk", "I don't know where to place files with usage = " + Integer.toString(usage));
-			return null;
+			return getSaveDir();
+			//return null;
 		}
 	}
 	
@@ -305,11 +337,50 @@ public class Glk extends Thread {
 		return mTranscriptDir;
 	}
 
+	public void setTerpPath(String terpPath) {
+		_terpPath = terpPath;
+	}
+
+	public String getTerpPath() {
+		return _terpPath;
+	}
+
+	public void setNeedToSave(boolean need) {		
+		_needToSave = need;
+	}	
+	
+	public void setAutoSave(File autoSave, int autoSaveLineEvent) {		
+		_autoSave = autoSave;
+		if (_autoSave.exists()) _autoSavePath = _autoSave.getAbsolutePath();
+		_autoSaveLineEvent = autoSaveLineEvent;
+	}	
+
+	public File getAutoSave() {
+		return _autoSave;
+	}
+	
+
+	public void setGameFilePath(String gameFilePath) {
+		_gameFilePath = gameFilePath;
+	}
+
+	public String setGameFilePath() {
+		return _gameFilePath;
+	}
+
 	public void setSaveDir(File saveDir) {
 		mSaveDir = saveDir;
 	}
 
 	public File getSaveDir() {
 		return mSaveDir;
+	}
+
+	public void setArguments(String[] arguments) {
+		_arguments = arguments;
+	}
+
+	public String[] getArguments() {
+		return _arguments;
 	}
 }
