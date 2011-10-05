@@ -432,6 +432,16 @@ int vocread(voccxdef *ctx, objnum actor, objnum verb,
     buf[0] = '\0';
 
     /* show the game-defined prompt, if appropriate */
+#ifdef ANDGLK
+	// hack: skip prompt on user interrupt (autosave)
+	extern int skip_prompt;
+	if (skip_prompt)
+	{
+		prompt = "";
+		skip_prompt = 0;
+	}
+	else
+#endif
     if (ctx->voccxprom != MCMONINV)
     {
         runpnum(ctx->voccxrun, (long)type);

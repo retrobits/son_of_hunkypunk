@@ -356,9 +356,14 @@ void os_instbrk(int install)
  */
 int os_break(void)
 {
+#ifdef ANDGLKb
+	// hack: use existing user interrupt to trigger autosave
+	extern int do_autosave;
+	return do_autosave;
+#else
 	return 0;
+#endif
 }
-
 /*
  *   Yield CPU; returns TRUE if user requested an interrupt (a "control-C"
  *   type of operation to abort the entire program), FALSE to continue.

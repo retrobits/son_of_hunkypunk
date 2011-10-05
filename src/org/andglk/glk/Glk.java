@@ -92,9 +92,6 @@ public class Glk extends Thread {
 	private File mSaveDir;
 	private File mTranscriptDir;
 
-	private String _terpPath;
-	private String _gameFilePath;
-	private int _autoSaveStream;
 	private int _autoSaveLineEvent = 0;
 	private File _autoSave = null;
 	private String _autoSavePath = "";
@@ -104,7 +101,7 @@ public class Glk extends Thread {
 
 	@Override
 	public void run() {
-		startTerp(_terpPath, _autoSavePath, _arguments.length, _arguments);
+		startTerp(_arguments[0], _autoSavePath, _arguments.length, _arguments);
 		notifyQuit();
 		_instance = null;
 	}
@@ -341,14 +338,6 @@ public class Glk extends Thread {
 		return mTranscriptDir;
 	}
 
-	public void setTerpPath(String terpPath) {
-		_terpPath = terpPath;
-	}
-
-	public String getTerpPath() {
-		return _terpPath;
-	}
-
 	public void setNeedToSave(boolean need) {		
 		_needToSave = need;
 	}	
@@ -363,15 +352,6 @@ public class Glk extends Thread {
 		return _autoSave;
 	}
 	
-
-	public void setGameFilePath(String gameFilePath) {
-		_gameFilePath = gameFilePath;
-	}
-
-	public String setGameFilePath() {
-		return _gameFilePath;
-	}
-
 	public void setSaveDir(File saveDir) {
 		mSaveDir = saveDir;
 	}

@@ -57,10 +57,30 @@ glkunix_argumentlist_t glkunix_arguments[] =
     { NULL, glkunix_arg_End, NULL }
 };
 
+#ifdef ANDGLK
+extern "C" {
+#include <limits.h>
+char AUTOSAVE_FILE[PATH_MAX];
+int do_autosave = 0;
+int skip_prompt = 0;
+}
+
+extern "C" void andglk_set_autosave(const char* saveFileName)
+{
+	strcpy(AUTOSAVE_FILE,saveFileName);
+	do_autosave = 1;
+}
+#endif
+
 extern "C" int glkunix_startup_code(glkunix_startup_t *data)
 {
 	tads_argc = data->argc;
 	tads_argv = data->argv;
+
+#ifdef ANDGLK
+	andglk_set_autosave_hook = andglk_set_autosave;
+#endif
+
 	return TRUE;
 }
 

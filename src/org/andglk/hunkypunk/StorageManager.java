@@ -92,16 +92,25 @@ public class StorageManager {
 		for (File f : files)
 			if (!f.isDirectory())
 				try {
-					if (f.getName().matches(".*\\.z[1-9]$")
+					
+					if (
+						/* zcode: frotz, nitfol */
+						f.getName().matches(".*\\.z[1-9]$")
 						|| f.getName().matches(".*\\.zblorb$")
 						|| f.getName().matches(".*\\.zlb$")
+
+						/* tads */
+						|| f.getName().matches(".*\\.gam$")
+						|| f.getName().matches(".*\\.t2$")
+						|| f.getName().matches(".*\\.t3$")
+
+						/* glulx */
 /* todo:
 						|| f.getName().matches(".*\\.blorb$")
 						|| f.getName().matches(".*\\.gblorb$")
 						|| f.getName().matches(".*\\.blb$")
 						|| f.getName().matches(".*\\.glb$")
 						|| f.getName().matches(".*\\.ulx$")
-						|| f.getName().matches(".*\\.gam$")
 */
 						)
 						checkFile(f);

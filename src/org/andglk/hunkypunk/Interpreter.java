@@ -64,17 +64,20 @@ public class Interpreter extends Activity {
 		glk = new Glk(this);
 
         setContentView(glk.getView());
-        glk.setTerpPath(getFilesDir()+"/../lib/lib"+terp+".so");		
 		glk.setAutoSave(getBookmark(), 0);
         glk.setSaveDir(saveDir);
         glk.setTranscriptDir(HunkyPunk.getTranscriptDir()); // there goes separation, and so cheaply...
-		glk.setGameFilePath(uri.getPath());
-		glk.setArguments(
-			new String[]{
-				getFilesDir()+"/../lib/lib"+terp+".so", 
-				uri.getPath()
-			}
-		);
+
+		ArrayList<String> args = new ArrayList<String>();
+		args.add(getFilesDir()+"/../lib/lib"+terp+".so");
+		if(terp.compareTo("tads")==0 && getBookmark().exists()) {
+			args.add("-r");
+			args.add(getBookmark().getAbsolutePath());
+		}
+		args.add(uri.getPath());
+
+		String arga[] = new String[args.size()];
+		glk.setArguments(args.toArray(arga));
 
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)

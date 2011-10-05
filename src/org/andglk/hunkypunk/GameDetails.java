@@ -279,17 +279,17 @@ public class GameDetails extends Activity implements OnClickListener {
 	}
 
 	private String getTerp(String filePath) {
-		/* todo: tads & glulx
-		if (filePath.endsWith(".gam") || filePath.endsWith(".t2") || filePath.endsWith(".t3"))
-			return "tads";
-		else if (filePath.endsWith(".ulx") || filePath.endsWith(".blb")
+		/* todo: glulx
+		if (filePath.endsWith(".ulx") || filePath.endsWith(".blb")
 				 || filePath.endsWith(".blorb")  || filePath.endsWith(".glb")
 				 || filePath.endsWith(".gblorb"))
 			return "git";
 		else 
 		*/
 
-		if (filePath.endsWith(".zblorb") || filePath.endsWith(".zlb"))
+		if (filePath.endsWith(".gam") || filePath.endsWith(".t2") || filePath.endsWith(".t3"))
+			return "tads";
+		else if (filePath.endsWith(".zblorb") || filePath.endsWith(".zlb"))
 			return "frotz";
 		else { /* *.z[0-9] */
 			return (getZcodeVer(filePath).compareTo("6")==0) ? "nitfol" : "frotz";

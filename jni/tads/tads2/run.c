@@ -1142,7 +1142,9 @@ resume_from_error:
     for (brkchk = 0 ;; ++brkchk)
     {
         /* check for break - signal if user has hit break */
+#ifndef ANDGLK
         if (brkchk == 1000)
+#endif
         {
             brkchk = 0;
             if (os_break()) runsig(ctx, ERR_USRINT);

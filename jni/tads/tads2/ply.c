@@ -302,6 +302,9 @@ startover:
         {
             if (err != ERR_RUNQUIT
                 && err != ERR_RUNRESTART
+#ifdef ANDGLK
+                && err != ERR_USRINT
+#endif
                 && !(err == ERR_RUNABRT && voc->voccxredo))
                 errclog(ec);
         }
@@ -311,7 +314,20 @@ startover:
         if (err == ERR_USRINT && voc->voccxundo)
         {
             ERRBEGIN(ec)
+			{
+#ifdef ANDGLK
+				extern char AUTOSAVE_FILE[];
+				extern int do_autosave;
+				extern int skip_prompt;
+				if (do_autosave) {
+					fiosav(voc, AUTOSAVE_FILE, run->runcxgamename);
+					do_autosave = 0;
+					skip_prompt = 1;
+				}
+#else
                 objundo(voc->voccxmem, voc->voccxundo);
+#endif				
+			}
             ERRCATCH(ec, err)
                 if (err != ERR_NOUNDO && err != ERR_ICUNDO)
                     errrse(ec);
