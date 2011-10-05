@@ -104,8 +104,10 @@ public class Interpreter extends Activity {
 		    	    		public void run() {
 				    	    	Window w = null;
 				    	    	try {
-				    	    		while ((w = Window.iterate(w)) != null)
+				    	    		while ((w = Window.iterate(w)) != null) {
 				    	    			w.readState(ois);
+										w.flush();
+									}
 									ois.close();
 					    	    	fis.close();
 								} catch (IOException e) {

@@ -356,8 +356,8 @@ void os_instbrk(int install)
  */
 int os_break(void)
 {
-#ifdef ANDGLKb
-	// hack: use existing user interrupt to trigger autosave
+#ifdef ANDGLK
+	// hack: user interrupt handler triggers autosave
 	extern int do_autosave;
 	return do_autosave;
 #else
