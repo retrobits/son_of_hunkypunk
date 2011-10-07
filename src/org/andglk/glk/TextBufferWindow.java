@@ -630,7 +630,7 @@ public class TextBufferWindow extends Window {
 				
 				if (dstart > mLineInputStart)
 					return null;
-				
+
 				mSsb.clear();
 				mSsb.append(dest, dstart, mLineInputStart);
 				mSsb.append(source, start, end);
@@ -670,6 +670,7 @@ public class TextBufferWindow extends Window {
 
 		/* see TextBufferWindow.clear() */
 		public void clear() {
+			mLineInputStart = 0;
 			setText("", BufferType.EDITABLE);
 			scrollTo(getScrollX(), 0);
 		}

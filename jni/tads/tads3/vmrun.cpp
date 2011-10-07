@@ -42,6 +42,10 @@ Modified
 #include "vmsave.h"
 #include "vmprof.h"
 #include "vmhash.h"
+#ifdef ANDGLK
+/* for autosave */
+#include "vmbiftad.h"
+#endif
 
 
 /* ------------------------------------------------------------------------ */
@@ -522,7 +526,7 @@ resume_execution:
                     /* check for break, and step into debugger if found */
                     if (os_break())
                         G_debugger->set_break_stop();
-                }
+                } 
             );
 
             /* if we're single-stepping, break into the debugger */
@@ -2661,6 +2665,15 @@ resume_execution:
              *   re-throw the original error, and perhaps handle it in the
              *   context of the current code.  
              */
+#ifdef ANDGLK
+			/* for andglk, this exception indicates an autosave event */
+			if (err->get_error_code() == VMERR_DBG_ABORT) 
+			{
+				extern int do_autosave;
+				if (do_autosave) CVmBifTADS::save(0);
+				goto andglk_skip_throw; /* just resume execution */
+			}
+#endif
             if (err->get_error_code() == VMERR_UNHANDLED_EXC)
             {
                 /* get the original exception object from the error stack */
@@ -2892,7 +2905,10 @@ resume_execution:
                 /* remember the unhandled exception for a moment */
                 unhandled_exc = obj;
             }
-            
+
+#ifdef ANDGLK
+		andglk_skip_throw: 
+#endif            
             /* come here to skip throwing the exception */
             VM_IF_DEBUGGER(skip_throw: );
         }

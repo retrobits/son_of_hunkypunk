@@ -1633,6 +1633,10 @@ void CVmBifTIO::input_timeout(VMG_ uint argc)
     evt = G_console->read_line_timeout(vmg_ buf, sizeof(buf),
                                        timeout, use_timeout);
 
+#ifdef ANDGLK
+	if (os_break()) err_throw(VMERR_DBG_ABORT);
+#endif
+
     /* figure out how big a list we'll return */
     switch(evt)
     {

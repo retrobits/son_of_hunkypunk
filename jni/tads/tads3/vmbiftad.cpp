@@ -2044,6 +2044,15 @@ void CVmBifTADS::save(VMG_ uint argc)
     CVmFile *file;
     osfildef *fp;
     
+#ifdef ANDGLK
+    /* open the file */
+	extern char AUTOSAVE_FILE[];
+	extern int do_autosave;
+	if (do_autosave) {
+		do_autosave = 0;
+		fp = osfoprwtb(AUTOSAVE_FILE, OSFTT3SAV);
+	} else {
+#endif
     /* check arguments */
     check_argc(vmg_ argc, 1);
 
@@ -2052,6 +2061,10 @@ void CVmBifTADS::save(VMG_ uint argc)
 
     /* open the file */
     fp = osfoprwtb(fname, OSFTT3SAV);
+#ifdef ANDGLK
+	}
+#endif
+
     if (fp == 0)
         err_throw(VMERR_CREATE_FILE);
 
