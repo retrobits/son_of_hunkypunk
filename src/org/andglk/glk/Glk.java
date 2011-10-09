@@ -104,6 +104,7 @@ public class Glk extends Thread {
 		startTerp(_arguments[0], _autoSavePath, _arguments.length, _arguments);
 		notifyQuit();
 		_instance = null;
+		Window.setRoot(null);
 	}
 
 	// loader has successfully loaded and linked to glk interpreter and is about to start
@@ -374,5 +375,21 @@ public class Glk extends Thread {
 
 	public String[] getArguments() {
 		return _arguments;
+	}
+
+	/** returns a path appropriate for Android Andglk
+	 * 
+	 */
+	public String sanitizePath (String path) {
+		if (_autoSave == null) return path;
+
+		String sanePath = new String(path);
+		if (!sanePath.startsWith("/")) {
+			int ix = sanePath.lastIndexOf('/');
+			if (ix > -1) sanePath = sanePath.substring(ix+1);
+			File saneFile = new File(_autoSave.getParentFile(), sanePath);
+			sanePath = saneFile.getAbsolutePath();
+		}
+		return sanePath;
 	}
 }

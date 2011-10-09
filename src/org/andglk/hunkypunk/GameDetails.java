@@ -115,7 +115,7 @@ public class GameDetails extends Activity implements OnClickListener {
 			}
 		};
 	};
-	private String mFilePath;
+	private File mGameFile;
 	private View mRestartButton;
 
 	@Override
@@ -217,16 +217,16 @@ public class GameDetails extends Activity implements OnClickListener {
 			sb.append('\n');
 		}
 
-		mFilePath = mQuery.getString(PATH);
+		mGameFile = new File(mQuery.getString(PATH));
 
-		String terp = getTerp(mFilePath);
+		String terp = getTerp();
 		sb.append("Interpreter: ");
 		sb.append(terp);
 		sb.append('\n');
 
 		if (terp.compareTo("frotz")==0 || terp.compareTo("nitfol")==0) {
 			sb.append("ZCode Version: ");
-			sb.append(getZcodeVer(mFilePath));
+			sb.append(getZcodeVersion());
 			sb.append('\n');
 		}
 		
@@ -243,13 +243,14 @@ public class GameDetails extends Activity implements OnClickListener {
 	}
 
 	private File getBookmark() {
-		return new File(HunkyPunk.getGameDataDir(Uri.parse(mFilePath), mGameIfid), "bookmark");
+		return new File(
+						HunkyPunk.getGameDataDir(Uri.parse(mGameFile.getAbsolutePath()), mGameIfid), "bookmark");
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (mGameIfid != null && mFilePath != null)
+		if (mGameIfid != null && mGameFile != null)
 			mRestartButton.setVisibility(getBookmark().exists() ? View.VISIBLE : View.GONE);
 	}
 
@@ -266,10 +267,10 @@ public class GameDetails extends Activity implements OnClickListener {
 		}
 	}
 
-	private String getZcodeVer(String filePath) {
+	private String getZcodeVersion() {
 		int zver = 0;
 		try {
-			RandomAccessFile f = new RandomAccessFile(filePath, "r");		
+			RandomAccessFile f = new RandomAccessFile(mGameFile.getAbsolutePath(), "r");		
 			zver = f.read();
 			f.close();			
 		} catch(Exception ex){}
@@ -278,34 +279,27 @@ public class GameDetails extends Activity implements OnClickListener {
 		else return Integer.toString(zver);
 	}
 
-	private String getTerp(String filePath) {
-		/* todo: glulx
-		if (filePath.endsWith(".ulx") || filePath.endsWith(".blb")
-				 || filePath.endsWith(".blorb")  || filePath.endsWith(".glb")
-				 || filePath.endsWith(".gblorb"))
-			return "git";
-		else 
-		*/
+	private String getTerp() {
+		String fullPath = mGameFile.getAbsolutePath();
+		String ext = "||";
+		int dot = fullPath.lastIndexOf(".");
+		if (dot > -1) ext = "|"+fullPath.substring(dot+1)+"|";
 
-		if (filePath.endsWith(".gam") || filePath.endsWith(".t2") || filePath.endsWith(".t3"))
-			return "tads";
-		else if (filePath.endsWith(".zblorb") || filePath.endsWith(".zlb"))
-			return "frotz";
-		else { /* *.z[0-9] */
-			return (getZcodeVer(filePath).compareTo("6")==0) ? "nitfol" : "frotz";
-		}
+		if ("|ulx|blb|blorb|glb|gblorb|".indexOf(ext) > -1) return "git";
+		else if ("|gam|t2|t3|".indexOf(ext) > -1) return "tads";
+		else if ("|zblorb|zlb|".indexOf(ext) > -1) return "frotz";
+		else /* *.z[1-9] */
+			return (getZcodeVersion().compareTo("6")==0) ? "nitfol" : "frotz";
 	}
 
 	private void openGame() {
-		//Log.d(TAG,"openGame "+mGameIfid+" "+mFilePath);
-
 		Intent intent = new Intent(Intent.ACTION_VIEW, 
-								   Uri.parse(mFilePath), 
+								   Uri.parse(mGameFile.getAbsolutePath()), 
 								   this, 
 								   Interpreter.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-		intent.putExtra("terp", getTerp(mFilePath));
+		intent.putExtra("terp", getTerp());
 		intent.putExtra("ifid", mGameIfid);
 		intent.putExtra("loadBookmark", true);
 		startActivity(intent);

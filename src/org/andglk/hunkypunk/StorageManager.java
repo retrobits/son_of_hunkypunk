@@ -105,13 +105,11 @@ public class StorageManager {
 						|| f.getName().matches(".*\\.t3$")
 
 						/* glulx */
-/* todo:
 						|| f.getName().matches(".*\\.blorb$")
 						|| f.getName().matches(".*\\.gblorb$")
 						|| f.getName().matches(".*\\.blb$")
 						|| f.getName().matches(".*\\.glb$")
 						|| f.getName().matches(".*\\.ulx$")
-*/
 						)
 						checkFile(f);
 				} catch (IOException e) {

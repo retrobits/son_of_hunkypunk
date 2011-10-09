@@ -33,6 +33,7 @@
     shown above.
 */
 
+#include <jni.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,8 +69,35 @@ fileref_t *gli_new_fileref(const char *filename, glui32 usage, glui32 rock)
     fref->magicnum = MAGIC_FILEREF_NUM;
     fref->rock = rock;
 
-    fref->filename = malloc(1 + strlen(filename));
-    strcpy(fref->filename, filename);
+	extern jclass _class;
+	extern jobject _this;
+	JNIEnv *JNU_GetEnv();
+
+	JNIEnv *env = JNU_GetEnv();
+	static jmethodID mid = 0;
+	if (mid == 0)
+		mid = (*env)->GetMethodID(env, _class, "sanitizePath", "(Ljava/lang/String;)Ljava/lang/String;");
+
+	int len = strlen(filename);
+	jchar buf[len];
+	const char *it = filename;
+	jchar *jt = buf;
+	while (jt - buf < len)
+		*(jt++) = *(it++);
+
+	LOGD("gli_new_fileref.1");
+
+	jstring jstr = (*env)->NewString(env, buf, len);
+	jstring result = (*env)->CallObjectMethod(env, _this, mid, jstr);
+	LOGD("gli_new_fileref.3");
+
+	const char* copy_filePath = (*env)->GetStringUTFChars(env, result, 0);
+
+    fref->filename = malloc(1 + strlen(copy_filePath));
+    strcpy(fref->filename, copy_filePath);
+
+	(*env)->ReleaseStringUTFChars(env, result, copy_filePath);	
+	(*env)->DeleteLocalRef(env, jstr);
 
     fref->textmode = ((usage & fileusage_TextMode) != 0);
     fref->filetype = (usage & fileusage_TypeMask);

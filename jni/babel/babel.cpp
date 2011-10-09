@@ -53,11 +53,8 @@ extern "C" jstring Java_org_andglk_babel_Babel_examine(JNIEnv *env, jclass cls, 
 		tads2_treaty(GET_STORY_FILE_IFID_SEL, sf, sl, ifid_buffer, IFID_BUFLEN);
 	else if (tads3_treaty(CLAIM_STORY_FILE_SEL, sf, sl, 0, 0) == VALID_STORY_FILE_RV)
 		tads3_treaty(GET_STORY_FILE_IFID_SEL, sf, sl, ifid_buffer, IFID_BUFLEN);
-
-	/* todo: glulx support
 	else if (glulx_treaty(CLAIM_STORY_FILE_SEL, sf, sl, 0, 0) == VALID_STORY_FILE_RV)
 		glulx_treaty(GET_STORY_FILE_IFID_SEL, sf, sl, ifid_buffer, IFID_BUFLEN);
-	*/
 	
 	babel_release();
 

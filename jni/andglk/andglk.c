@@ -31,14 +31,19 @@
 
 #define TAG "andglk.c"
 
+extern jobject _this;
+extern jclass _class;
+
 /* these are OK to keep */
 static JavaVM *_jvm;
-static jclass _class, _Event, _LineInputEvent, _Window, _FileRef, _Stream, _PairWindow, _TextGridWindow,
+
+jclass _class;
+static jclass _Event, _LineInputEvent, _Window, _FileRef, _Stream, _PairWindow, _TextGridWindow,
 	_CharInputEvent, _ArrangeEvent, _MemoryStream, _CPointed, _ExitEvent, _AutoSaveEvent, _AutoRestoreEvent;
 static jmethodID _getRock, _getPointer, _getDispatchRock, _getDispatchClass;
 
 /* this should be nulled on exit */
-static jobject _this = 0;
+jobject _this = 0;
 static jmp_buf _quit_env;
 static char* gidispatch_char_array = "&+#!Cn";
 
@@ -861,6 +866,7 @@ glsi32 glk_get_char_stream(strid_t str)
 
 glui32 glk_get_line_stream(strid_t str, char *buf, glui32 len)
 {
+	LOGD("glk_get_line_stream.0");
 	int count = 0;
 
 	if (!str)
@@ -985,7 +991,10 @@ frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
 
 static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 {
+	LOGD("event2glk.0");
+
 	if (!ev) {
+		LOGD("event2glk.1.bail");
 		event->win = NULL;
 		event->val1 = event->val2 = event->type = 0;
 		return;
@@ -998,6 +1007,7 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 	event->win = (winid_t) (*env)->GetIntField(env, ev, window);
 
 	if ((*env)->IsInstanceOf(env, ev, _LineInputEvent)) {
+		LOGD("event2glk.2.lineinput");
 		event->type = evtype_LineInput;
 		{
 			static jfieldID line_id = 0, buf_id, len_id, rock_id;
@@ -1026,6 +1036,7 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 			event->val2 = 0;
 		}
 	} else if ((*env)->IsInstanceOf(env, ev, _CharInputEvent)) {
+		LOGD("event2glk.2.charinput");
 		event->type = evtype_CharInput;
 		{
 			static jfieldID char_id = 0;
@@ -1039,11 +1050,13 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 		event->type = evtype_Arrange;
 		event->val1 = event->val2 = 0;
 	} else if ((*env)->IsInstanceOf(env, ev, _ExitEvent)) {
+		LOGD("event2glk.2.exitevent");
 		if (andglk_exit_hook) 
 			andglk_exit_hook();
 		else
 			glk_exit();
 	} else if ((*env)->IsInstanceOf(env, ev, _AutoSaveEvent) && andglk_set_autosave_hook) {
+		LOGD("event2glk.2.autosaveevent");
 		jfieldID fileName_id = (*env)->GetFieldID(env, _AutoSaveEvent, "FileName", "Ljava/lang/String;");
 		char* fileName = (*env)->GetObjectField(env, ev, fileName_id);
 		const char* copy_fileName = (*env)->GetStringUTFChars(env, fileName, 0);
@@ -1066,6 +1079,7 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 
 void glk_select(event_t *event)
 {
+	LOGD("glk_select.0");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
@@ -1103,6 +1117,7 @@ void glk_request_line_event_uni(winid_t win, char *buf, glui32 maxlen, glui32 in
 
 void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initlen)
 {
+	LOGD("glk_request_line_event.0");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 
@@ -1137,6 +1152,7 @@ void glk_request_char_event_uni(winid_t win)
 
 void glk_request_char_event(winid_t win)
 {
+	LOGD("glk_request_char_event.0");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)

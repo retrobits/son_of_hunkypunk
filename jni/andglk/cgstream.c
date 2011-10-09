@@ -177,6 +177,7 @@ stream_t *gli_stream_open_file(frefid_t fref, glui32 fmode,
 
   if (fmode == filemode_ReadWrite || fmode == filemode_WriteAppend)
   {
+    LOGD("gli_stream_open_file (ab) %s",fref->filename);
     fl = fopen(fref->filename, "ab");
     if (!fl)
     {
@@ -208,6 +209,7 @@ stream_t *gli_stream_open_file(frefid_t fref, glui32 fmode,
   if (!fref->textmode)
     strcat(modestr, "b");
 
+  LOGD("gli_stream_open_file (%s) %s",modestr,fref->filename);
   fl = fopen(fref->filename, modestr);
   if (!fl)
   {
@@ -247,6 +249,7 @@ stream_t *gli_stream_open_pathname(const char *pathname, int textmode, glui32 ro
   if (!textmode)
     strcat(modestr, "b");
 
+  LOGD("gli_stream_open_pathname (%s) %s",modestr,pathname);
   fl = fopen(pathname, modestr);
   if (!fl)
     return 0;
