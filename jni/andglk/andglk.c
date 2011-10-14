@@ -131,6 +131,26 @@ static glui32 jstring2latin1(JNIEnv *env, jstring str, char *buf, glui32 maxlen)
 	return len;
 }
 
+static glui32 jstring2latin1_uni(JNIEnv *env, jstring str, glui32 *buf, glui32 maxlen)
+{
+	glui32 len = (*env)->GetStringLength(env, str);
+	if (len > maxlen)
+		len = maxlen;
+
+	const jchar * jbuf = (*env)->GetStringChars(env, str, NULL);
+	if (!jbuf)
+		return 0;
+
+	int i;
+	for (i = 0; i < len; ++i)
+		buf[i] = jbuf[i];
+
+	(*env)->ReleaseStringChars(env, str, jbuf);
+	return len;
+}
+
+
+
 void andglk_loader_glk_main(JavaVM* jvm, JNIEnv *env, jobject this, const char* saveFilePath, glkunix_startup_t* startdata)
 {
 	LOGD("andglk_loader_glk_main.0");
@@ -717,26 +737,22 @@ strid_t glk_stream_get_current(void)
 	return gli_stream_get_current();
 }
 
-/*
-void glk_put_char_uni(unsigned char ch)
+void glk_put_char_uni(glui32 ch)
 {
-	// @@@ todo
-	glk_put_char(ch);
+	unsigned char lilch = (unsigned char)ch;
+	glk_put_char(lilch);
 }
-*/
 
 void glk_put_char(unsigned char ch)
 {
 	glk_put_char_stream(glk_stream_get_current(), ch);
 }
 
-/*
-void glk_put_char_stream_uni(strid_t str, unsigned char ch)
+void glk_put_char_stream_uni(strid_t str, glui32 ch)
 {
-	// @@@ todo
-	glk_put_char_stream(str,ch);
+	unsigned char lilch = (unsigned char)ch;
+	glk_put_char_stream(str, lilch);
 }
-*/
 
 void glk_put_char_stream(strid_t str, unsigned char ch)
 {
@@ -772,13 +788,18 @@ void glk_put_string_stream(strid_t str, char *s)
 	glk_put_buffer_stream(str, s, strlen(s));
 }
 
-/*
-void glk_put_buffer_uni(char *s, glui32 len)
+void glk_put_buffer_uni(glui32 *buf, glui32 len)
 {
-	// @@@ todo
-	glk_put_buffer_uni(s, len);
+	char chbuf[len+1];
+
+	glui32 *it = buf;
+	char *jt = &chbuf[0];
+	while (jt - chbuf < len)
+		*(jt++) = (char)(*(it++));
+	*jt = '\0';
+
+	glk_put_buffer(&chbuf[0], len);
 }
-*/
 
 void glk_put_buffer(char *s, glui32 len)
 {
@@ -1010,26 +1031,38 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 		LOGD("event2glk.2.lineinput");
 		event->type = evtype_LineInput;
 		{
-			static jfieldID line_id = 0, buf_id, len_id, rock_id;
+			static jfieldID line_id = 0, buf_id, len_id, rock_id, unicode_id;
 			if (0 == line_id) {
 				line_id = (*env)->GetFieldID(env, _LineInputEvent, "line", "Ljava/lang/String;");
 				buf_id = (*env)->GetFieldID(env, _LineInputEvent, "buffer", "I");
 				len_id = (*env)->GetFieldID(env, _LineInputEvent, "len", "J");
 				rock_id = (*env)->GetFieldID(env, _LineInputEvent, "rock", "I");
+				unicode_id = (*env)->GetFieldID(env, _LineInputEvent, "unicode", "I");
 			}
 
 			jstring line = (*env)->GetObjectField(env, ev, line_id);
-			char * buf = (char *) (*env)->GetIntField(env, ev, buf_id);
 			jlong len = (*env)->GetLongField(env, ev, len_id);
+			jlong unicode = (*env)->GetIntField(env, ev, unicode_id);
 			
 			gidispatch_rock_t rock;
 			rock.num = (*env)->GetIntField(env, ev, rock_id);
-			event->val1 = jstring2latin1(env, line, buf, len);
-			if (event->val1 != len)
-				buf[event->val1] = 0;
 
-			if (gli_unregister_arr)
-				gli_unregister_arr(buf, len, gidispatch_char_array, rock); //INT2GDROCK(rock));
+			if (unicode) {
+				glui32 * buf = (glui32 *) (*env)->GetIntField(env, ev, buf_id);
+				event->val1 = jstring2latin1_uni(env, line, buf, len);
+				if (event->val1 != len)
+					buf[event->val1] = 0;
+				if (gli_unregister_arr)
+					gli_unregister_arr(buf, len, gidispatch_char_array, rock); //INT2GDROCK(rock));
+			}
+			else {
+				char * buf = (char *) (*env)->GetIntField(env, ev, buf_id);
+				event->val1 = jstring2latin1(env, line, buf, len);
+				if (event->val1 != len)
+					buf[event->val1] = 0;
+				if (gli_unregister_arr)
+					gli_unregister_arr(buf, len, gidispatch_char_array, rock); //INT2GDROCK(rock));
+			}
 
 			(*env)->DeleteLocalRef(env, line);
 
@@ -1107,48 +1140,56 @@ void glk_request_timer_events(glui32 millisecs)
 	/* TODO */
 }
 
-/*
-void glk_request_line_event_uni(winid_t win, char *buf, glui32 maxlen, glui32 initlen)
-{
-	// @@@ todo
-	glk_request_line_event(win, buf, maxlen, initlen);
-}
-*/
-
-void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initlen)
+void gli_request_line_event(winid_t win, void *buf, glui32 maxlen, glui32 initlen, glui32 unicode)
 {
 	LOGD("glk_request_line_event.0");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "requestLineEvent", "(Ljava/lang/String;JI)V");
+		mid = (*env)->GetMethodID(env, _Window, "requestLineEvent", "(Ljava/lang/String;JII)V");
 
 	jstring str = 0;
 	jchar jbuf[initlen];
 
 	if (initlen > 0) {
-		char *it = buf;
-		jchar *jt = jbuf;
-		while (jt - jbuf < initlen)
-			*(jt++) = *(it++);
+
+		if (unicode) {
+			glui32 *it = buf;
+			jchar *jt = jbuf;
+			while (jt - jbuf < initlen)
+				*(jt++) = *(it++);
+		} else {
+			char *it = buf;
+			jchar *jt = jbuf;
+			while (jt - jbuf < initlen)
+				*(jt++) = *(it++);
+		}
 
 		str = (*env)->NewString(env, jbuf, maxlen);
 	}
 
-	(*env)->CallVoidMethod(env, *win, mid, str, (jlong) maxlen, (jint) buf);
+	(*env)->CallVoidMethod(env, *win, mid, str, (jlong) maxlen, (jint) buf, (jint) unicode);
 
 	if (str)
 		(*env)->DeleteLocalRef(env, str);
 }
 
-/*
+void glk_request_line_event_uni(winid_t win, glui32 *buf, glui32 maxlen, glui32 initlen)
+{
+	gli_request_line_event(win, buf, maxlen, initlen, 1);
+}
+
+void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initlen)
+{
+	gli_request_line_event(win, buf, maxlen, initlen, 0);
+}
+
+
 void glk_request_char_event_uni(winid_t win)
 {
-	// @@@ todo
 	glk_request_char_event(win);
 }
-*/
 
 void glk_request_char_event(winid_t win)
 {

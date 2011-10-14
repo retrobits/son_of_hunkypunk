@@ -1,7 +1,15 @@
 /* glkstart.h: Unix-specific header file for GlkTerm, CheapGlk, and XGlk
         (Unix implementations of the Glk API).
-    Designed by Andrew Plotkin <erkyrath@netcom.com>
+    Designed by Andrew Plotkin <erkyrath@eblong.com>
     http://www.eblong.com/zarf/glk/index.html
+
+    This file is copyright 1998-2004 by Andrew Plotkin. You may copy,
+    distribute, and incorporate it into your own programs, by any means
+    and under any conditions, as long as you do not modify it. You may
+    also modify this file, incorporate it into your own programs,
+    and distribute the modified version, as long as you retain a notice
+    in your program or documentation which mentions my name and the URL
+    shown above.
 */
 
 /* This header defines an interface that must be used by program linked
@@ -15,10 +23,6 @@
 
 #ifndef GT_START_H
 #define GT_START_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* We define our own TRUE and FALSE and NULL, because ANSI
     is a strange world. */
@@ -49,24 +53,12 @@ typedef struct glkunix_startup_struct {
     char **argv;
 } glkunix_startup_t;
 
-/* The list of command-line arguments; this should be defined in your code. */
 extern glkunix_argumentlist_t glkunix_arguments[];
 
-/* The external function; this should be defined in your code. */
 extern int glkunix_startup_code(glkunix_startup_t *data);
 
-/* Some helpful utility functions which the library makes available
-   to your code. Obviously, this is nonportable; so you should
-   only call it from glkunix_startup_code().
-*/
+extern void glkunix_set_base_file(char *filename);
 extern strid_t glkunix_stream_open_pathname(const char *pathname, glui32 textmode, 
   glui32 rock);
-extern strid_t glkunix_stream_openw_pathname(const char *pathname, glui32 textmode, 
-  glui32 rock);
-
-#ifdef __cplusplus
-}
-#endif
-
 #endif /* GT_START_H */
 

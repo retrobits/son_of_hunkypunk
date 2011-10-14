@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
 #include "frotz.h"
@@ -30,8 +30,6 @@
 #define EFFECT_FINISH_WITH 4
 
 extern int direct_call (zword);
-
-static zword routine = 0;
 
 static int next_sample = 0;
 static int next_volume = 0;
@@ -75,7 +73,6 @@ static void start_sample (int number, int volume, int repeats, zword eos)
 
     os_start_sample (number, volume, repeats, eos);
 
-    routine = eos;
     playing = TRUE;
 
 }/* start_sample */
@@ -109,7 +106,7 @@ static void start_next_sample (void)
  *
  */
 
-void end_of_sound (void)
+void end_of_sound (zword routine)
 {
 
 #if defined(DJGPP) && defined(SOUND_SUPPORT)
@@ -148,9 +145,8 @@ void z_sound_effect (void)
     zword effect = zargs[1];
     zword volume = zargs[2];
 
-    /* By default play sound 1 at volume 8 */
     if (zargc < 1)
-	number = 1;
+	number = 0;
     if (zargc < 2)
 	effect = EFFECT_PLAY;
     if (zargc < 3)

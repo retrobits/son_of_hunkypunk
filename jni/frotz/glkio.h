@@ -47,6 +47,8 @@ typedef struct glk_stream_struct FILE;
 #define fprintf(f,s,a)  (glk_put_string_stream(f, a), 0)
 #undef fputc
 #define fputc(c, f)     (glk_put_char_stream(f, (unsigned char)(c)), 0)
+#undef fputwc
+#define fputwc(c, f)    (glk_put_char_stream_uni(f, (zchar)(c)), 0);
 #undef fputs
 #define fputs(s, f)     (glk_put_buffer_stream(f, s, strlen(s)), 0)
 #undef ftell
@@ -63,5 +65,5 @@ typedef struct glk_stream_struct FILE;
 
 FILE *frotzopenprompt(int flag);
 FILE *frotzopenpath(char *filepath, int flag);
+FILE *frotzreopen(int flag);
 FILE *frotzopen(char *filename, int flag);
-

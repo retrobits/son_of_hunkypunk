@@ -201,6 +201,7 @@ public class TextBufferWindow extends Window {
 	private int mLineEventBuffer;
 	private long mLineEventBufferLength;
 	private int mLineEventBufferRock;
+	private boolean mUnicodeEvent = false;
 
 	private class _View extends TextView implements OnEditorActionListener {
 		public class _MovementMethod implements MovementMethod {
@@ -807,7 +808,7 @@ public class TextBufferWindow extends Window {
 		}
 		
 		LineInputEvent lie = new LineInputEvent(this, result, mLineEventBuffer, 
-				mLineEventBufferLength, mLineEventBufferRock);
+												mLineEventBufferLength, mLineEventBufferRock, mUnicodeEvent);
 		mLineEventBufferLength = mLineEventBuffer = mLineEventBufferRock = 0;
 		mGlk.postEvent(lie);
 	}
@@ -884,13 +885,14 @@ public class TextBufferWindow extends Window {
 	}
 
 	@Override
-	public void requestLineEvent(final String initial, long maxlen, int buffer) {
+		public void requestLineEvent(final String initial, long maxlen, int buffer, int unicode) {
 		flush();
 		
 		mLineEventBuffer = buffer;
 		mLineEventBufferLength = maxlen;
 		mLineEventBufferRock = retainVmArray(buffer, maxlen);
-		
+		mUnicodeEvent = (unicode != 0);
+
 		mHandler.post(new Runnable() {
 			@Override
 			public void run() {

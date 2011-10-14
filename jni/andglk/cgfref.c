@@ -273,6 +273,61 @@ frefid_t glk_fileref_create_by_name(glui32 usage, const char *name,
     return fref;
 }
 
+#ifndef ANDGLK
+frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
+{
+    fileref_t *fref;
+    char buf[256];
+    int val, filter;
+    char *prompt;
+
+    strcpy(buf, "");
+
+    switch (usage & fileusage_TypeMask)
+    {
+        case fileusage_SavedGame:
+            prompt = "Saved game";
+            filter = FILTER_SAVE;
+            break;
+        case fileusage_Transcript:
+            prompt = "Transcript file";
+            filter = FILTER_TEXT;
+            break;
+        case fileusage_InputRecord:
+            prompt = "Command record file";
+            filter = FILTER_TEXT;
+            break;
+        case fileusage_Data:
+        default:
+            prompt = "Data file";
+            filter = FILTER_ALL;
+            break;
+    }
+
+    if (fmode == filemode_Read)
+        winopenfile(prompt, buf, sizeof buf, filter);
+    else
+        winsavefile(prompt, buf, sizeof buf, filter);
+
+    val = strlen(buf);
+    if (!val)
+    {
+        /* The player just hit return. It would be nice to provide a
+            default value, but this implementation is too cheap. */
+        return NULL;
+    }
+
+    fref = gli_new_fileref(buf, usage, rock);
+    if (!fref)
+    {
+        gli_strict_warning("fileref_create_by_prompt: unable to create fileref.");
+        return NULL;
+    }
+
+    return fref;
+}
+#endif
+
 frefid_t glk_fileref_iterate(fileref_t *fref, glui32 *rock)
 {
     if (!fref)

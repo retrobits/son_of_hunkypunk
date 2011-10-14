@@ -21,9 +21,18 @@ package org.andglk.glk;
 
 import java.io.IOException;
 
+	/* todo :
+	  change const public MemoryStream(int cBuffer, int[] buffer, int mode, int rock)
+	  (move copy of bytes to native side non-unicode stream open)
+	  private native void writeOutUni(int buffer, int[] buffer2)
+	  protected int[] doGetBufferUni(int maxLen) throws IOException
+	  protected void doPutChar(int c) throws IOException
+	  protected void doClose() throws IOException -> check for unicode call writeOut or writeOutUni
+	*/
+
 public class MemoryStream extends Stream {
 	private final int mCBuffer;
-	private final byte[] mBuffer;
+	private final int[] mBuffer;
 	private final int mMode;
 	private int mPos;
 	private int mDispatchRock;
@@ -31,7 +40,9 @@ public class MemoryStream extends Stream {
 	public MemoryStream(int cBuffer, byte[] buffer, int mode, int rock) {
 		super(rock);
 		mCBuffer = cBuffer;
-		mBuffer = buffer;
+		mBuffer = new int[buffer.length];
+		for (int i = 0; i< buffer.length; i++)
+			mBuffer[i] = buffer[i];
 		mMode = mode;
 		mPos = 0;
 		if (mode != FileRef.FILEMODE_READ && cBuffer != 0) // we already copied it
@@ -42,7 +53,12 @@ public class MemoryStream extends Stream {
 	@Override
 	protected void doClose() throws IOException {
 		if (mMode != FileRef.FILEMODE_READ && mCBuffer != 0) {
-			writeOut(mCBuffer, mBuffer);
+
+			byte[] buf = new byte[mBuffer.length];
+			for (int i = 0; i< mBuffer.length; i++)
+				buf[i] = (byte)mBuffer[i];
+
+			writeOut(mCBuffer, buf);
 			releaseVmArray(mCBuffer, mBuffer.length, mDispatchRock);
 		}
 	}
@@ -62,7 +78,7 @@ public class MemoryStream extends Stream {
 		
 		byte[] result = new byte[end - mPos];
 		for (int i = 0; mPos != end; mPos++)
-			result[i++] = mBuffer[mPos];
+			result[i++] = (byte)mBuffer[mPos];
 		
 		return result;
 	}
@@ -89,7 +105,7 @@ public class MemoryStream extends Stream {
 		
 		byte[] result = new byte[end - mPos];
 		for (int i = 0; mPos != end; mPos++)
-			if ((result[i++] = mBuffer[mPos]) == '\n')
+			if ((result[i++] = (byte)mBuffer[mPos]) == '\n')
 				break;
 		
 		return new String(result);

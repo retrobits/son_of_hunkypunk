@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
 #include "frotz.h"
@@ -23,6 +23,7 @@
 #ifdef DJGPP
 #include "djfrotz.h"
 #endif
+
 
 zword zargs[8];
 int zargc;
@@ -137,7 +138,7 @@ void (*var_opcodes[0x40]) (void) = {
     z_check_arg_count
 };
 
-void (*ext_opcodes[0x1d]) (void) = {
+void (*ext_opcodes[0x1e]) (void) = {
     z_save,
     z_restore,
     z_log_shift,
@@ -151,7 +152,7 @@ void (*ext_opcodes[0x1d]) (void) = {
     z_restore_undo,
     z_print_unicode,
     z_check_unicode,
-    __illegal__,
+    z_set_true_colour, /* spec 1.1 */
     __illegal__,
     __illegal__,
     __illegal__, // glkify - z_move_window,
@@ -167,20 +168,21 @@ void (*ext_opcodes[0x1d]) (void) = {
     z_print_form,
     z_make_menu,
     __illegal__, // glkify - z_picture_table
+    z_buffer_screen, /* spec 1.1 */
 };
 
 
 /*
- * init_process
+ * init_proc
  *
  * Initialize process variables.
  *
  */
 
-void init_process (void)
+void init_proc (void)
 {
     finished = 0;
-} /* init_process */
+} /* init_proc */
 
 
 /*
@@ -253,6 +255,7 @@ static void load_all_operands (zbyte specifier)
  * Z-code interpreter main loop
  *
  */
+
 void interpret (void)
 {
     do {
@@ -365,7 +368,7 @@ void call (zword routine, int argc, zword *args, int ct)
     *--sp = (zword) (pc >> 9);
     *--sp = (zword) (pc & 0x1ff);
     *--sp = (zword) (fp - stack - 1);
-    *--sp = (zword) (argc | (ct << (f_setup.save_quetzal ? 12 : 8)));
+    *--sp = (zword) (argc | (ct << (option_save_quetzal ? 12 : 8)));
 
     fp = sp;
     frame_count++;
@@ -378,8 +381,12 @@ void call (zword routine, int argc, zword *args, int ct)
 	pc = (long) routine << 2;
     else if (h_version <= V7)
 	pc = ((long) routine << 2) + ((long) h_functions_offset << 3);
-    else /* h_version == V8 */
+    else if (h_version <= V8)
 	pc = (long) routine << 3;
+    else /* h_version == V9 */ {
+	long indirect = (long) routine << 2;
+	HIGH_LONG(indirect, pc);
+     }
 
     if (pc >= story_size)
 	runtime_error (ERR_ILL_CALL_ADDR);
@@ -395,7 +402,7 @@ void call (zword routine, int argc, zword *args, int ct)
     if (sp - stack < count)
 	runtime_error (ERR_STK_OVF);
 
-    if (f_setup.save_quetzal)
+    if (option_save_quetzal)
 	fp[0] |= (zword) count << 8;	/* Save local var count for Quetzal. */
 
     value = 0;
@@ -436,7 +443,7 @@ void ret (zword value)
 
     sp = fp;
 
-    ct = *sp++ >> (f_setup.save_quetzal ? 12 : 8);
+    ct = *sp++ >> (option_save_quetzal ? 12 : 8);
     frame_count--;
     fp = stack + 1 + *sp++;
     pc = *sp++;
@@ -601,7 +608,7 @@ static void __extended__ (void)
 
     load_all_operands (specifier);
 
-    if (opcode < 0x1d)			/* extended opcodes from 0x1d on */
+    if (opcode < 0x1e)			/* extended opcodes from 0x1e on */
 	ext_opcodes[opcode] ();		/* are reserved for future spec' */
 
 }/* __extended__ */
@@ -630,7 +637,7 @@ static void __illegal__ (void)
 void z_catch (void)
 {
 
-    store (f_setup.save_quetzal ? frame_count : (zword) (fp - stack));
+    store (option_save_quetzal ? frame_count : (zword) (fp - stack));
 
 }/* z_catch */
 
@@ -645,7 +652,7 @@ void z_catch (void)
 void z_throw (void)
 {
 
-    if (f_setup.save_quetzal) {
+    if (option_save_quetzal) {
 	if (zargs[1] > frame_count)
 	    runtime_error (ERR_BAD_FRAME);
 

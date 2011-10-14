@@ -23,7 +23,7 @@
 
 /*
  * Private header file for the Gargoyle Implementation of the Glk API.
- * Glk API which this implements: version 0.7.1.
+ * Glk API which this implements: version 0.7.3.
  * Glk designed by Andrew Plotkin <erkyrath@eblong.com>
  * http://www.eblong.com/zarf/glk/index.html
  */
@@ -327,6 +327,7 @@ struct glk_stream_struct
 
     /* for strtype_File */
     FILE *file;
+    glui32 lastop; /* 0, filemode_Write, or filemode_Read */
     int textfile;
 
     /* for strtype_Memory */
@@ -346,9 +347,7 @@ struct glk_stream_struct
     gidispatch_rock_t arrayrock;
 
     gidispatch_rock_t disprock;
-
     stream_t *next, *prev; /* in the big linked list of streams */
-
 };
 
 struct glk_fileref_struct
@@ -571,6 +570,7 @@ extern void gli_speak_tts(char *buf, int len, int interrupt);
 /*
  * All the annoyingly boring and tedious prototypes...
  */
+
 extern window_blank_t *win_blank_create(window_t *win);
 extern void win_blank_destroy(window_blank_t *dwin);
 extern void win_blank_rearrange(window_t *win, rect_t *box);
@@ -692,9 +692,7 @@ void winopenfile(char *prompt, char *buf, int buflen, int filter);
 void winsavefile(char *prompt, char *buf, int buflen, int filter);
 void winexit(void);
 void winclipstore(glui32 *text, int len);
-#ifdef GLK_MODULE_DATETIME
 void wincounter(glktimeval_t *time);
-#endif
 
 void fontreplace(char *font, int type);
 void fontload(void);

@@ -24,12 +24,14 @@ public class LineInputEvent extends Event {
 	public int buffer;
 	public long len;
 	public int rock;
+	public int unicode;
 
-	public LineInputEvent(Window w, String s, int lineBuffer, long maxLen, int dispatchRock) {
+	public LineInputEvent(Window w, String s, int lineBuffer, long maxLen, int dispatchRock, boolean unicode) {
 		super(w);
 		line = s;
 		buffer = lineBuffer;
 		len = maxLen;
 		rock = dispatchRock; 
+		this.unicode = unicode ? 1:0;
 	}
 }

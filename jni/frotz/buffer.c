@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
 #include "frotz.h"
@@ -27,6 +27,7 @@ extern void stream_new_line (void);
 
 static zchar buffer[TEXT_BUFFER_SIZE];
 static int bufpos = 0;
+static bool locked = FALSE;
 
 static zchar prev_c = 0;
 
@@ -39,7 +40,6 @@ static zchar prev_c = 0;
 
 void flush_buffer (void)
 {
-    static bool locked = FALSE;
 
     /* Make sure we stop when flush_buffer is called from flush_buffer.
        Note that this is difficult to avoid as we might print a newline
@@ -149,5 +149,6 @@ void init_buffer(void)
     memset(buffer, 0, sizeof (zchar) * TEXT_BUFFER_SIZE);
     bufpos = 0;
     prev_c = 0;
+    locked = FALSE;
 }
 

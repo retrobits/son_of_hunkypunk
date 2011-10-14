@@ -113,7 +113,7 @@ public abstract class Window extends CPointed {
 		mStream.putString(str);
 	}
 	
-	public abstract void requestLineEvent(String initial, long maxlen, int buffer);
+	public abstract void requestLineEvent(String initial, long maxlen, int buffer, int unicode);
 	protected native int retainVmArray(int buffer, long length);
 	/* release is in the C function to convert event since we can't release 
 	 * until we've copied it back

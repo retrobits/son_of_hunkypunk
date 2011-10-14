@@ -51,29 +51,37 @@ char gli_story_title[256] = "";
 
 void garglk_set_program_name(const char *name)
 {
+#ifndef ANDGLK /* todo */
     strncpy(gli_program_name, name, sizeof gli_program_name);
     gli_program_name[sizeof gli_program_name-1] = 0;
     wintitle();
+#endif
 }
 
 void garglk_set_program_info(const char *info)
 {
+#ifndef ANDGLK /* todo */
     strncpy(gli_program_info, info, sizeof gli_program_info);
     gli_program_info[sizeof gli_program_info-1] = 0;
+#endif
 }
 
 void garglk_set_story_name(const char *name)
 {
+#ifndef ANDGLK /* todo */
     strncpy(gli_story_name, name, sizeof gli_story_name);
     gli_story_name[sizeof gli_story_name-1] = 0;
     wintitle();
+#endif
 }
 
 void garglk_set_story_title(const char *title)
 {
+#ifndef ANDGLK /* todo */
     strncpy(gli_story_title, title, sizeof gli_story_title);
     gli_story_title[sizeof gli_story_title-1] = 0;
     wintitle();
+#endif
 }
 
 gidispatch_rock_t (*gli_register_obj)(void *obj, glui32 objclass) = NULL;
@@ -117,6 +125,36 @@ void gli_initialize_misc()
 
 }
 
+#ifndef ANDGLK
+void glk_exit()
+{
+    event_t event;
+
+    garglk_set_story_title("[ press any key to exit ]");
+
+    gli_terminated = 1;
+
+    /* wait for gli_handle_input_key to exit() */
+    while (1)
+        glk_select(&event);
+}
+
+void glk_set_interrupt_handler(void (*func)(void))
+{
+    /* This cheap library doesn't understand interrupts. */
+}
+
+unsigned char glk_char_to_lower(unsigned char ch)
+{
+    return char_tolower_table[ch];
+}
+
+unsigned char glk_char_to_upper(unsigned char ch)
+{
+    return char_toupper_table[ch];
+}
+#endif
+
 void gidispatch_set_object_registry(
     gidispatch_rock_t (*regi)(void *obj, glui32 objclass), 
     void (*unregi)(void *obj, glui32 objclass, gidispatch_rock_t objrock))
@@ -136,8 +174,8 @@ void gidispatch_set_object_registry(
 			 win;
 			 win = glk_window_iterate(win, NULL))
         {
-            //win->disprock = @@@ todo
-			//(*gli_register_obj)(win, gidisp_Class_Window);
+			/* todo */
+            //win->disprock = (*gli_register_obj)(win, gidisp_Class_Window);
         }
         for (str = glk_stream_iterate(NULL, NULL); 
             str;
@@ -163,3 +201,25 @@ void gidispatch_set_retained_registry(
     gli_unregister_arr = unregi;
 }
 
+#ifndef ANDGLK
+gidispatch_rock_t gidispatch_get_objrock(void *obj, glui32 objclass)
+{
+    switch (objclass)
+    {
+        case gidisp_Class_Window:
+            return ((window_t *)obj)->disprock;
+        case gidisp_Class_Stream:
+            return ((stream_t *)obj)->disprock;
+        case gidisp_Class_Fileref:
+            return ((fileref_t *)obj)->disprock;
+        case gidisp_Class_Schannel:
+            return ((channel_t *)obj)->disprock;
+        default:
+        {
+            gidispatch_rock_t dummy;
+            dummy.num = 0;
+            return dummy;
+        }
+    }
+}
+#endif

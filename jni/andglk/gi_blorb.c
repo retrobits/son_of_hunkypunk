@@ -1,9 +1,9 @@
 /* gi_blorb.c: Blorb library layer for Glk API.
     gi_blorb version 1.4.
     Designed by Andrew Plotkin <erkyrath@eblong.com>
-    http://www.eblong.com/zarf/glk/index.html
+    http://eblong.com/zarf/glk/
 
-    This file is copyright 1998-2000 by Andrew Plotkin. You may copy,
+    This file is copyright 1998-2010 by Andrew Plotkin. You may copy,
     distribute, and incorporate it into your own programs, by any means
     and under any conditions, as long as you do not modify it. You may
     also modify this file, incorporate it into your own programs,
@@ -227,7 +227,6 @@ static giblorb_err_t giblorb_initialize_map(giblorb_map_t *map)
     giblorb_err_t err;
     char *ptr;
     glui32 len;
-    glui32 val;
     glui32 numres;
     int gotindex = FALSE; 
 
@@ -396,7 +395,6 @@ giblorb_err_t giblorb_load_chunk_by_number(giblorb_map_t *map,
             
         case giblorb_method_Memory:
             if (!chu->ptr) {
-                giblorb_err_t err;
                 glui32 readlen;
                 void *dat = giblorb_malloc(chu->len);
                 
@@ -515,7 +513,7 @@ static int sortsplot(giblorb_resdesc_t *v1, giblorb_resdesc_t *v2)
 
 static void giblorb_qsort(giblorb_resdesc_t **list, int len)
 {
-    int ix, jx, res, val;
+    int ix, jx, res;
     giblorb_resdesc_t *tmpptr, *pivot;
     
     if (len < 6) {
