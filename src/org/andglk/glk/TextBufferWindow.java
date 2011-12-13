@@ -19,6 +19,7 @@
 
 package org.andglk.glk;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,6 +29,7 @@ import org.andglk.hunkypunk.R;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -427,6 +429,20 @@ public class TextBufferWindow extends Window {
 
 		@Override
 		public boolean onPreDraw() {
+			if (FontPath == null || FontPath.compareTo(DefaultFontPath)!=0 || FontSize != DefaultFontSize) {
+				FontPath = DefaultFontPath;
+				FontSize = DefaultFontSize;
+				
+				Log.d("HunkyPunk","font: "+FontPath+" "+FontSize);
+
+				try {
+				Typeface tf = Typeface.createFromFile(FontPath);
+				setTypeface(tf); 
+				} catch (Exception ex) {}
+
+				setTextSize(FontSize);		
+			}
+
 			/* super method does strange things with cursor and scrolling here */
 			return true;
 		}
@@ -647,6 +663,7 @@ public class TextBufferWindow extends Window {
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+
 			setText("", BufferType.EDITABLE);
 			setMovementMethod(mMovementMethod = new _MovementMethod());
 			setInputType(0
@@ -782,8 +799,15 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
+	public static String DefaultFontPath = null;
+	public static int DefaultFontSize = 0;
+
+	public String FontPath = null;
+	public int FontSize = 0;
+
 	public TextBufferWindow(Glk glk, int rock) {
 		super(rock);
+
 		mGlk = glk;
 		mContext = glk.getContext();
 		mView = new _View(mContext);

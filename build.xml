@@ -2,8 +2,8 @@
 <project name="HunkyPunk" default="hunkypunk-debug">
 
     <property file="local.properties"/>
-    <property file="build.properties"/>
-    <property file="default.properties"/>
+    <property file="project.properties"/>
+    <property file="ant.properties"/>
 
     <target name="hunkypunk-release" depends="clean, jnilibs, release" />
 
@@ -23,7 +23,7 @@
         <exec executable="sh" 
 	      failonerror="true"
 	      dir=".">
-	      <arg value="${ndk-location}/ndk-build"/>
+	      <arg value="${ndk.dir}/ndk-build"/>
 		</exec>
 	</target>
 
@@ -113,19 +113,8 @@
 	    -optimizations !code/simplification/cast
        </proguard>
     </target>
+
+    <!-- version-tag: 1 -->
+    <import file="${sdk.dir}/tools/ant/build.xml" />
     
-    <path id="android.antlibs">
-        <pathelement path="${sdk-location}/tools/lib/anttasks.jar" />
-        <pathelement path="${sdk-location}/tools/lib/sdklib.jar" />
-        <pathelement path="${sdk-location}/tools/lib/androidprefs.jar" />
-        <pathelement path="${sdk-location}/tools/lib/apkbuilder.jar" />
-        <pathelement path="${sdk-location}/tools/lib/jarutils.jar" />
-    </path>
-
-    <taskdef name="setup"
-        classname="com.android.ant.SetupTask"
-        classpathref="android.antlibs"/>
-
-    <setup/>
-
 </project>

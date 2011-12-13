@@ -25,15 +25,15 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 
 public final class HunkyPunk {
+
 	public static final String AUTHORITY = "org.andglk.hunkypunk.HunkyPunk";
-	public static final File IF_DIRECTORY = new File("/sdcard/Interactive Fiction");
-	public static final File DATA_DIRECTORY = new File("/sdcard/Android/data/org.andglk.hunkypunk");
-	public static final File COVER_DIRECTORY = new File(DATA_DIRECTORY, "covers");
-	public static final Uri IF_DIRECTORY_URI = Uri.fromFile(IF_DIRECTORY);
+	public static final Uri IF_DIRECTORY_URI = Uri.fromFile(Paths.ifDirectory());
+
 	private HunkyPunk() {}
 	
 	public static final class Games implements BaseColumns {
 		private Games() {}
+
 		public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/games");
 		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.andglk.game";
 		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.andglk.game";
@@ -66,30 +66,13 @@ public final class HunkyPunk {
 	}
 
 	public static File getCover(String ifid) {
-		ensureDirectoryExists();
-		if (!COVER_DIRECTORY.exists())
-			COVER_DIRECTORY.mkdir();
-		return new File(COVER_DIRECTORY, ifid);
+		return new File(Paths.coverDirectory(), ifid);
 	}
 	
-	public static File getTranscriptDir() {
-		File f = new File(IF_DIRECTORY, "transcripts");
-		f.mkdir();
-		return f;
-	}
-
-	public static void ensureDirectoryExists() {
-		if (!IF_DIRECTORY.exists())
-			IF_DIRECTORY.mkdir();
-		if (!DATA_DIRECTORY.exists())
-			DATA_DIRECTORY.mkdir();
-	}
-
 	public static File getGameDataDir(Uri uri, String ifid) {
 		File fGame = new File(uri.getPath());
 
-		File fData = DATA_DIRECTORY;
-		if (!fData.exists()) fData.mkdir();
+		File fData = Paths.dataDirectory();
 
 		//search
 		String dirName = fGame.getName()+"."+ifid;
@@ -103,6 +86,4 @@ public final class HunkyPunk {
 		
 		return f;
 	}
-
-
 }

@@ -31,16 +31,22 @@ import org.andglk.glk.FileRef;
 import org.andglk.glk.FileStream;
 import org.andglk.glk.Glk;
 import org.andglk.glk.Window;
+import org.andglk.glk.TextBufferWindow;
 import org.andglk.hunkypunk.HunkyPunk;
 import org.andglk.hunkypunk.R;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 public class Interpreter extends Activity {
     private static final String TAG = "hunkypunk.Interpreter";
@@ -53,6 +59,8 @@ public class Interpreter extends Activity {
     	System.loadLibrary("andglk-loader");
 
     	setTheme(R.style.theme);
+		setFont();
+
         Intent i = getIntent();
         Uri uri = i.getData();
         String terp = i.getStringExtra("terp");
@@ -66,7 +74,7 @@ public class Interpreter extends Activity {
         setContentView(glk.getView());
 		glk.setAutoSave(getBookmark(), 0);
         glk.setSaveDir(saveDir);
-        glk.setTranscriptDir(HunkyPunk.getTranscriptDir()); // there goes separation, and so cheaply...
+        glk.setTranscriptDir(Paths.transcriptDirectory()); // there goes separation, and so cheaply...
 
 		ArrayList<String> args = new ArrayList<String>();
 		args.add(getFilesDir()+"/../lib/lib"+terp+".so");
@@ -86,6 +94,25 @@ public class Interpreter extends Activity {
         	loadBookmark();
     	glk.start();
     }
+
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		MenuInflater inflater = new MenuInflater(getApplication());
+		inflater.inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		Intent intent;
+		switch (item.getNumericShortcut()) {
+		case '1':
+			intent = new Intent(this, PreferencesActivity.class);
+			startActivity(intent);
+			break;
+		}
+		return super.onMenuItemSelected(featureId, item);
+	}
 
     private void loadBookmark() {
     	final File f = getBookmark(); 
@@ -153,6 +180,33 @@ public class Interpreter extends Activity {
     	super.onConfigurationChanged(newConfig);
     	glk.onConfigurationChanged(newConfig);
     }
+
+    @Override
+    protected void onResume() {
+    	super.onResume();
+		if (setFont()) glk.getView().invalidate();
+	}
+
+	private boolean setFont() {
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		
+		String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
+		String fontFile = prefs.getString("fontFileName", "");
+		String fontPath = new File(fontFolder, fontFile).getAbsolutePath();
+		int fontSize = 12;
+		try{
+			fontSize = Integer.parseInt(prefs.getString("fontSize", "12"));
+		}catch(Exception e){}
+
+		if (TextBufferWindow.DefaultFontPath == null 
+			|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0 
+			|| TextBufferWindow.DefaultFontSize != fontSize) {
+			TextBufferWindow.DefaultFontPath = fontPath;
+			TextBufferWindow.DefaultFontSize = fontSize;
+			return true;
+		}
+		return false;
+	}
     
     @Override
     protected void onPause() {
