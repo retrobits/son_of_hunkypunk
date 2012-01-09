@@ -4,7 +4,7 @@
 	  android:title="Font size"
 	  android:key="fontSize"
 	  android:summary="font size"
-	  android:defaultValue="12"
+	  android:defaultValue="14"
 	  android:entries="@array/fontSizeArray"
 	  android:entryValues="@array/fontSizeArray" />
   <EditTextPreference
@@ -12,9 +12,11 @@
 	  android:key="fontFolderPath" 
 	  android:summary="folder to store custom TTF font files"
 	  android:defaultValue="/sdcard/Fonts" />
-  <EditTextPreference
+  <ListPreference
 	  android:title="Font file name"
 	  android:key="fontFileName"
 	  android:summary="Custom TTF font file"
-	  android:defaultValue="Ubuntu-R.ttf"/>
+	  android:defaultValue="Droid Serif"
+	  android:entries="@array/fontNameArray"
+	  android:entryValues="@array/fontNameArray" />
 </PreferenceScreen>

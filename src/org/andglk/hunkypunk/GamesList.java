@@ -30,11 +30,13 @@ import org.andglk.glk.Utils;
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.andglk.ifdb.IFDb;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -42,6 +44,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -59,10 +64,14 @@ public class GamesList extends ListActivity implements OnClickListener {
 	};
 
 	protected static final String[] BEGINNER_GAMES = {
+		"http://mirror.ifarchive.org/if-archive/games/zcode/905.z5",
+		"http://mirror.ifarchive.org/if-archive/games/zcode/Advent.z5",
 		"http://mirror.ifarchive.org/if-archive/games/zcode/awaken.z5",
 		"http://mirror.ifarchive.org/if-archive/games/zcode/dreamhold.z8",
 		"http://mirror.ifarchive.org/if-archive/games/zcode/LostPig.z8",
 		"http://mirror.ifarchive.org/if-archive/games/zcode/shade.z5",
+		"http://mirror.ifarchive.org/if-archive/games/tads/indigo.t3",
+		"http://mirror.ifarchive.org/if-archive/games/zcode/Bronze.zblorb",
 		"http://mirror.ifarchive.org/if-archive/games/zcode/theatre.z5"
 	};
 
@@ -110,6 +119,34 @@ public class GamesList extends ListActivity implements OnClickListener {
 		findViewById(R.id.download_preselected).setOnClickListener(this);
 
 		startScan();
+	}
+
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		MenuInflater inflater = new MenuInflater(getApplication());
+		inflater.inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		Intent intent;
+		switch (item.getNumericShortcut()) {
+		case '1':
+			intent = new Intent(this, PreferencesActivity.class);
+			startActivity(intent);
+			break;
+		case '2':
+			AlertDialog builder;
+			try {
+				builder = AboutDialogBuilder.create(this);
+				builder.show();
+			} catch (NameNotFoundException e) {
+				e.printStackTrace();
+			}
+			break;
+		}
+		return super.onMenuItemSelected(featureId, item);
 	}
 	
 	@Override

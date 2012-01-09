@@ -432,14 +432,21 @@ public class TextBufferWindow extends Window {
 			if (FontPath == null || FontPath.compareTo(DefaultFontPath)!=0 || FontSize != DefaultFontSize) {
 				FontPath = DefaultFontPath;
 				FontSize = DefaultFontSize;
+
+				Typeface tf = Typeface.SERIF;
 				
-				Log.d("HunkyPunk","font: "+FontPath+" "+FontSize);
+				//Log.d("HunkyPunk","font: "+FontPath+" "+FontSize);
 
-				try {
-				Typeface tf = Typeface.createFromFile(FontPath);
-				setTypeface(tf); 
-				} catch (Exception ex) {}
-
+				if (FontPath.endsWith("ttf") || FontPath.endsWith("otf"))
+					try {
+						tf = Typeface.createFromFile(FontPath);
+					} catch (Exception ex) {}
+				else if (FontPath.endsWith("Droid Sans")) 
+					tf = Typeface.SANS_SERIF;
+				else if (FontPath.endsWith("Droid Mono")) 
+					tf = Typeface.MONOSPACE;
+				
+				if (tf != null) setTypeface(tf); 
 				setTextSize(FontSize);		
 			}
 

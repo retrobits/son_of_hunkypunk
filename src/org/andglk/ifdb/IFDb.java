@@ -361,7 +361,13 @@ public class IFDb {
 	}
 
 	private static URL urlOfIfid(String ifid) throws MalformedURLException {
-		return new URL(BASE_URL + ifid);
+
+		//HACK: fixup various ifdb errors here:
+		String hack_ifid = ifid;
+		if (hack_ifid.compareTo("ZCODE-88-840726")==0)
+			hack_ifid += "-A129";
+		
+		return new URL(BASE_URL + hack_ifid);
 	}
 
 	public void startLookup(final String ifid, final Handler lookupHandler) {

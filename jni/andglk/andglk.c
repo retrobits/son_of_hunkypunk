@@ -153,8 +153,6 @@ static glui32 jstring2latin1_uni(JNIEnv *env, jstring str, glui32 *buf, glui32 m
 
 void andglk_loader_glk_main(JavaVM* jvm, JNIEnv *env, jobject this, const char* saveFilePath, glkunix_startup_t* startdata)
 {
-	LOGD("andglk_loader_glk_main.0");
-
 	JNI_OnLoad(jvm, NULL);
 
    	if (_this) {
@@ -180,7 +178,6 @@ void andglk_loader_glk_main(JavaVM* jvm, JNIEnv *env, jobject this, const char* 
 			}
 		}
 	}
-	LOGD("andglk_loader_glk_main.99");
 }
 
 int andglk_loader_glk_MemoryStream_retainVmArray(JNIEnv *env, jobject this, int buffer, long length)
@@ -402,7 +399,7 @@ void glk_window_get_size(winid_t win, glui32 *widthptr, glui32 *heightptr)
 		if (heightptr) *heightptr = arr[1];
 		
 		// this has timing problems (need to wait for ui to be ready)
-		LOGD("glk_window_get_size w:%d h:%d",arr[0],arr[1]);
+		// LOGD("glk_window_get_size w:%d h:%d",arr[0],arr[1]);
 
 		(*env)->ReleaseIntArrayElements(env, res, arr, JNI_ABORT);
 		(*env)->DeleteLocalRef(env, res);
@@ -887,7 +884,6 @@ glsi32 glk_get_char_stream(strid_t str)
 
 glui32 glk_get_line_stream(strid_t str, char *buf, glui32 len)
 {
-	LOGD("glk_get_line_stream.0");
 	int count = 0;
 
 	if (!str)
@@ -1012,10 +1008,7 @@ frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
 
 static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 {
-	LOGD("event2glk.0");
-
 	if (!ev) {
-		LOGD("event2glk.1.bail");
 		event->win = NULL;
 		event->val1 = event->val2 = event->type = 0;
 		return;
@@ -1028,7 +1021,6 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 	event->win = (winid_t) (*env)->GetIntField(env, ev, window);
 
 	if ((*env)->IsInstanceOf(env, ev, _LineInputEvent)) {
-		LOGD("event2glk.2.lineinput");
 		event->type = evtype_LineInput;
 		{
 			static jfieldID line_id = 0, buf_id, len_id, rock_id, unicode_id;
@@ -1069,7 +1061,6 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 			event->val2 = 0;
 		}
 	} else if ((*env)->IsInstanceOf(env, ev, _CharInputEvent)) {
-		LOGD("event2glk.2.charinput");
 		event->type = evtype_CharInput;
 		{
 			static jfieldID char_id = 0;
@@ -1083,13 +1074,11 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 		event->type = evtype_Arrange;
 		event->val1 = event->val2 = 0;
 	} else if ((*env)->IsInstanceOf(env, ev, _ExitEvent)) {
-		LOGD("event2glk.2.exitevent");
 		if (andglk_exit_hook) 
 			andglk_exit_hook();
 		else
 			glk_exit();
 	} else if ((*env)->IsInstanceOf(env, ev, _AutoSaveEvent) && andglk_set_autosave_hook) {
-		LOGD("event2glk.2.autosaveevent");
 		jfieldID fileName_id = (*env)->GetFieldID(env, _AutoSaveEvent, "FileName", "Ljava/lang/String;");
 		char* fileName = (*env)->GetObjectField(env, ev, fileName_id);
 		const char* copy_fileName = (*env)->GetStringUTFChars(env, fileName, 0);
@@ -1112,7 +1101,6 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 
 void glk_select(event_t *event)
 {
-	LOGD("glk_select.0");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
@@ -1142,7 +1130,6 @@ void glk_request_timer_events(glui32 millisecs)
 
 void gli_request_line_event(winid_t win, void *buf, glui32 maxlen, glui32 initlen, glui32 unicode)
 {
-	LOGD("glk_request_line_event.0");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 
@@ -1193,7 +1180,6 @@ void glk_request_char_event_uni(winid_t win)
 
 void glk_request_char_event(winid_t win)
 {
-	LOGD("glk_request_char_event.0");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)

@@ -32,6 +32,7 @@ import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
@@ -39,6 +40,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -129,6 +133,34 @@ public class GameDetails extends Activity implements OnClickListener {
 			install(game);
 		else
 			show(game);
+	}
+
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		MenuInflater inflater = new MenuInflater(getApplication());
+		inflater.inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int featureId, MenuItem item) {
+		Intent intent;
+		switch (item.getNumericShortcut()) {
+		case '1':
+			intent = new Intent(this, PreferencesActivity.class);
+			startActivity(intent);
+			break;
+		case '2':
+			AlertDialog builder;
+			try {
+				builder = AboutDialogBuilder.create(this);
+				builder.show();
+			} catch (NameNotFoundException e) {
+				e.printStackTrace();
+			}
+			break;
+		}
+		return super.onMenuItemSelected(featureId, item);
 	}
 
 	private void install(Uri game) {

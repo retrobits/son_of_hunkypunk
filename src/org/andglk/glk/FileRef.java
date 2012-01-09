@@ -352,7 +352,7 @@ public class FileRef extends CPointed {
 		try {
 			Future<File> filename = new FilePrompt(usage & FILEUSAGE_TYPEMASK, mode);
 			File fname = filename.get();
-			Log.d("FileRef", "got filename: " + fname.getAbsolutePath());
+			//Log.d("FileRef", "got filename: " + fname.getAbsolutePath());
 			if (fname != null)
 				return (new FileRef(fname, (usage & ~FILEUSAGE_TYPEMASK) == FILEUSAGE_TEXTMODE, rock)).getPointer();
 			else

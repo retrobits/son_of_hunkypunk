@@ -40,6 +40,7 @@
     <string name="hunky_punk">Hunky Punk</string>
     <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string>
 
+    <string name="about">About</string>
     <string name="open">Open</string>
     <string name="preferences">Preferences</string>
     <string name="remove">Remove</string>

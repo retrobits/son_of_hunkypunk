@@ -36,8 +36,10 @@ import org.andglk.hunkypunk.HunkyPunk;
 import org.andglk.hunkypunk.R;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -109,6 +111,16 @@ public class Interpreter extends Activity {
 		case '1':
 			intent = new Intent(this, PreferencesActivity.class);
 			startActivity(intent);
+			break;
+		case '2':
+			AlertDialog builder;
+			try {
+				builder = AboutDialogBuilder.create(this);
+				builder.setInverseBackgroundForced(true);
+				builder.show();
+			} catch (NameNotFoundException e) {
+				e.printStackTrace();
+			}
 			break;
 		}
 		return super.onMenuItemSelected(featureId, item);
@@ -191,11 +203,11 @@ public class Interpreter extends Activity {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		
 		String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
-		String fontFile = prefs.getString("fontFileName", "");
+		String fontFile = prefs.getString("fontFileName", "Droid Serif");
 		String fontPath = new File(fontFolder, fontFile).getAbsolutePath();
-		int fontSize = 12;
+		int fontSize = 14;
 		try{
-			fontSize = Integer.parseInt(prefs.getString("fontSize", "12"));
+			fontSize = Integer.parseInt(prefs.getString("fontSize", Integer.toString(fontSize)));
 		}catch(Exception e){}
 
 		if (TextBufferWindow.DefaultFontPath == null 

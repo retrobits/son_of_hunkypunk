@@ -85,11 +85,8 @@ fileref_t *gli_new_fileref(const char *filename, glui32 usage, glui32 rock)
 	while (jt - buf < len)
 		*(jt++) = *(it++);
 
-	LOGD("gli_new_fileref.1");
-
 	jstring jstr = (*env)->NewString(env, buf, len);
 	jstring result = (*env)->CallObjectMethod(env, _this, mid, jstr);
-	LOGD("gli_new_fileref.3");
 
 	const char* copy_filePath = (*env)->GetStringUTFChars(env, result, 0);
 
