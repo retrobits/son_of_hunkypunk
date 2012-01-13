@@ -44,10 +44,10 @@
 		<delete includeemptydirs="true" failonerror="false">
 		  <fileset dir="bin" includes="**/*"/>
 		</delete>
-		<delete includeemptydirs="true">
+		<delete includeemptydirs="true" failonerror="false">
 		  <fileset dir="gen" includes="**/*"/>
 		</delete>
-		<delete includeemptydirs="true">
+		<delete includeemptydirs="true" failonerror="false">
 		  <fileset dir="libs/armeabi" includes="**/*"/>
 		</delete>
     </target>
@@ -62,6 +62,10 @@
     <target name="mod-debug" depends="mod-copy,mod-debug-override">
 	  <ant inheritAll="false" dir="./alt-apk/mod" antfile="build.xml" target="hunkypunk-debug" />
 	  <move file="./alt-apk/mod/bin/HunkyPunk-debug.apk" tofile="./alt-apk/mod/bin/HunkyPunkMod-debug.apk"/>
+    </target>
+    <target name="mod-release" depends="mod-copy,mod-release-override">
+	  <ant inheritAll="false" dir="./alt-apk/mod" antfile="build.xml" target="hunkypunk-release" />
+	  <move file="./alt-apk/mod/bin/HunkyPunk-release.apk" tofile="./alt-apk/mod/bin/HunkyMod-release.apk"/>
     </target>
 	<target name="mod-copy">
 	  <copy todir="./alt-apk/mod">
@@ -89,6 +93,13 @@
 	  </copy>
     </target>
 	<target name="mod-debug-override">
+	  <!-- todo
+	  <copy todir="./alt-apk/mod" overwrite="true">
+		<fileset dir="./alt-apk/override/mod-debug" />
+	  </copy>
+	  -->
+    </target>
+	<target name="mod-release-override">
 	  <!-- todo
 	  <copy todir="./alt-apk/mod" overwrite="true">
 		<fileset dir="./alt-apk/override/mod-debug" />
