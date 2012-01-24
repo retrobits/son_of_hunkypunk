@@ -71,6 +71,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 		"http://ifarchive.wurb.com/if-archive/games/zcode/LostPig.z8",
 		"http://ifarchive.wurb.com/if-archive/games/zcode/shade.z5",
 		"http://ifarchive.wurb.com/if-archive/games/tads/indigo.t3",
+		"http://ifarchive.wurb.com/if-archive/games/competition98/tads/plant/plant.gam",
 		"http://ifarchive.wurb.com/if-archive/games/zcode/Bronze.zblorb",
 		"http://ifarchive.wurb.com/if-archive/games/zcode/theatre.z5"
 	};
