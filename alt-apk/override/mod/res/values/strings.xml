@@ -63,7 +63,8 @@
     	To install one, just put it in the Interactive Fiction directory of the SD card.
     	You may find many stories at IFDb, or you can just
     	let me download for you a handful to get you started. 
-    	Please note only Z-Code files (ending in .z1-.z8) are currently supported.
+		Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
+		Tads files (ending in .t2, t3, or .gam) are currently supported.
    	</string>
    	<string name="go_to_ifdb">Go to IFDb</string>
    	<string name="download_preselected">Download preselected</string> 

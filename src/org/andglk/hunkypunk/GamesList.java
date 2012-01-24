@@ -64,15 +64,15 @@ public class GamesList extends ListActivity implements OnClickListener {
 	};
 
 	protected static final String[] BEGINNER_GAMES = {
-		"http://mirror.ifarchive.org/if-archive/games/zcode/905.z5",
-		"http://mirror.ifarchive.org/if-archive/games/zcode/Advent.z5",
-		"http://mirror.ifarchive.org/if-archive/games/zcode/awaken.z5",
-		"http://mirror.ifarchive.org/if-archive/games/zcode/dreamhold.z8",
-		"http://mirror.ifarchive.org/if-archive/games/zcode/LostPig.z8",
-		"http://mirror.ifarchive.org/if-archive/games/zcode/shade.z5",
-		"http://mirror.ifarchive.org/if-archive/games/tads/indigo.t3",
-		"http://mirror.ifarchive.org/if-archive/games/zcode/Bronze.zblorb",
-		"http://mirror.ifarchive.org/if-archive/games/zcode/theatre.z5"
+		"http://ifarchive.wurb.com/if-archive/games/zcode/905.z5",
+		"http://ifarchive.wurb.com/if-archive/games/zcode/Advent.z5",
+		"http://ifarchive.wurb.com/if-archive/games/zcode/awaken.z5",
+		"http://ifarchive.wurb.com/if-archive/games/zcode/dreamhold.z8",
+		"http://ifarchive.wurb.com/if-archive/games/zcode/LostPig.z8",
+		"http://ifarchive.wurb.com/if-archive/games/zcode/shade.z5",
+		"http://ifarchive.wurb.com/if-archive/games/tads/indigo.t3",
+		"http://ifarchive.wurb.com/if-archive/games/zcode/Bronze.zblorb",
+		"http://ifarchive.wurb.com/if-archive/games/zcode/theatre.z5"
 	};
 
 	protected static final String TAG = "HunkyPunk";
@@ -229,7 +229,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 				}
 				
 				try {
-					mScanner.scan(Environment.getExternalStorageDirectory());
+					mScanner.scan(Paths.ifDirectory());
 					IFDb.getInstance(getContentResolver()).lookupGames();
 				} catch (IOException e) {
 					Log.e(TAG, "I/O error when fetching metadata", e);
