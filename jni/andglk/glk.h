@@ -58,8 +58,8 @@ typedef int32_t glsi32;
     modules. */
 //#define GLK_MODULE_LINE_ECHO
 //#define GLK_MODULE_LINE_TERMINATORS
-#define GLK_MODULE_UNICODE
-#define GLK_MODULE_UNICODE_NORM
+//#define GLK_MODULE_UNICODE
+//#define GLK_MODULE_UNICODE_NORM
 #define GLK_MODULE_IMAGE
 //#define GLK_MODULE_SOUND
 //#define GLK_MODULE_SOUND2
