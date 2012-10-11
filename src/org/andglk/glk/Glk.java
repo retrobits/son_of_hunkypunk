@@ -61,6 +61,24 @@ public class Glk extends Thread {
 	public final static int STYLE_USER1 = 9;
 	public final static int STYLE_USER2 = 10;
 	public final static int STYLE_NUMSTYLES = 11;
+	
+	public final static int STYLEHINT_INDENTATION = 0;
+	public final static int STYLEHINT_PARAINDENTATION = 1;
+	public final static int STYLEHINT_JUSTIFICATION = 2;
+	public final static int STYLEHINT_SIZE = 3;
+	public final static int STYLEHINT_WEIGHT = 4;
+	public final static int STYLEHINT_OBLIQUE = 5;
+	public final static int STYLEHINT_PROPORTIONAL = 6;
+	public final static int STYLEHINT_TEXTCOLOR = 7;
+	public final static int STYLEHINT_BACKCOLOR = 8;
+	public final static int STYLEHINT_REVERSECOLOR = 9;
+	public final static int STYLEHINT_NUMHINTS = 10;
+
+	public final static int STYLEHINT_JUST_LEFTFLUSH = 0;
+	public final static int STYLEHINT_JUST_LEFTRIGHT = 1;
+	public final static int STYLEHINT_JUST_CENTERED = 2;
+	public final static int STYLEHINT_JUST_RIGHTFLUSH = 3;
+
 	private static Glk _instance;
 	
 	public final static int GESTALT_VERSION = 0;

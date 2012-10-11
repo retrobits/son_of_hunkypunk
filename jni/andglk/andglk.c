@@ -953,12 +953,22 @@ glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 
 void glk_stylehint_set(glui32 wintype, glui32 styl, glui32 hint, glsi32 val)
 {
-	__android_log_print(ANDROID_LOG_WARN, TAG, "style hint requested but not supported\n");
+	JNIEnv *env = JNU_GetEnv();
+	static jmethodID mid = 0;
+	if (mid == 0)
+		mid = (*env)->GetStaticMethodID(env, _Window, "stylehintSet", "(IIII)V");
+
+	(*env)->CallStaticVoidMethod(env, _Window, mid, (jint) wintype, (jint) styl, (jint) hint, (jint) val);
 }
 
 void glk_stylehint_clear(glui32 wintype, glui32 styl, glui32 hint)
 {
-	/* we don't currently support stylehints (TODO) */
+	JNIEnv *env = JNU_GetEnv();
+	static jmethodID mid = 0;
+	if (mid == 0)
+		mid = (*env)->GetStaticMethodID(env, _Window, "stylehintClear", "(III)V");
+
+	(*env)->CallStaticVoidMethod(env, _Window, mid, (jint) wintype, (jint) styl, (jint) hint);
 }
 
 glui32 glk_style_distinguish(winid_t win, glui32 styl1, glui32 styl2)

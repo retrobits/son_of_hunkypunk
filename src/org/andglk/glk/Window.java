@@ -344,10 +344,10 @@ public abstract class Window extends CPointed {
 		private static final long serialVersionUID = -2973852656407342179L;
 	}
 	
-	static int getTextAppearanceId(int style) throws NoStyleException {
+	static int getTextAppearanceId(int style) {
 		switch(style) {
 		case Glk.STYLE_NORMAL:
-			throw new NoStyleException(style);
+			return R.style.normal;
 		case Glk.STYLE_EMPHASIZED:
 			return R.style.emphasized;
 		case Glk.STYLE_PREFORMATTED:
@@ -370,8 +370,45 @@ public abstract class Window extends CPointed {
 			return R.style.user2;
 		default:
 			Log.w("Glk/Window", "unknown style: " + Integer.toString(style));
-			throw new NoStyleException(style);
+			return R.style.normal;
 		}
+	}
+	
+	public static void stylehintSet(int wintype, int styl, int hint, int val) {
+		Log.d("Glk/Window/stylehintSet", "setting stylehint: " + wintype + " " + styl + " " + hint + " " + val);
+		switch (wintype) {
+		case Window.WINTYPE_ALLTYPES:
+			TextBufferWindow._stylehints.set(styl, hint, val);
+			TextGridWindow._stylehints.set(styl, hint, val);
+			break;
+		case Window.WINTYPE_TEXTBUFFER:
+			TextBufferWindow._stylehints.set(styl, hint, val);
+			break;
+		case Window.WINTYPE_TEXTGRID:
+			TextGridWindow._stylehints.set(styl, hint, val);
+			break;
+		default:
+			Log.w("Glk/Window", "unknown window type " + wintype);
+		}
+	}
+	
+	public static void stylehintClear(int wintype, int styl, int hint) {
+		Log.d("Glk/Window/stylehintClear", "clearing stylehint: " + wintype + " " + styl + " " + hint);
+		switch (wintype) {
+		case Window.WINTYPE_ALLTYPES:
+			TextBufferWindow._stylehints.clear(styl, hint);
+			TextGridWindow._stylehints.clear(styl, hint);
+			break;
+		case Window.WINTYPE_TEXTBUFFER:
+			TextBufferWindow._stylehints.clear(styl, hint);
+			break;
+		case Window.WINTYPE_TEXTGRID:
+			TextGridWindow._stylehints.clear(styl, hint);
+			break;
+		default:
+			Log.w("Glk/Window", "unknown window type " + wintype);
+		}
+		
 	}
 	
 	abstract boolean styleDistinguish(int style1, int style2);

@@ -32,6 +32,10 @@ import android.graphics.Typeface;
 import android.graphics.Paint.Style;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextPaint;
+import android.text.style.CharacterStyle;
+import android.text.style.StyleSpan;
+import android.text.style.TextAppearanceSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -119,6 +123,7 @@ public class TextGridWindow extends Window {
 				if (mView._pos >= mView.mWidth * mView.mHeight)
 					return;
 			
+				mView._styleBuf[mView._pos] = mView.mCurrentStyle;
 				mView.mFrameBufTemp[mView._pos++] = c;
 			}
 			
@@ -148,6 +153,7 @@ public class TextGridWindow extends Window {
 		protected int mWidth;
 		protected int mHeight;
 		protected char[] mFrameBuf, mFrameBufTemp;
+		private int[] _styleBuf;
 		protected int _pos;
 		private boolean mCharEventPending;
 		private boolean mLineEventPending;
@@ -157,6 +163,7 @@ public class TextGridWindow extends Window {
 		protected boolean mIsClear;
 		private Rect mRect = new Rect();
 		private Paint mBackPaint;
+		private int mCurrentStyle;
 
 		public View(Context context) {
 			super(context, null, R.attr.textGridWindowStyle);
@@ -185,10 +192,9 @@ public class TextGridWindow extends Window {
 		}
 
 		public void setStyle(int styl) {
-			Log.w("Glk/TextGridWindow", "style requested but not supported in text grid window");
-			// TODO
+			mCurrentStyle = styl;
 		}
-
+		
 		public void setPosition(int pos, int seekMode) {
 			switch (seekMode) {
 			case Stream.SEEKMODE_CURRENT:
@@ -233,6 +239,7 @@ public class TextGridWindow extends Window {
 			char[] oldfb = mFrameBufTemp;
 			mFrameBuf = new char[mWidth * mHeight];
 			mFrameBufTemp = new char[mWidth * mHeight];
+			_styleBuf = new int[mWidth * mHeight];
 			
 			for (int y = 0; y < Math.min(oldh, mHeight); ++y)
 				for (int x = 0; x < Math.min(oldw, mWidth); ++x)
@@ -250,8 +257,10 @@ public class TextGridWindow extends Window {
 		}
 
 		public synchronized void clear() {
-			for (int i = 0; i < mWidth * mHeight; ++i)
+			for (int i = 0; i < mWidth * mHeight; ++i) {
 				mFrameBufTemp[i] = ' ';
+				_styleBuf[i] = mCurrentStyle;
+			}
 			
 			_pos = 0;
 			mIsClear = true;
@@ -288,6 +297,9 @@ public class TextGridWindow extends Window {
 			if (end == 0)
 				return;
 			str.getChars(0, end, mFrameBufTemp, _pos);
+			for (int i = 0; i < end; i++) {
+				_styleBuf[_pos+i] = mCurrentStyle;
+			}
 			_pos += end;
 			
 			mIsClear = false;
@@ -303,9 +315,36 @@ public class TextGridWindow extends Window {
 			canvas.drawRect(mRect, mBackPaint);
 			int px = getPaddingLeft();
 			int py = getPaddingTop();
-			float ch = measureCharacterHeight();
-			for (int y = 0; y < mHeight; y++)
-				canvas.drawText(mFrameBufTemp, y * mWidth, mWidth, px, py + ch * (y + 1), mPaint);
+			float chw = measureCharacterWidth();
+			float chh = measureCharacterHeight();
+			int tmpStyle = _styleBuf[0];
+			for (int y = 0; y < mHeight; y++) {
+				int start = 0;
+				int x = 0;
+				for (x = 0; x < mWidth; x++) {
+					if (tmpStyle != _styleBuf[y*mWidth+x]) {
+						// new style for next char draw previous chars with old style
+						TextPaint p = stylehints.getPaint(getContext(), mPaint, tmpStyle);
+						// Background paint
+						Paint bgpaint = new Paint();
+						bgpaint.setColor(p.bgColor);
+						bgpaint.setStyle(Style.FILL);
+						canvas.drawRect(px + chw*start, py+chh*y, px + chw*x, py+chh*(y+1), bgpaint);
+						canvas.drawText(mFrameBufTemp, y * mWidth + start, x-start, px + chw*start, py + chh * (y + 1), p);
+						start = x;
+						tmpStyle = _styleBuf[y*mWidth+x];
+					}
+				}
+				if (x != start) {
+					TextPaint p = stylehints.getPaint(getContext(), mPaint, tmpStyle);
+					// Background paint
+					Paint bgpaint = new Paint();
+					bgpaint.setColor(p.bgColor);
+					bgpaint.setStyle(Style.FILL);
+					canvas.drawRect(px + chw*start, py+chh*y, px + chw*x, py+chh*(y+1), bgpaint);
+					canvas.drawText(mFrameBufTemp, y * mWidth + start, x-start, px + chw*start, py + chh * (y + 1), p);
+				}
+			}
 		}
 
 		public void requestCharEvent() {
@@ -385,6 +424,7 @@ public class TextGridWindow extends Window {
 			if (_pos == mLineInputEnd)
 				return;
 			
+			_styleBuf[_pos] = mCurrentStyle;
 			mFrameBufTemp[_pos++] = (char) c;
 			mIsClear = false;
 			postInvalidate();
@@ -477,6 +517,7 @@ public class TextGridWindow extends Window {
 		super(rock);
 		mGlk = glk;
 		mStream = new Stream();
+		stylehints = new Styles(_stylehints);
 		glk.waitForUi(new Runnable() {
 			@Override
 			public void run() {
@@ -572,4 +613,7 @@ public class TextGridWindow extends Window {
 
 		mView.flush();
 	}
+	
+	public static Styles _stylehints = new Styles();
+	public Styles stylehints;
 }

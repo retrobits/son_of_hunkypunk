@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import org.andglk.glk.Styles.StyleSpan;
 import org.andglk.hunkypunk.R;
 
 import android.content.Context;
@@ -120,19 +121,6 @@ public class TextBufferWindow extends Window {
 		mView.readState(stream);
 	}
 	
-	private class StyleSpan extends TextAppearanceSpan {
-		private int style;
-
-		public StyleSpan(int style) throws NoStyleException {
-			super(mContext, getTextAppearanceId(style));
-			this.style = style;
-		}
-
-		public int getStyle() {
-			return this.style;
-		}
-	}
-	
 	private class _Stream extends Stream {
 		private long mCurrentStyle = Glk.STYLE_NORMAL;
 		private StringBuilder mBuffer = new StringBuilder();
@@ -160,14 +148,9 @@ public class TextBufferWindow extends Window {
 			if (mBuffer.length() == 0)
 				return;
 			
-			try {
-				final Object span = new StyleSpan((int) mCurrentStyle);
-				final SpannableString ss = new SpannableString(mBuffer);
-				ss.setSpan(span, 0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				mSsb.append(ss);
-			} catch (NoStyleException e) {
-				mSsb.append(mBuffer);
-			}
+			final SpannableString ss = new SpannableString(mBuffer);
+			ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle), 0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			mSsb.append(ss);
 			
 			mBuffer.setLength(0);
 		}
@@ -335,11 +318,7 @@ public class TextBufferWindow extends Window {
 				final int spanStart = stream.readInt();
 				final int spanEnd = stream.readInt();
 				final int spanStyle = stream.readInt();
-				try {
-					ed.setSpan(new StyleSpan(spanStyle), spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				} catch (NoStyleException e) {
-					// never mind then
-				}
+				ed.setSpan(stylehints.getSpan(mContext, spanStyle), spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
 			
 			mLineInputEnabled = stream.readBoolean();
@@ -820,15 +799,12 @@ public class TextBufferWindow extends Window {
 		mView = new _View(mContext);
 		mStream = new _Stream();
 		mHandler = mGlk.getUiHandler();
+		// when window is created, style hints are fixed
+		stylehints = new Styles(_stylehints);
 	}
 	
 	public Object makeInputSpan() {
-		try {
-			return new StyleSpan(Glk.STYLE_INPUT);
-		} catch (NoStyleException e) {
-			Log.e(TAG, "WTF? shouldn't happen.", e);
-			return null;
-		}
+		return stylehints.getSpan(mContext, Glk.STYLE_INPUT);
 	}
 
 	public void lineInputAccepted(String result) {
@@ -938,16 +914,8 @@ public class TextBufferWindow extends Window {
 			return false;
 		
 		int res1, res2;
-		try {
-			res1 = getTextAppearanceId(style1);
-		} catch (NoStyleException e) {
-			res1 = R.style.TextBufferWindow;
-		}
-		try {
-			res2 = getTextAppearanceId(style2);
-		} catch (NoStyleException e) {
-			res2 = R.style.TextBufferWindow;
-		}
+		res1 = getTextAppearanceId(style1);
+		res2 = getTextAppearanceId(style2);
 		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor, android.R.attr.typeface, android.R.attr.textStyle };
 		TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
 		TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);
@@ -957,4 +925,7 @@ public class TextBufferWindow extends Window {
 			(ta1.getString(2) != ta2.getString(2)) ||
 			(ta1.getString(3) != ta2.getString(3));
 	}
+
+	public static Styles _stylehints = new Styles();
+	public Styles stylehints;
 }
