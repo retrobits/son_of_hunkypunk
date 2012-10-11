@@ -75,6 +75,8 @@
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 				<data android:mimeType="application/x-zmachine" scheme="file"/>
+				<data android:mimeType="application/x-glulx" scheme="file"/>
+				<data android:mimeType="application/x-blorb" scheme="file"/>
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 		</activity-alias>
@@ -88,6 +90,6 @@
 		</activity>
 		
 	</application>
-    <uses-sdk android:minSdkVersion="3" />
+    <uses-sdk android:minSdkVersion="4" />
 
 </manifest>
