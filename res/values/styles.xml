@@ -42,6 +42,9 @@
 		<item name="textGridWindowStyle">@style/TextGridWindow</item>
 	</style>
 	
+	<style name="normal">
+	</style>
+	
 	<style name="emphasized">
 		<item name="android:textStyle">italic</item>
 	</style>
