@@ -159,4 +159,8 @@ public class MemoryStream extends Stream {
 	@Override
 	public void setStyle(long styl) {
 	}
+	
+	@Override
+	public void setReverseVideo(long reverse) {
+	}
 }

@@ -19,7 +19,6 @@
 
 package org.andglk.glk;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -44,8 +43,6 @@ import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.method.MovementMethod;
-import android.text.style.TextAppearanceSpan;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -123,7 +120,8 @@ public class TextBufferWindow extends Window {
 	
 	private class _Stream extends Stream {
 		private long mCurrentStyle = Glk.STYLE_NORMAL;
-		private StringBuilder mBuffer = new StringBuilder();
+		private boolean mReverseVideo = false;
+		private final StringBuilder mBuffer = new StringBuilder();
 		private SpannableStringBuilder mSsb = new SpannableStringBuilder();
 
 		@Override
@@ -143,13 +141,21 @@ public class TextBufferWindow extends Window {
 			applyStyle();
 			mCurrentStyle = styl;
 		}
+		
+		@Override
+		public void setReverseVideo(long reverse) {
+			if ((reverse != 0) == mReverseVideo)
+				return;
+			applyStyle();
+			mReverseVideo = (reverse != 0);
+		}
 
 		private void applyStyle() {
 			if (mBuffer.length() == 0)
 				return;
 			
 			final SpannableString ss = new SpannableString(mBuffer);
-			ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle), 0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo), 0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			mSsb.append(ss);
 			
 			mBuffer.setLength(0);
@@ -278,6 +284,7 @@ public class TextBufferWindow extends Window {
 				stream.writeInt(e.getSpanStart(ss));
 				stream.writeInt(e.getSpanEnd(ss));
 				stream.writeInt(ss.getStyle());
+				stream.writeInt(ss.getReverse());
 			}
 			
 			if (mLineInputEnabled)
@@ -318,7 +325,8 @@ public class TextBufferWindow extends Window {
 				final int spanStart = stream.readInt();
 				final int spanEnd = stream.readInt();
 				final int spanStyle = stream.readInt();
-				ed.setSpan(stylehints.getSpan(mContext, spanStyle), spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				final int spanReverse = stream.readInt();
+				ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
 			
 			mLineInputEnabled = stream.readBoolean();
@@ -642,7 +650,7 @@ public class TextBufferWindow extends Window {
 			}
 		}, mNewLineFilter };
 		
-		private Scroller mScroller;
+		private final Scroller mScroller;
 		private _MovementMethod mMovementMethod;
 		private boolean mPaging;
 		
@@ -804,7 +812,7 @@ public class TextBufferWindow extends Window {
 	}
 	
 	public Object makeInputSpan() {
-		return stylehints.getSpan(mContext, Glk.STYLE_INPUT);
+		return stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
 	}
 
 	public void lineInputAccepted(String result) {

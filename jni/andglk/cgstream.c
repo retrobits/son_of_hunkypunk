@@ -1,7 +1,7 @@
 /******************************************************************************
  *                                                                            *
  * Copyright (C) 2006-2009 by Tor Andersson, Jesse McGrew.                    *
- * Copyright (C) 2010 by Ben Cressey, Andrew Plotkin, Jörg Walter.            *
+ * Copyright (C) 2010 by Ben Cressey, Andrew Plotkin, Jï¿½rg Walter.            *
  *                                                                            *
  * This file is part of Gargoyle.                                             *
  *                                                                            *
@@ -2112,11 +2112,5 @@ void garglk_set_zcolors_stream(stream_t *str, glui32 fg, glui32 bg)
 {
 }
 
-void garglk_set_reversevideo(glui32 reverse)
-{
-}
 
-void garglk_set_reversevideo_stream(stream_t *str, glui32 reverse)
-{
-}
 #endif /* ANDGLK */

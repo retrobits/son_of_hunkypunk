@@ -27,16 +27,13 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.graphics.Paint.Style;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextPaint;
-import android.text.style.CharacterStyle;
-import android.text.style.StyleSpan;
-import android.text.style.TextAppearanceSpan;
-import android.util.Log;
+import android.util.FloatMath;
 import android.view.KeyEvent;
 
 public class TextGridWindow extends Window {
@@ -47,7 +44,8 @@ public class TextGridWindow extends Window {
 		public boolean mLineEventPending;
 		public boolean mCharEventPending;
 	     
-	     public void writeToParcel(Parcel out, int flags) {
+	     @Override
+		public void writeToParcel(Parcel out, int flags) {
 	    	 out.writeInt(mHeight);
 	    	 out.writeInt(mWidth);
 	    	 assert (mFrameBuf.length == mHeight * mWidth);
@@ -57,11 +55,13 @@ public class TextGridWindow extends Window {
 
 	     public static final Parcelable.Creator<TextGridParcelable> CREATOR
 	             = new Parcelable.Creator<TextGridParcelable>() {
-	         public TextGridParcelable createFromParcel(Parcel in) {
+	         @Override
+			public TextGridParcelable createFromParcel(Parcel in) {
 	             return new TextGridParcelable(in);
 	         }
 
-	         public TextGridParcelable[] newArray(int size) {
+	         @Override
+			public TextGridParcelable[] newArray(int size) {
 	             return new TextGridParcelable[size];
 	         }
 	     };
@@ -124,6 +124,7 @@ public class TextGridWindow extends Window {
 					return;
 			
 				mView._styleBuf[mView._pos] = mView.mCurrentStyle;
+				mView._reverseBuf[mView._pos] = mView.mReverseVideo;
 				mView.mFrameBufTemp[mView._pos++] = c;
 			}
 			
@@ -143,27 +144,36 @@ public class TextGridWindow extends Window {
 
 			mView.setStyle((int) styl);
 		}
+		
+		@Override
+		public void setReverseVideo(long reverse) {
+			if (mView == null) return; 
+
+			mView.setReverseVideo(reverse != 0);
+		}
 	}
 
 	public boolean mChanged;
 	
 	protected class View extends android.view.View {
-		private int _fontSize;
-		private Paint mPaint;
+		private final int _fontSize;
+		private final Paint mPaint;
 		protected int mWidth;
 		protected int mHeight;
 		protected char[] mFrameBuf, mFrameBufTemp;
 		private int[] _styleBuf;
+		private boolean[] _reverseBuf;
 		protected int _pos;
 		private boolean mCharEventPending;
 		private boolean mLineEventPending;
 		private int mLineInputEnd;
 		private int mLineInputStart;
-		private int mDefaultColor;
+		private final int mDefaultColor;
 		protected boolean mIsClear;
-		private Rect mRect = new Rect();
-		private Paint mBackPaint;
+		private final Rect mRect = new Rect();
+		private final Paint mBackPaint;
 		private int mCurrentStyle;
+		private boolean mReverseVideo;
 
 		public View(Context context) {
 			super(context, null, R.attr.textGridWindowStyle);
@@ -193,6 +203,10 @@ public class TextGridWindow extends Window {
 
 		public void setStyle(int styl) {
 			mCurrentStyle = styl;
+		}
+		
+		public void setReverseVideo(boolean reverse) {
+			mReverseVideo = reverse;
 		}
 		
 		public void setPosition(int pos, int seekMode) {
@@ -240,6 +254,7 @@ public class TextGridWindow extends Window {
 			mFrameBuf = new char[mWidth * mHeight];
 			mFrameBufTemp = new char[mWidth * mHeight];
 			_styleBuf = new int[mWidth * mHeight];
+			_reverseBuf = new boolean[mWidth * mHeight];
 			
 			for (int y = 0; y < Math.min(oldh, mHeight); ++y)
 				for (int x = 0; x < Math.min(oldw, mWidth); ++x)
@@ -260,6 +275,7 @@ public class TextGridWindow extends Window {
 			for (int i = 0; i < mWidth * mHeight; ++i) {
 				mFrameBufTemp[i] = ' ';
 				_styleBuf[i] = mCurrentStyle;
+				_reverseBuf[i] = mReverseVideo;
 			}
 			
 			_pos = 0;
@@ -299,6 +315,7 @@ public class TextGridWindow extends Window {
 			str.getChars(0, end, mFrameBufTemp, _pos);
 			for (int i = 0; i < end; i++) {
 				_styleBuf[_pos+i] = mCurrentStyle;
+				_reverseBuf[_pos+i] = mReverseVideo;
 			}
 			_pos += end;
 			
@@ -313,38 +330,48 @@ public class TextGridWindow extends Window {
 				return;
 
 			canvas.drawRect(mRect, mBackPaint);
-			int px = getPaddingLeft();
-			int py = getPaddingTop();
-			float chw = measureCharacterWidth();
-			float chh = measureCharacterHeight();
 			int tmpStyle = _styleBuf[0];
+			boolean tmpReverse = _reverseBuf[0];
 			for (int y = 0; y < mHeight; y++) {
 				int start = 0;
 				int x = 0;
 				for (x = 0; x < mWidth; x++) {
-					if (tmpStyle != _styleBuf[y*mWidth+x]) {
-						// new style for next char draw previous chars with old style
-						TextPaint p = stylehints.getPaint(getContext(), mPaint, tmpStyle);
-						// Background paint
-						Paint bgpaint = new Paint();
-						bgpaint.setColor(p.bgColor);
-						bgpaint.setStyle(Style.FILL);
-						canvas.drawRect(px + chw*start, py+chh*y, px + chw*x, py+chh*(y+1), bgpaint);
-						canvas.drawText(mFrameBufTemp, y * mWidth + start, x-start, px + chw*start, py + chh * (y + 1), p);
+					if (tmpStyle != _styleBuf[y*mWidth+x] || tmpReverse != _reverseBuf[y*mWidth+x]) {
+						drawText(canvas, tmpStyle, tmpReverse, y, start, x);
 						start = x;
 						tmpStyle = _styleBuf[y*mWidth+x];
+						tmpReverse = _reverseBuf[y*mWidth+x];
 					}
 				}
 				if (x != start) {
-					TextPaint p = stylehints.getPaint(getContext(), mPaint, tmpStyle);
-					// Background paint
-					Paint bgpaint = new Paint();
-					bgpaint.setColor(p.bgColor);
-					bgpaint.setStyle(Style.FILL);
-					canvas.drawRect(px + chw*start, py+chh*y, px + chw*x, py+chh*(y+1), bgpaint);
-					canvas.drawText(mFrameBufTemp, y * mWidth + start, x-start, px + chw*start, py + chh * (y + 1), p);
+					drawText(canvas, tmpStyle, tmpReverse, y, start, x);
 				}
 			}
+		}
+
+		/** Draw text using style and reverse information
+		 * @param canvas
+		 * @param style
+		 * @param reverse if the text should be drawn in reverse
+		 * @param y which line to draw on
+		 * @param start x-coordinate where to start drawing on this line
+		 * @param end x-coordinate where to end drawing on this line
+		 */
+		private void drawText(Canvas canvas, int style, boolean reverse, int y, int start, int end) {
+			int px = getPaddingLeft();
+			int py = getPaddingTop();
+			float chw = measureCharacterWidth();
+			float chh = measureCharacterHeight();
+			// new style for next char draw previous chars with old style
+			TextPaint p = new TextPaint(mPaint);
+			p.bgColor = mBackPaint.getColor();
+			p = stylehints.getPaint(getContext(), p, style, reverse);
+			// Background paint
+			Paint bgpaint = new Paint();
+			bgpaint.setColor(p.bgColor);
+			bgpaint.setStyle(Style.FILL);
+			canvas.drawRect(FloatMath.floor(px + chw*start), FloatMath.floor(py+chh*y), FloatMath.ceil(px + chw*end), FloatMath.ceil(py+chh*(y+1)), bgpaint);
+			canvas.drawText(mFrameBufTemp, y * mWidth + start, end-start, px + chw*start, py + chh * (y + 1) - p.descent(), p);
 		}
 
 		public void requestCharEvent() {
@@ -425,6 +452,7 @@ public class TextGridWindow extends Window {
 				return;
 			
 			_styleBuf[_pos] = mCurrentStyle;
+			_reverseBuf[_pos] = mReverseVideo;
 			mFrameBufTemp[_pos++] = (char) c;
 			mIsClear = false;
 			postInvalidate();
@@ -507,7 +535,7 @@ public class TextGridWindow extends Window {
 	}
 	
 	protected View mView;
-	private Glk mGlk;
+	private final Glk mGlk;
 	private int mLineBuffer;
 	private int mMaxLen;
 	private int mDispatchRock;
@@ -555,14 +583,14 @@ public class TextGridWindow extends Window {
 	@Override
 	public int measureHeight(int size) {
 		if (mView == null) return 0;
-		return ((int) Math.ceil(mView.measureCharacterHeight())) * size 
-			+ mView.getPaddingBottom() + mView.getPaddingTop() + ((int) Math.floor(mView.getDescent()));
+		return ((int) FloatMath.ceil(mView.measureCharacterHeight())) * size 
+			+ mView.getPaddingBottom() + mView.getPaddingTop() + ((int) FloatMath.floor(mView.getDescent()));
 	}
 
 	@Override
 	public int measureWidth(int size) {
 		if (mView == null) return 0;
-		return ((int) Math.ceil(mView.measureCharacterWidth())) * size + mView.getPaddingLeft() + mView.getPaddingRight();
+		return ((int) FloatMath.ceil(mView.measureCharacterWidth())) * size + mView.getPaddingLeft() + mView.getPaddingRight();
 	}
 
 	@Override

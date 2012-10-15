@@ -69,20 +69,28 @@ public class FileStream extends Stream {
 		}
 	}
 
+	@Override
 	protected void doPutChar(char c) throws IOException {
 		mFile.write(c);
 	}
 
+	@Override
 	protected void doClose() throws IOException {
 		mFile.close();
 	}
 
+	@Override
 	protected int doGetChar() throws IOException {
 		return mFile.read();
 	}
 
 	@Override
 	public void setStyle(long styl) {
+		// TODO: consider writing transcripts as rich text
+	}
+	
+	@Override
+	public void setReverseVideo(long reverse) {
 		// TODO: consider writing transcripts as rich text
 	}
 

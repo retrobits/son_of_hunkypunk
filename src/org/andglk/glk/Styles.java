@@ -1,7 +1,6 @@
 package org.andglk.glk;
 
 import android.content.Context;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.text.style.TextAppearanceSpan;
@@ -44,43 +43,52 @@ public class Styles {
 		}
 	}
 	
-	/** Get a text paint for the given style, using the hints */
-	public TextPaint getPaint(Context context, Paint mPaint, int styl) {
-		// Create an empty paint
-		TextPaint tpx = new TextPaint(mPaint);
+	/** Get a text paint for the given style, using the hints 
+	 * @param b */
+	public TextPaint getPaint(Context context, TextPaint mPaint, int styl, boolean reverse) {
+		// Create an copy of the paint
+		TextPaint tpx = new TextPaint();
+		tpx.set(mPaint);
+		
 		// Update it using the span we get from the style resource
-		new StyleSpan(context, styl).updateDrawState(tpx);
+		new StyleSpan(context, styl, reverse).updateDrawState(tpx);
 		
 		return tpx;
 	}
 	
 	public class StyleSpan extends TextAppearanceSpan {
-		int _styl;
+		private final int _styl;
+		private final boolean _reverse;
 
-		public StyleSpan(Context context, int styl) {
+		public StyleSpan(Context context, int styl, boolean reverse) {
 			super(context, Window.getTextAppearanceId(styl));
 			_styl = styl;
+			_reverse = reverse;
 		}
 		
 		@Override
 		public void updateDrawState(TextPaint ds) {
 			super.updateDrawState(ds);
-			updatePaint(_styl, ds);
+			updatePaint(_styl, _reverse, ds);
 		}
 
 		@Override
 		public void updateMeasureState(TextPaint ds) {
 			super.updateMeasureState(ds);
-			updatePaint(_styl, ds);
+			//updatePaint(_styl, _reverse, ds);
 		}
 
 		public int getStyle() {
 			return _styl;
 		}
+		
+		public int getReverse() {
+			return _reverse ? 1 : 0;
+		}
 	}
 	
 	// Update paint of style according to style hints
-	private void updatePaint(int styl, TextPaint ds) {
+	private void updatePaint(int styl, boolean reverse, TextPaint ds) {
 		// These are the hints we are going to use
 		Integer[] hints = _styles[styl];
 		// Set typeface first, because it's used by WEIGHT and OBLIQUE cases
@@ -149,7 +157,7 @@ public class Styles {
 			ds.bgColor = hints[Glk.STYLEHINT_BACKCOLOR];
 		}
 		
-		if (Integer.valueOf(1).equals(hints[Glk.STYLEHINT_REVERSECOLOR])) {
+		if (reverse || Integer.valueOf(1).equals(hints[Glk.STYLEHINT_REVERSECOLOR])) {
 			// swap background and foreground colors
 			int color = ds.getColor();
 			ds.setColor(ds.bgColor);
@@ -157,7 +165,7 @@ public class Styles {
 		}
 	}
 
-	public StyleSpan getSpan(Context context, int styl) {
-		return new StyleSpan(context, styl);
+	public StyleSpan getSpan(Context context, int styl, boolean reverse) {
+		return new StyleSpan(context, styl, reverse);
 	}
 }

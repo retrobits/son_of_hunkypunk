@@ -48,6 +48,10 @@ public abstract class Window extends CPointed {
 		@Override
 		public void setStyle(long styl) {
 		}
+		
+		@Override
+		public void setReverseVideo(long reverse) {
+		}
 	}
 
 	private static Window _root;
@@ -208,7 +212,7 @@ public abstract class Window extends CPointed {
 	public static int open(Window split, int method, int size, int wintype, int rock) {
 		final Glk glk = Glk.getInstance();
 		Window wnd;
-		switch ((int)wintype) {
+		switch (wintype) {
 		case Window.WINTYPE_TEXTBUFFER:
 			wnd = new TextBufferWindow(glk, rock);
 			break;
@@ -234,7 +238,7 @@ public abstract class Window extends CPointed {
 				}
 			});
 		} else {
-			PairWindow w = new PairWindow(glk, split, wnd, (int) method, (int) size);
+			PairWindow w = new PairWindow(glk, split, wnd, method, size);
 			if (_root == split)
 				_root = w;
 		}

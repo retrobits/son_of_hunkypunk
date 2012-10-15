@@ -856,6 +856,24 @@ void glk_set_style_stream(strid_t str, glui32 styl)
 	(*env)->CallVoidMethod(env, *(str->st), mid, (jlong) styl);
 }
 
+void garglk_set_reversevideo(glui32 reverse)
+{
+	garglk_set_reversevideo_stream(glk_stream_get_current(), reverse);
+}
+
+void garglk_set_reversevideo_stream(stream_t *str, glui32 reverse)
+{
+	if (!str || str->type != strtype_Window)
+		return;
+
+	JNIEnv *env = JNU_GetEnv();
+	static jmethodID mid = 0;
+	if (mid == 0)
+		mid = (*env)->GetMethodID(env, _Stream, "setReverseVideo", "(J)V");
+
+	(*env)->CallVoidMethod(env, *(str->st), mid, (jlong) reverse);
+}
+
 glsi32 glk_get_char_stream(strid_t str)
 {
 	int res;

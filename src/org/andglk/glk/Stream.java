@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import android.util.Log;
 
 public abstract class Stream extends CPointed {
@@ -32,7 +33,7 @@ public abstract class Stream extends CPointed {
 
 	protected int mWritten;
 	private int mRead;
-	private List<Window.Stream> mEchoedWindows = new LinkedList<Window.Stream>();
+	private final List<Window.Stream> mEchoedWindows = new LinkedList<Window.Stream>();
 	protected static List<Stream> _streams = new LinkedList<Stream>();
 	private static Iterator<Stream> _iterator;
 	private static Stream _last;
@@ -156,6 +157,7 @@ public abstract class Stream extends CPointed {
 	protected abstract void doPutString(String str) throws IOException;
 
 	public abstract void setStyle(long styl);
+	public abstract void setReverseVideo(long reverser);
 
 	public void echoOff(Window.Stream stream) {
 		mEchoedWindows.remove(stream);
