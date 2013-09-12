@@ -42,7 +42,9 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.method.MovementMethod;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -256,6 +258,19 @@ public class TextBufferWindow extends Window {
 		}
 
 		@Override
+		public void onSelectionChanged(int start, int end) 
+		{ 
+			CharSequence text = getText(); 
+			if (text != null) { 
+				if (start != text.length() || end != text.length()) { 
+					Selection.setSelection(getEditableText(), length());
+					return; 
+				} 
+			} 
+			super.onSelectionChanged(start, end); 
+		}
+
+		@Override
 		public Parcelable onSaveInstanceState() {
 			TextBufferWindow._SavedState ss = new TextBufferWindow._SavedState();
 			final Editable e = getEditableText();
@@ -422,19 +437,24 @@ public class TextBufferWindow extends Window {
 
 				Typeface tf = Typeface.SERIF;
 				
-				//Log.d("HunkyPunk","font: "+FontPath+" "+FontSize);
+				/* disabled temporarily due to view sizing bug
+				   http://stackoverflow.com/questions/9541196/androidtextview-height-doesnt-change-after-shrinking-the-font-size
 
-				if (FontPath.endsWith("ttf") || FontPath.endsWith("otf"))
-					try {
-						tf = Typeface.createFromFile(FontPath);
-					} catch (Exception ex) {}
-				else if (FontPath.endsWith("Droid Sans")) 
-					tf = Typeface.SANS_SERIF;
-				else if (FontPath.endsWith("Droid Mono")) 
-					tf = Typeface.MONOSPACE;
-				
-				if (tf != null) setTypeface(tf); 
-				setTextSize(FontSize);		
+				Log.d("HunkyPunk","font: "+FontPath+" "+FontSize);
+
+				 if (FontPath.endsWith("ttf") || FontPath.endsWith("otf"))
+					 try {
+						 tf = Typeface.createFromFile(FontPath);
+					 } catch (Exception ex) {}
+				 else if (FontPath.endsWith("Droid Sans")) 
+					 tf = Typeface.SANS_SERIF;
+				 else if (FontPath.endsWith("Droid Mono")) 
+					 tf = Typeface.MONOSPACE;
+
+				 if (tf != null) setTypeface(tf); 
+				*/
+
+				 setTextSize(FontSize);		
 			}
 
 			/* super method does strange things with cursor and scrolling here */
@@ -658,18 +678,44 @@ public class TextBufferWindow extends Window {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 
-			setText("", BufferType.EDITABLE);
 			setMovementMethod(mMovementMethod = new _MovementMethod());
-			setInputType(0
-					| InputType.TYPE_CLASS_TEXT 
-					| InputType.TYPE_TEXT_FLAG_AUTO_CORRECT 
-					| InputType.TYPE_TEXT_FLAG_MULTI_LINE
-				);
-			setOnEditorActionListener(this);
 			setFocusable(false);
 			mScroller = new Scroller(context);
 			setScroller(mScroller);
 			setFilters(mNormalFilters);
+
+			addTextChangedListener(new TextWatcher() {
+                public void afterTextChanged(Editable s) { 
+                }
+
+                public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+                }
+
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+					/* Hack to get the key. Why doesn't OnKeyUp work? */
+					if (mCharInputEnabled && count==1 && s.charAt(start)>0 && s.charAt(start)<255 ){
+						disableCharInput();
+						CharInputEvent ev = new CharInputEvent(TextBufferWindow.this,s.charAt(start));
+						mGlk.postEvent(ev);
+					}
+                }
+            });
+
+			final _View pwthis = this;
+			Glk.getInstance().waitForUi(new Runnable() {
+					@Override
+						public void run() {
+						pwthis.setText("", BufferType.EDITABLE);
+						pwthis.setInputType(0
+									 | InputType.TYPE_CLASS_TEXT 
+									 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+									 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+									 );
+						pwthis.setOnEditorActionListener(pwthis);
+						pwthis.onPreDraw();
+					}
+				}
+				);
 		}
 		
 
@@ -716,6 +762,13 @@ public class TextBufferWindow extends Window {
 		}
 
 		@Override
+		public boolean onKeyUp(int keyCode, KeyEvent event) {
+			if (mMovementMethod.onKeyUp(this, (Spannable) getText(), keyCode, event))
+				return true;
+			return super.onKeyUp(keyCode, event);
+		}
+
+		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
 			if (mMovementMethod.onKeyDown(this, (Spannable) getText(), keyCode, event))
 				return true;
@@ -730,16 +783,7 @@ public class TextBufferWindow extends Window {
 					// passing the key would be confusing
 					return true;
 			}
-			
-			if (mCharInputEnabled) {
-				Event ev = CharInputEvent.fromKeyEvent(TextBufferWindow.this, event);
-				if (ev != null) {
-					mGlk.postEvent(ev);
-					disableCharInput();
-					return true;
-				}
-			}
-			
+
 			return super.onKeyDown(keyCode, event);
 		}
 

@@ -40,7 +40,7 @@ static JavaVM *_jvm;
 jclass _class;
 static jclass _Event, _LineInputEvent, _Window, _FileRef, _Stream, _PairWindow, _TextGridWindow,
 	_CharInputEvent, _ArrangeEvent, _MemoryStream, _CPointed, _ExitEvent, _AutoSaveEvent, _AutoRestoreEvent;
-static jmethodID _getRock, _getPointer, _getDispatchRock, _getDispatchClass;
+//static jmethodID _getRock, _getPointer, _getDispatchRock, _getDispatchClass;
 
 /* this should be nulled on exit */
 jobject _this = 0;
@@ -102,13 +102,13 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 	cls = (*env)->FindClass(env, "org/andglk/glk/MemoryStream");
 	_MemoryStream = (*env)->NewGlobalRef(env, cls);
 
-	cls = (*env)->FindClass(env, "org/andglk/glk/CPointed");
-	_CPointed = (*env)->NewGlobalRef(env, cls);
+	//cls = (*env)->FindClass(env, "org/andglk/glk/CPointed");
+	//_CPointed = (*env)->NewGlobalRef(env, cls);
 
-	_getRock = (*env)->GetMethodID(env, cls, "getRock", "()I");
-	_getPointer = (*env)->GetMethodID(env, cls, "getPointer", "()I");
-	_getDispatchRock = (*env)->GetMethodID(env, cls, "getDispatchRock", "()I");
-	_getDispatchClass = (*env)->GetMethodID(env, cls, "getDispatchClass", "()I");
+	//_getRock = (*env)->GetMethodID(env, cls, "getRock", "()I");
+	//_getPointer = (*env)->GetMethodID(env, cls, "getPointer", "()I");
+	//_getDispatchRock = (*env)->GetMethodID(env, cls, "getDispatchRock", "()I");
+	//_getDispatchClass = (*env)->GetMethodID(env, cls, "getDispatchClass", "()I");
 
 	return GLK_JNI_VERSION;
 }
@@ -188,6 +188,7 @@ int andglk_loader_glk_MemoryStream_retainVmArray(JNIEnv *env, jobject this, int 
 	}
 }
 
+/*
 jint andglk_loader_glk_CPointed_makePoint(JNIEnv *env, jobject this)
 {
 	jobject *ptr = malloc(sizeof(jobject));
@@ -224,6 +225,7 @@ void andglk_loader_glk_CPointed_releasePoint(JNIEnv *env, jobject this, jint poi
 	}
 	free(ptr);
 }
+*/
 
 void andglk_loader_glk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativeBuf, jarray jbuf)
 {
@@ -339,26 +341,32 @@ winid_t glk_window_get_root(void)
 		mid = (*env)->GetStaticMethodID(env, _Window, "getRoot", "()Lorg/andglk/glk/Window;");
 
 	jobject obj = (*env)->CallStaticObjectMethod(env, _Window, mid);
-
-	winid_t ret;
-	if (obj)
-		ret = (winid_t) (*env)->CallIntMethod(env, obj, _getPointer);
-	else
-		return 0;
-
-	(*env)->DeleteLocalRef(env, obj);
-	return ret;
+	return (winid_t)obj;
 }
 
 winid_t glk_window_open(winid_t split, glui32 method, glui32 size,
     glui32 wintype, glui32 rock)
 {
 	JNIEnv *env = JNU_GetEnv();
+	(*_jvm)->AttachCurrentThread(_jvm, &env, NULL); 
+
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetStaticMethodID(env, _Window, "open", "(Lorg/andglk/glk/Window;IIII)I");
+		mid = (*env)->GetStaticMethodID(env, _Window, "open", "(Lorg/andglk/glk/Window;IIII)Lorg/andglk/glk/Window;");
 
-	return (winid_t) (*env)->CallStaticIntMethod(env, _Window, mid, split ? *split : 0, (jint) method, (jint) size, (jint) wintype, (jint) rock);
+	jobject jowin = (*env)->CallStaticObjectMethod(env, 
+												   _Window, 
+												   mid, 
+												   split, 
+												   (jint) method, 
+												   (jint) size, 
+												   (jint) wintype, 
+												   (jint) rock);
+	
+	winid_t win = (*env)->NewGlobalRef(env, jowin);
+	(*env)->DeleteLocalRef(env, jowin);
+
+	return win;
 }
 
 void glk_window_close(winid_t win, stream_result_t *result)
@@ -371,7 +379,7 @@ void glk_window_close(winid_t win, stream_result_t *result)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "close", "()J");
 
-	glui32 written = (*env)->CallLongMethod(env, *win, mid);
+	glui32 written = (*env)->CallLongMethod(env, win, mid);
 	if (result) {
 		result->readcount = 0;
 		result->writecount = written;
@@ -379,6 +387,8 @@ void glk_window_close(winid_t win, stream_result_t *result)
 
 	strid_t str = gli_find_window_stream(win);
 	if (str) gli_delete_stream(str);
+
+	(*env)->DeleteGlobalRef(env, win);
 }
 
 void glk_window_get_size(winid_t win, glui32 *widthptr, glui32 *heightptr)
@@ -391,7 +401,7 @@ void glk_window_get_size(winid_t win, glui32 *widthptr, glui32 *heightptr)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "getSize", "()[I");
 
-	jarray res = (*env)->CallObjectMethod(env, *win, mid);
+	jarray res = (*env)->CallObjectMethod(env, win, mid);
 
 	if (res) {
 		jint *arr = (*env)->GetIntArrayElements(env, res, NULL);
@@ -412,17 +422,21 @@ void glk_window_set_arrangement(winid_t win, glui32 method,
 	if (!win)
 		return;
 
+	LOGD("glk_window_set_arrangement: 0x%08x",(int)(win));
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _PairWindow, "setArrangement", "(IILorg/andglk/glk/Window;)V");
 
-	(*env)->CallVoidMethod(env, *win, mid, (jint) method, (jint) size, keywin ? *keywin : 0);
+	(*env)->CallVoidMethod(env, win, mid, (jint) method, (jint) size, keywin);
 }
 
 void glk_window_get_arrangement(winid_t win, glui32 *methodptr,
     glui32 *sizeptr, winid_t *keywinptr)
 {
+	LOGD("glk_window_get_arrangement: 0x%08x",(int)(win));
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
@@ -434,17 +448,20 @@ void glk_window_get_arrangement(winid_t win, glui32 *methodptr,
 
 winid_t glk_window_iterate(winid_t win, glui32 *rockptr)
 {
+	LOGD("glk_window_iterate 0x%08x",(int)win);
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
 		mid = (*env)->GetStaticMethodID(env, _Window, "iterate", "(Lorg/andglk/glk/Window;)Lorg/andglk/glk/Window;");
 
-	jobject nextwin = (*env)->CallStaticObjectMethod(env, _Window, mid, win ? *win : 0);
+	jobject nextwin = (*env)->CallStaticObjectMethod(env, _Window, mid, win);
 
+	/*
 	winid_t ret;
 	if (!nextwin)
-		return 0;
-
+		return NULL;
+	
 	if (rockptr)
 		*rockptr = (*env)->CallIntMethod(env, nextwin, _getRock);
 	ret = (winid_t) (*env)->CallIntMethod(env, nextwin, _getPointer);
@@ -452,12 +469,18 @@ winid_t glk_window_iterate(winid_t win, glui32 *rockptr)
 	(*env)->DeleteLocalRef(env, nextwin);
 
 	return ret;
+	*/
+	return (winid_t)nextwin;
 }
 
 glui32 glk_window_get_rock(winid_t win)
 {
-	JNIEnv *env = JNU_GetEnv();
-	return (*env)->CallIntMethod(env, _this, _getRock);
+	//JNIEnv *env = JNU_GetEnv();
+	//return (*env)->CallIntMethod(env, _this, _getRock);
+
+	LOGD("Unsupported function called: glk_window_get_rock");
+
+	return 0;
 }
 
 glui32 glk_window_get_type(winid_t win)
@@ -467,7 +490,7 @@ glui32 glk_window_get_type(winid_t win)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "getType", "()I");
 
-	return (*env)->CallIntMethod(env, *win, mid);
+	return (*env)->CallIntMethod(env, win, mid);
 
 }
 
@@ -478,16 +501,8 @@ winid_t glk_window_get_parent(winid_t win)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "getParent", "()Lorg/andglk/glk/PairWindow;");
 
-	jobject parent = (*env)->CallObjectMethod(env, *win, mid);
-	winid_t ret;
-	if (parent)
-		ret = (winid_t) (*env)->CallIntMethod(env, parent, _getPointer);
-	else
-		return 0;
-
-	(*env)->DeleteLocalRef(env, parent);
-
-	return ret;
+	jobject parent = (*env)->CallObjectMethod(env, win, mid);
+	return (winid_t)parent;
 }
 
 winid_t glk_window_get_sibling(winid_t win)
@@ -497,16 +512,8 @@ winid_t glk_window_get_sibling(winid_t win)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "getSibling", "()Lorg/andglk/glk/Window;");
 
-	jobject sibling = (*env)->CallObjectMethod(env, *win, mid);
-	winid_t ret;
-
-	if (sibling)
-		ret = (winid_t) (*env)->CallIntMethod(env, sibling, _getPointer);
-	else
-		return 0;
-
-	(*env)->DeleteLocalRef(env, sibling);
-	return 0;
+	jobject sibling = (*env)->CallObjectMethod(env, win, mid);
+	return sibling;
 }
 
 void glk_window_clear(winid_t win)
@@ -519,7 +526,7 @@ void glk_window_clear(winid_t win)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "clear", "()V");
 
-	(*env)->CallVoidMethod(env, *win, mid);
+	(*env)->CallVoidMethod(env, win, mid);
 }
 
 void glk_window_move_cursor(winid_t win, glui32 xpos, glui32 ypos)
@@ -532,7 +539,7 @@ void glk_window_move_cursor(winid_t win, glui32 xpos, glui32 ypos)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _TextGridWindow, "moveCursor", "(II)V");
 
-	(*env)->CallVoidMethod(env, *win, mid, (jint) xpos, (jint) ypos);
+	(*env)->CallVoidMethod(env, win, mid, (jint) xpos, (jint) ypos);
 }
 
 strid_t glk_window_get_stream(winid_t win)
@@ -544,12 +551,14 @@ strid_t glk_window_get_stream(winid_t win)
 		static jmethodID mid = 0;
 		if (mid == 0)
 			mid = (*env)->GetMethodID(env, _Window, "getStream", "()Lorg/andglk/glk/Stream;");
-
-		jobject obj = (*env)->CallObjectMethod(env, *win, mid);
+		
+		jobject obj = (*env)->CallObjectMethod(env, win, mid);
 		if (obj) {
 			str = gli_new_stream(strtype_Window, FALSE, TRUE, 0, FALSE);
-			str->st = (jobject*) (*env)->CallIntMethod(env, obj, _getPointer);
+			
+			str->st = (*env)->NewGlobalRef(env, obj);  //(jobject*) (*env)->CallIntMethod(env, obj, _getPointer);
 			(*env)->DeleteLocalRef(env, obj);
+
 			str->winid = win;
 		}
 	}
@@ -558,6 +567,8 @@ strid_t glk_window_get_stream(winid_t win)
 
 void glk_window_set_echo_stream(winid_t win, strid_t str)
 {
+	LOGD("glk_window_set_echo_stream - UNIMPLEMENTED: 0x%08x",(int)(win));
+
 	return; //todo -- transcript is broken
 
 	if (!win || str->type != strtype_Window)
@@ -568,7 +579,7 @@ void glk_window_set_echo_stream(winid_t win, strid_t str)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "setEchoStream", "(Lorg/andglk/glk/Stream;)V");
 
-	(*env)->CallVoidMethod(env, *win, mid, str ? *(str->st) : 0);
+	(*env)->CallVoidMethod(env, win, mid, str ? str->st : 0);
 }
 
 strid_t glk_window_get_echo_stream(winid_t win)
@@ -579,10 +590,12 @@ strid_t glk_window_get_echo_stream(winid_t win)
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
-		mid = (*env)->GetMethodID(env, _Window, "getEchoStream", "()I");
+		mid = (*env)->GetMethodID(env, _Window, "getEchoStream", "()org/andglk/glk/Stream;");
 
 	strid_t str = gli_new_stream(strtype_Window, FALSE, TRUE, 0, FALSE);
-	str->st = (jobject*) (*env)->CallIntMethod(env, *win, mid);
+	jobject obj = (*env)->CallObjectMethod(env, win, mid);
+	str->st = (*env)->NewGlobalRef(env, obj);
+	(*env)->DeleteLocalRef(env, obj);
 	return str;
 }
 
@@ -599,7 +612,7 @@ void glk_set_window(winid_t win)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _class, "setWindow", "(Lorg/andglk/glk/Window;)V");
 
-	(*env)->CallVoidMethod(env, _this, mid, win ? *win : NULL);
+	(*env)->CallVoidMethod(env, _this, mid, win);
 }
 		
 strid_t glk_stream_open_file(frefid_t fileref, glui32 fmode, glui32 rock)
@@ -636,7 +649,7 @@ strid_t glk_stream_open_memory(char *buf, glui32 buflen, glui32 fmode, glui32 ro
 									 rock,
 									 FALSE);
 
-		str->st = (jobject*) (*env)->CallIntMethod(env, obj, _getPointer);
+		str->st = (*env)->NewGlobalRef(env, obj);
 		(*env)->DeleteLocalRef(env, obj);
 		return str;
 	}
@@ -663,7 +676,8 @@ void glk_stream_close(strid_t str, stream_result_t *result)
 		if (mid == 0)
 			mid = (*env)->GetMethodID(env, _Stream, "close", "()[I");
 
-		jarray res = (*env)->CallObjectMethod(env, *(str->st), mid);
+		jarray res = (*env)->CallObjectMethod(env, str->st, mid);
+		(*env)->DeleteGlobalRef(env, str->st);
 
 		if (result) {
 			jint *arr = (*env)->GetIntArrayElements(env, res, NULL);
@@ -701,7 +715,7 @@ void glk_stream_set_position(strid_t str, glsi32 pos, glui32 seekmode)
 		if (mid == 0)
 			mid = (*env)->GetMethodID(env, _Stream, "setPosition", "(II)V");
 
-		(*env)->CallVoidMethod(env, *(str->st), mid, (jint) pos, (jint) seekmode);
+		(*env)->CallVoidMethod(env, str->st, mid, (jint) pos, (jint) seekmode);
 	}
 }
 
@@ -720,7 +734,7 @@ glui32 glk_stream_get_position(strid_t str)
 		if (mid == 0)
 			mid = (*env)->GetMethodID(env, _Stream, "getPosition", "()I");
 
-		return (*env)->CallIntMethod(env, *(str->st), mid);
+		return (*env)->CallIntMethod(env, str->st, mid);
 	}
 }
 
@@ -747,12 +761,15 @@ void glk_put_char(unsigned char ch)
 
 void glk_put_char_stream_uni(strid_t str, glui32 ch)
 {
+	LOGD("glk_put_char_stream_uni");
 	unsigned char lilch = (unsigned char)ch;
 	glk_put_char_stream(str, lilch);
 }
 
 void glk_put_char_stream(strid_t str, unsigned char ch)
 {
+	LOGD("glk_put_char_stream");
+
 	if (!str) return;
 
 	if (str->type == strtype_File) {
@@ -769,7 +786,7 @@ void glk_put_char_stream(strid_t str, unsigned char ch)
 		if (mid == 0)
 			mid = (*env)->GetMethodID(env, _Stream, "putChar", "(C)V");
 
-		(*env)->CallVoidMethod(env, *(str->st), mid, (jchar) ch);
+		(*env)->CallVoidMethod(env, str->st, mid, (jchar) ch);
 	}
 
 	str->writecount++;
@@ -777,16 +794,19 @@ void glk_put_char_stream(strid_t str, unsigned char ch)
 
 void glk_put_string(char *s)
 {
+	LOGD("glk_put_string");
 	glk_put_string_stream(glk_stream_get_current(), s);
 }
 
 void glk_put_string_stream(strid_t str, char *s)
 {
+	LOGD("glk_put_string_stream");
 	glk_put_buffer_stream(str, s, strlen(s));
 }
 
 void glk_put_buffer_uni(glui32 *buf, glui32 len)
 {
+	LOGD("glk_put_buffer_uni");
 	char chbuf[len+1];
 
 	glui32 *it = buf;
@@ -800,11 +820,14 @@ void glk_put_buffer_uni(glui32 *buf, glui32 len)
 
 void glk_put_buffer(char *s, glui32 len)
 {
+	LOGD("glk_put_buffer");
 	glk_put_buffer_stream(glk_stream_get_current(), s, len);
 }
 
 void glk_put_buffer_stream(strid_t str, char *s, glui32 len)
 {
+	LOGD("glk_put_buffer_stream");
+
 	int lx;
 
 	if (!str || !s) return;
@@ -831,7 +854,7 @@ void glk_put_buffer_stream(strid_t str, char *s, glui32 len)
 
 		jstring jstr = (*env)->NewString(env, buf, len);
 
-		(*env)->CallVoidMethod(env, *(str->st), mid, jstr);
+		(*env)->CallVoidMethod(env, str->st, mid, jstr);
 
 		(*env)->DeleteLocalRef(env, jstr);
 	}
@@ -840,11 +863,15 @@ void glk_put_buffer_stream(strid_t str, char *s, glui32 len)
 
 void glk_set_style(glui32 styl)
 {
+	LOGD("glk_set_style");
+
 	glk_set_style_stream(glk_stream_get_current(), styl);
 }
 
 void glk_set_style_stream(strid_t str, glui32 styl)
 {
+	LOGD("glk_set_style_stream");
+
 	if (!str || str->type != strtype_Window)
 		return;
 
@@ -853,16 +880,19 @@ void glk_set_style_stream(strid_t str, glui32 styl)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Stream, "setStyle", "(J)V");
 
-	(*env)->CallVoidMethod(env, *(str->st), mid, (jlong) styl);
+	(*env)->CallVoidMethod(env, str->st, mid, (jlong) styl);
 }
 
 void garglk_set_reversevideo(glui32 reverse)
 {
+	LOGD("garglk_set_reversevideo");
 	garglk_set_reversevideo_stream(glk_stream_get_current(), reverse);
 }
 
 void garglk_set_reversevideo_stream(stream_t *str, glui32 reverse)
 {
+	LOGD("garglk_set_reversevideo_stream");
+
 	if (!str || str->type != strtype_Window)
 		return;
 
@@ -871,11 +901,13 @@ void garglk_set_reversevideo_stream(stream_t *str, glui32 reverse)
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Stream, "setReverseVideo", "(J)V");
 
-	(*env)->CallVoidMethod(env, *(str->st), mid, (jlong) reverse);
+	(*env)->CallVoidMethod(env, str->st, mid, (jlong) reverse);
 }
 
 glsi32 glk_get_char_stream(strid_t str)
 {
+	LOGD("glk_get_char_stream");
+
 	int res;
 
     if (!str || !str->readable)
@@ -889,7 +921,7 @@ glsi32 glk_get_char_stream(strid_t str)
 		if (mid == 0)
 			mid = (*env)->GetMethodID(env, _Stream, "getChar", "()I");
 
-		res = (*env)->CallIntMethod(env, *(str->st), mid);
+		res = (*env)->CallIntMethod(env, str->st, mid);
 	}
 
 	if (res != -1) {
@@ -902,6 +934,8 @@ glsi32 glk_get_char_stream(strid_t str)
 
 glui32 glk_get_line_stream(strid_t str, char *buf, glui32 len)
 {
+	LOGD("glk_get_line_stream");
+
 	int count = 0;
 
 	if (!str)
@@ -920,7 +954,7 @@ glui32 glk_get_line_stream(strid_t str, char *buf, glui32 len)
 		if (mid == 0)
 			mid = (*env)->GetMethodID(env, _Stream, "getLine", "(I)Ljava/lang/String;");
 
-		jstring result = (*env)->CallObjectMethod(env, *(str->st), mid, len - 1);
+		jstring result = (*env)->CallObjectMethod(env, str->st, mid, len - 1);
 		if (!result)
 			return 0;
 
@@ -936,6 +970,8 @@ glui32 glk_get_line_stream(strid_t str, char *buf, glui32 len)
 
 glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 {
+	LOGD("glk_get_buffer_stream");
+
 	glui32 count;
 
 	if (!str)
@@ -951,7 +987,7 @@ glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 		if (mid == 0)
 			mid = (*env)->GetMethodID(env, _Stream, "getBuffer", "(I)[B");
 
-		jarray result = (*env)->CallObjectMethod(env, *(str->st), mid, len);
+		jarray result = (*env)->CallObjectMethod(env, str->st, mid, len);
 		if (!result)
 			return 0;
 
@@ -971,6 +1007,8 @@ glui32 glk_get_buffer_stream(strid_t str, char *buf, glui32 len)
 
 void glk_stylehint_set(glui32 wintype, glui32 styl, glui32 hint, glsi32 val)
 {
+	LOGD("glk_stylehint_set");
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
@@ -981,6 +1019,8 @@ void glk_stylehint_set(glui32 wintype, glui32 styl, glui32 hint, glsi32 val)
 
 void glk_stylehint_clear(glui32 wintype, glui32 styl, glui32 hint)
 {
+	LOGD("glk_stylehint_clear");
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
@@ -991,12 +1031,14 @@ void glk_stylehint_clear(glui32 wintype, glui32 styl, glui32 hint)
 
 glui32 glk_style_distinguish(winid_t win, glui32 styl1, glui32 styl2)
 {
+	LOGD("glk_style_dist");
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "styleDistinguish", "(II)Z");
 
-	return (*env)->CallBooleanMethod(env, *win, mid, styl1, styl2);
+	return (*env)->CallBooleanMethod(env, win, mid, styl1, styl2);
 }
 
 glui32 glk_style_measure(winid_t win, glui32 styl, glui32 hint, glui32 *result)
@@ -1006,6 +1048,8 @@ glui32 glk_style_measure(winid_t win, glui32 styl, glui32 hint, glui32 *result)
 
 frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
 {
+	LOGD("glk_fileref_create_by_prompt");
+
     fileref_t *fref;
     int val, filter;
     char *prompt;
@@ -1036,6 +1080,8 @@ frefid_t glk_fileref_create_by_prompt(glui32 usage, glui32 fmode, glui32 rock)
 
 static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 {
+	LOGD("event2glk");
+
 	if (!ev) {
 		event->win = NULL;
 		event->val1 = event->val2 = event->type = 0;
@@ -1044,9 +1090,9 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 
 	static jfieldID window = 0;
 	if (window == 0)
-		window = (*env)->GetFieldID(env, _Event, "windowPointer", "I");
+		window = (*env)->GetFieldID(env, _Event, "window", "Lorg/andglk/glk/Window;");
 
-	event->win = (winid_t) (*env)->GetIntField(env, ev, window);
+	event->win = (winid_t) (*env)->GetObjectField(env, ev, window);
 
 	if ((*env)->IsInstanceOf(env, ev, _LineInputEvent)) {
 		event->type = evtype_LineInput;
@@ -1129,6 +1175,8 @@ static void event2glk(JNIEnv *env, jobject ev, event_t *event)
 
 void glk_select(event_t *event)
 {
+	LOGD("glk_select");
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
@@ -1142,6 +1190,8 @@ void glk_select(event_t *event)
 
 void glk_select_poll(event_t *event)
 {
+	LOGD("glk_select_poll");
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
@@ -1158,6 +1208,8 @@ void glk_request_timer_events(glui32 millisecs)
 
 void gli_request_line_event(winid_t win, void *buf, glui32 maxlen, glui32 initlen, glui32 unicode)
 {
+	LOGD("glk_request_line_event");
+
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 
@@ -1184,7 +1236,7 @@ void gli_request_line_event(winid_t win, void *buf, glui32 maxlen, glui32 initle
 		str = (*env)->NewString(env, jbuf, maxlen);
 	}
 
-	(*env)->CallVoidMethod(env, *win, mid, str, (jlong) maxlen, (jint) buf, (jint) unicode);
+	(*env)->CallVoidMethod(env, win, mid, str, (jlong) maxlen, (jint) buf, (jint) unicode);
 
 	if (str)
 		(*env)->DeleteLocalRef(env, str);
@@ -1200,7 +1252,6 @@ void glk_request_line_event(winid_t win, char *buf, glui32 maxlen, glui32 initle
 	gli_request_line_event(win, buf, maxlen, initlen, 0);
 }
 
-
 void glk_request_char_event_uni(winid_t win)
 {
 	glk_request_char_event(win);
@@ -1208,12 +1259,13 @@ void glk_request_char_event_uni(winid_t win)
 
 void glk_request_char_event(winid_t win)
 {
+	LOGD("glk_request_char_event");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "requestCharEvent", "()V");
 
-	(*env)->CallVoidMethod(env, *win, mid);
+	(*env)->CallVoidMethod(env, win, mid);
 }
 
 void glk_request_mouse_event(winid_t win)
@@ -1223,12 +1275,13 @@ void glk_request_mouse_event(winid_t win)
 
 void glk_cancel_line_event(winid_t win, event_t *event)
 {
+	LOGD("glk_cancel_line_event");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "cancelLineEvent", "()Lorg/andglk/glk/LineInputEvent;");
 
-	jobject ev = (*env)->CallObjectMethod(env, *win, mid);
+	jobject ev = (*env)->CallObjectMethod(env, win, mid);
 	if (event)
 		event2glk(env, ev, event);
 
@@ -1237,12 +1290,13 @@ void glk_cancel_line_event(winid_t win, event_t *event)
 
 void glk_cancel_char_event(winid_t win)
 {
+	LOGD("glk_cancel_line_event");
 	JNIEnv *env = JNU_GetEnv();
 	static jmethodID mid = 0;
 	if (mid == 0)
 		mid = (*env)->GetMethodID(env, _Window, "cancelCharEvent", "()V");
 
-	(*env)->CallVoidMethod(env, *win, mid);
+	(*env)->CallVoidMethod(env, win, mid);
 }
 
 void glk_cancel_mouse_event(winid_t win)
@@ -1252,6 +1306,8 @@ void glk_cancel_mouse_event(winid_t win)
 
 gidispatch_rock_t gidispatch_get_objrock(void *obj, glui32 objclass)
 {
+	/*
+
     switch (objclass)
     {
 		//case gidisp_Class_Schannel:
@@ -1259,7 +1315,7 @@ gidispatch_rock_t gidispatch_get_objrock(void *obj, glui32 objclass)
 			if (obj) {
 				JNIEnv *env = JNU_GetEnv();
 				gidispatch_rock_t rock;
-				rock.num = (*env)->CallIntMethod(env, *(jobject*)obj, _getDispatchRock);
+				rock.num = (*env)->CallIntMethod(env, (jobject)obj, _getDispatchRock);
 				return rock;
 			}
         case gidisp_Class_Stream:
@@ -1267,6 +1323,10 @@ gidispatch_rock_t gidispatch_get_objrock(void *obj, glui32 objclass)
         case gidisp_Class_Fileref:
             return ((fileref_t *)obj)->disprock;
     }
+	*/
+
+	LOGD("Unsupported function called: gidispatch_get_objrock");
+
 	gidispatch_rock_t dummy;
 	dummy.num = 0;
 	return dummy;

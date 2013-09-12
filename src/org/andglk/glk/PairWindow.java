@@ -149,7 +149,7 @@ public class PairWindow extends Window {
 		
 		keepv.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT, 0));
 		
-		release();
+		//release();
 		PairWindow parent = getParent();
 		keep.setParent(parent);
 		if (parent != null) {

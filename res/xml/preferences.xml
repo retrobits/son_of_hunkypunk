@@ -8,11 +8,13 @@
 	  android:entries="@array/fontSizeArray"
 	  android:entryValues="@array/fontSizeArray" />
   <EditTextPreference
+      android:enabled="false"
 	  android:title="Font folder path"
 	  android:key="fontFolderPath" 
 	  android:summary="folder to store custom TTF font files"
 	  android:defaultValue="/sdcard/Fonts" />
   <ListPreference
+      android:enabled="false"
 	  android:title="Font file name"
 	  android:key="fontFileName"
 	  android:summary="Custom TTF font file"

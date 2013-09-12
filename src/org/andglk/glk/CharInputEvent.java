@@ -59,6 +59,9 @@ public class CharInputEvent extends Event {
 	public int getChar() {
 		return mChar;
 	}
+	public void setChar(int v) {
+		mChar = v;
+	}
 	
 	private static CharInputEvent sInstance = new CharInputEvent(null, 0); 
 	/** Tries to create a CharInputEvent given an Android KeyEvent.

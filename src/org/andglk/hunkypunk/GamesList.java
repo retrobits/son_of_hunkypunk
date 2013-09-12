@@ -64,16 +64,17 @@ public class GamesList extends ListActivity implements OnClickListener {
 	};
 
 	protected static final String[] BEGINNER_GAMES = {
-		"http://ifarchive.wurb.com/if-archive/games/zcode/905.z5",
-		"http://ifarchive.wurb.com/if-archive/games/zcode/Advent.z5",
-		"http://ifarchive.wurb.com/if-archive/games/zcode/awaken.z5",
-		"http://ifarchive.wurb.com/if-archive/games/zcode/dreamhold.z8",
-		"http://ifarchive.wurb.com/if-archive/games/zcode/LostPig.z8",
-		"http://ifarchive.wurb.com/if-archive/games/zcode/shade.z5",
-		"http://ifarchive.wurb.com/if-archive/games/tads/indigo.t3",
-		"http://ifarchive.wurb.com/if-archive/games/competition98/tads/plant/plant.gam",
-		"http://ifarchive.wurb.com/if-archive/games/zcode/Bronze.zblorb",
-		"http://ifarchive.wurb.com/if-archive/games/zcode/theatre.z5"
+		"http://www.ifarchive.org/if-archive/games/zcode/905.z5",
+		"http://www.ifarchive.org/if-archive/games/zcode/Advent.z5",
+		"http://www.ifarchive.org/if-archive/games/zcode/awaken.z5",
+		"http://www.ifarchive.org/if-archive/games/zcode/dreamhold.z8",
+		"http://www.ifarchive.org/if-archive/games/zcode/LostPig.z8",
+		"http://www.ifarchive.org/if-archive/games/zcode/shade.z5",
+		"http://www.ifarchive.org/if-archive/games/tads/indigo.t3",
+		"http://www.ifarchive.org/if-archive/games/competition98/tads/plant/plant.gam",
+		"http://www.ifarchive.org/if-archive/games/zcode/Bronze.zblorb",
+		"http://www.ifarchive.org/if-archive/games/zcode/theatre.z5",
+		"http://hunkypunk.googlecode.com/files/uu1.gam"
 	};
 
 	protected static final String TAG = "HunkyPunk";

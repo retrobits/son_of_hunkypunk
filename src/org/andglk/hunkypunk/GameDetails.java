@@ -40,6 +40,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Display;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -48,6 +50,8 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -89,6 +93,7 @@ public class GameDetails extends Activity implements OnClickListener {
 	private TextView mDescription;
 	private View mDescriptionLayout;
 	private TextView mDetails;
+	private ScrollView mScroll;
 	private ProgressDialog mProgressDialog;
 	private Handler mLookupHandler = new Handler() {
 		public void handleMessage(Message msg) {
@@ -184,6 +189,7 @@ public class GameDetails extends Activity implements OnClickListener {
 		mCover = (ImageView) findViewById(R.id.cover);
 		mDescriptionLayout = findViewById(R.id.description_layout);
 		mDetails = (TextView) findViewById(R.id.details);
+		mScroll = (ScrollView) findViewById(R.id.info_scroll);
 		mRestartButton = findViewById(id.restart);
 		
 		((Button) findViewById(R.id.open)).setOnClickListener(this);
@@ -268,8 +274,19 @@ public class GameDetails extends Activity implements OnClickListener {
 		
 		mDetails.setText(sb);
 		
-		// Uri.fromFile doesn't work for some reason
-		mCover.setImageURI(Uri.parse(HunkyPunk.getCover(mQuery.getString(IFID)).getAbsolutePath()));
+		File i = HunkyPunk.getCover(mQuery.getString(IFID));
+		if (i.exists())
+		{
+			// Uri.fromFile doesn't work for some reason
+			mCover.setImageURI(Uri.parse(i.getAbsolutePath()));
+
+			Display display = getWindowManager().getDefaultDisplay(); 
+			int width = (int)(display.getWidth()/1.5);  // deprecated
+
+			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(width, width);
+			lp.gravity = Gravity.CENTER_HORIZONTAL;
+			mCover.setLayoutParams(lp);
+		}
 		
 		mRestartButton.setVisibility(getBookmark().exists() ? View.VISIBLE : View.GONE);
 	}

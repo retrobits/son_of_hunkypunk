@@ -26,7 +26,7 @@ import java.util.List;
 
 import android.util.Log;
 
-public abstract class Stream extends CPointed {
+public abstract class Stream { // extends CPointed {
 	public final static int SEEKMODE_START = 0;
 	public final static int SEEKMODE_CURRENT = 1;
 	public final static int SEEKMODE_END = 2;
@@ -40,7 +40,7 @@ public abstract class Stream extends CPointed {
 	protected Glk mGlk;
 
 	protected Stream(int rock) {
-		super(rock);
+		//super(rock);
 		
 		_streams.add(this);
 		mGlk = Glk.getInstance();
@@ -80,12 +80,12 @@ public abstract class Stream extends CPointed {
 	 * @param rock Rock value to embed in the stream.
 	 * @return C pointer to the reference to the stream.
 	 */
-	static int openFile(FileRef fileref, int fmode, int rock) {
-		return (new FileStream(fileref, fmode, rock)).getPointer();
+	static Stream openFile(FileRef fileref, int fmode, int rock) {
+		return (new FileStream(fileref, fmode, rock)); //.getPointer();
 	}
 	
-	static int openPathname(String path, int fmode, int rock) {
-		return (new FileStream(path, fmode, rock)).getPointer();
+	static Stream openPathname(String path, int fmode, int rock) {
+		return (new FileStream(path, fmode, rock)); //.getPointer();
 	}
 	
 	public void putChar(char c) {
@@ -110,7 +110,7 @@ public abstract class Stream extends CPointed {
 			Log.e("Glk/Stream", "I/O error in close", e);
 		} 
 		
-		release();
+		//release();
 		_streams.remove(this);
 		if (mGlk.getCurrentStream() == this)
 			mGlk.setCurrentStream(null);
@@ -210,8 +210,10 @@ public abstract class Stream extends CPointed {
 	public abstract int getPosition();
 	public abstract void setPosition(int pos, int seekMode);
 
+	/*
 	@Override
 	public int getDispatchClass() {
 		return GIDISP_CLASS_STREAM;
 	}
+	*/
 }

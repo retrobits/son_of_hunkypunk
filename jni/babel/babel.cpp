@@ -24,6 +24,8 @@
 
 jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 {
+	if(jvm || reserved){} //remove unused warning
+
 	return JNI_VERSION_1_4;
 }
 
@@ -34,6 +36,8 @@ extern "C" int32 tads3_treaty(int32 selector, void *story_file, int32 extent, vo
 
 extern "C" jstring Java_org_andglk_babel_Babel_examine(JNIEnv *env, jclass cls, jstring filepath)
 {
+	if(cls){} //remove unused warning
+
 	const char* copy_filepath = env->GetStringUTFChars(filepath, 0);
 	babel_init(copy_filepath);
 

@@ -28,11 +28,13 @@ import org.andglk.hunkypunk.R;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -134,9 +136,20 @@ public class Glk extends Thread {
 		mUiHandler.post(new Runnable() {
 			@Override
 			public void run() {
+				TypedArray ta = mContext.obtainStyledAttributes(null, 
+																new int[] { android.R.attr.textAppearance }, 
+																R.attr.textGridWindowStyle, 
+																0);
+				int res = ta.getResourceId(0, -1);
+				ta = mContext.obtainStyledAttributes(res, new int[] { android.R.attr.textSize, android.R.attr.textColor });
+				int fontSize = (int)(ta.getDimensionPixelSize(0, -1));
+
 				final View overlay = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE))
 					.inflate(R.layout.floating_notification, null);
-				((TextView) overlay.findViewById(R.id.message)).setText(R.string.game_quit);
+				TextView tw = (TextView)(overlay.findViewById(R.id.message));
+				tw.setTextSize(fontSize);
+				tw.setText(R.string.game_quit);
+
 				overlay.measure(View.MeasureSpec.makeMeasureSpec(mFrame.getWidth(), MeasureSpec.AT_MOST), 
 						View.MeasureSpec.makeMeasureSpec(mFrame.getHeight(), MeasureSpec.AT_MOST));
 				Bitmap bitmap = Bitmap.createBitmap(overlay.getMeasuredWidth(), overlay.getMeasuredHeight(), Bitmap.Config.ARGB_8888);

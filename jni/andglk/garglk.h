@@ -48,7 +48,7 @@
  */
 
 #define gli_strict_warning(msg)   \
-	(LOGD("Glk library error: %s\n", msg))
+	(LOGW("Glk library error: %s\n", msg))
 
 extern int gli_utf8output, gli_utf8input;
 
@@ -340,7 +340,7 @@ struct glk_stream_struct
 #ifdef ANDGLK
     /* for strtype_Window */
     /* for strtype_Memory */
-	jobject* st;
+	jobject st;
 	winid_t winid;
 #endif	
 

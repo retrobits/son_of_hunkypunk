@@ -45,7 +45,7 @@ import android.widget.TextView.OnEditorActionListener;
  * it'd be best to have a separate R file for the package. */
 import org.andglk.hunkypunk.R;
 
-public class FileRef extends CPointed {
+public class FileRef { // extends CPointed {
 	public final static int FILEUSAGE_DATA = 0x00;
 	public final static int FILEUSAGE_SAVEDGAME = 0x01;
 	public final static int FILEUSAGE_TRANSCRIPT = 0x02;
@@ -67,7 +67,7 @@ public class FileRef extends CPointed {
 	private static FileRef _last;
 
 	private FileRef(File file, boolean isText, int rock) {
-		super(rock);
+		//super(rock);
 		mFile = file;
 		mIsText = isText;
 		
@@ -348,18 +348,18 @@ public class FileRef extends CPointed {
 	 * @param rock rock value to store in this fileref
 	 * @return C pointer to a reference to the new fileref or 0 if canceled or errored.
 	 */
-	public static int createByPrompt(int usage, int mode, int rock) {
+	public static FileRef createByPrompt(int usage, int mode, int rock) {
 		try {
 			Future<File> filename = new FilePrompt(usage & FILEUSAGE_TYPEMASK, mode);
 			File fname = filename.get();
 			//Log.d("FileRef", "got filename: " + fname.getAbsolutePath());
 			if (fname != null)
-				return (new FileRef(fname, (usage & ~FILEUSAGE_TYPEMASK) == FILEUSAGE_TEXTMODE, rock)).getPointer();
+				return (new FileRef(fname, (usage & ~FILEUSAGE_TYPEMASK) == FILEUSAGE_TEXTMODE, rock)); //.getPointer();
 			else
-				return 0;
+				return null;
 		} catch (Exception e) {
 			Log.e("Glk/FileRef", "error while prompting for fileref", e);
-			return 0;
+			return null;
 		}
 	}
 
@@ -384,7 +384,7 @@ public class FileRef extends CPointed {
 	
 	public void destroy() {
 		_fileRefs.remove(this);
-		release();
+		//release();
 	}
 	
 	static public FileRef createTemp(int usage, int rock) {
@@ -429,8 +429,10 @@ public class FileRef extends CPointed {
 		return mFile.exists();
 	}
 
+	/*
 	@Override
 	public int getDispatchClass() {
 		return GIDISP_CLASS_FILEREF;
 	}
+	*/
 }

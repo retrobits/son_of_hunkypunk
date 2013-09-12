@@ -7,7 +7,9 @@
 
     <target name="hunkypunk-release" depends="clean, jnilibs, release" />
 
-    <target name="hunkypunk-debug"   depends="jnilibs, debug" />
+    <target name="hunkypunk-debug"   depends="jnilibs, debug">
+	  <antcall target="dropbox"/>
+    </target>
 
 <!--
     ************************************************************************
@@ -35,9 +37,12 @@
     ************************************************************************
 -->
     <target name="clean-plugins">
-<!--
- todo: ...
--->
+		<delete includeemptydirs="true" failonerror="false">
+		  <fileset dir="libs/armeabi" includes="**/*"/>
+		</delete>
+		<delete includeemptydirs="true" failonerror="false">
+		  <fileset dir="obj" includes="**/*"/>
+		</delete>
     </target>
 
     <target name="clean" depends="clean-plugins">
@@ -46,9 +51,6 @@
 		</delete>
 		<delete includeemptydirs="true" failonerror="false">
 		  <fileset dir="gen" includes="**/*"/>
-		</delete>
-		<delete includeemptydirs="true" failonerror="false">
-		  <fileset dir="libs/armeabi" includes="**/*"/>
 		</delete>
     </target>
 
@@ -106,6 +108,13 @@
 	  </copy>
 	  -->
     </target>
+
+    <condition property="is.dropbox.set">
+	  <isset property="dropbox-location" />
+    </condition>
+    <target name="dropbox" if="is.dropbox.set">
+	  <copy file="${dropbox-target}" todir="${dropbox-location}"/>
+	</target>
 
 <!--
     ************************************************************************

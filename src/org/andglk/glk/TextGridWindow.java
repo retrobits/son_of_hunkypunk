@@ -184,7 +184,8 @@ public class TextGridWindow extends Window {
 					R.attr.textGridWindowStyle, 0);
 			int res = ta.getResourceId(0, -1);
 			ta = context.obtainStyledAttributes(res, new int[] { android.R.attr.textSize, android.R.attr.textColor });
-			_fontSize = ta.getDimensionPixelSize(0, -1);
+			_fontSize = (int)(ta.getDimensionPixelSize(0, -1)*1.2);
+
 			mDefaultColor = ta.getColor(1, 0xffffffff);
 			
 			mPaint = new Paint();

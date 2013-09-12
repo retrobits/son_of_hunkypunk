@@ -30,7 +30,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
-public abstract class Window extends CPointed {
+public abstract class Window { //extends CPointed {
 	public class BlankStream extends Stream {
 		@Override
 		protected int doGetChar() throws IOException {
@@ -57,7 +57,7 @@ public abstract class Window extends CPointed {
 	private static Window _root;
 	
 	public Window(int rock) {
-		super(rock);
+		//super(rock);
 	}
 	
 	static public Window getRoot() {
@@ -150,7 +150,10 @@ public abstract class Window extends CPointed {
 				doClose();
 			}
 		});
-		return mStream.windowClosed();
+		if (mStream != null)
+			return mStream.windowClosed();
+		else
+			return 0;
 	}
 
 	protected void doClose() {
@@ -160,9 +163,10 @@ public abstract class Window extends CPointed {
 			pair.dissolve(this);
 		} else {
 			_root = null;
-			((ViewGroup) getView().getParent()).removeAllViews();
+			if (getView()!= null && getView().getParent()!=null)
+				((ViewGroup) getView().getParent()).removeAllViews();
 		}
-		release();
+		//release();
 	}
 
 	protected void setParent(PairWindow parent) {
@@ -187,7 +191,7 @@ public abstract class Window extends CPointed {
 		mStream.setEchoStream(echoStream);
 	}
 	
-	public int getEchoStream() {
+	public org.andglk.glk.Stream getEchoStream() {
 		return mStream.getEchoStream();
 	}
 
@@ -209,7 +213,10 @@ public abstract class Window extends CPointed {
 	 */
 	abstract public int measureHeight(int size);
 
-	public static int open(Window split, int method, int size, int wintype, int rock) {
+	public static Window open(Window split, int method, int size, int wintype, int rock) {
+		//String spl = split == null ? "(no split)":"(split)";
+		//Log.d("Glk/Window", "Window.open " + Long.toString(wintype) + " " + spl);
+
 		final Glk glk = Glk.getInstance();
 		Window wnd;
 		switch (wintype) {
@@ -224,7 +231,7 @@ public abstract class Window extends CPointed {
 			break;
 		default:
 			Log.w("Glk", "Unimplemented window type requested: " + Long.toString(wintype));
-			return 0;
+			return null;
 		}
 		
 		final Window finalWindow = wnd;
@@ -243,7 +250,7 @@ public abstract class Window extends CPointed {
 				_root = w;
 		}
 		
-		return wnd.getPointer();
+		return wnd;
 	}
 
 	public void echoOff() {
@@ -267,11 +274,8 @@ public abstract class Window extends CPointed {
 			mEchoStream = null;
 		}
 
-		public int getEchoStream() {
-			if (mEchoStream != null)
-				return mEchoStream.getPointer();
-			else
-				return 0;
+		public org.andglk.glk.Stream getEchoStream() {
+			return mEchoStream;
 		}
 
 		public void setEchoStream(org.andglk.glk.Stream echoStream) {
@@ -283,7 +287,7 @@ public abstract class Window extends CPointed {
 		}
 
 		public long windowClosed() {
-			release();
+			//release();
 			return mWritten;
 		}
 		
@@ -417,10 +421,12 @@ public abstract class Window extends CPointed {
 	
 	abstract boolean styleDistinguish(int style1, int style2);
 	
+	/*
 	@Override
 	public int getDispatchClass() {
 		return GIDISP_CLASS_WINDOW;
 	}
+	*/
 
 	public static void disableAll() {
 		Window w = null;
