@@ -45,7 +45,7 @@ import android.widget.TextView.OnEditorActionListener;
  * it'd be best to have a separate R file for the package. */
 import org.andglk.hunkypunk.R;
 
-public class FileRef { // extends CPointed {
+public class FileRef {
 	public final static int FILEUSAGE_DATA = 0x00;
 	public final static int FILEUSAGE_SAVEDGAME = 0x01;
 	public final static int FILEUSAGE_TRANSCRIPT = 0x02;
@@ -59,6 +59,7 @@ public class FileRef { // extends CPointed {
 	public final static int FILEMODE_READ = 0x02;
 	public final static int FILEMODE_READWRITE = 0x03;
 	public final static int FILEMODE_WRITEAPPEND = 0x05;
+/* moved to native code
 	private final File mFile;
 	private final boolean mIsText;
 	
@@ -67,12 +68,14 @@ public class FileRef { // extends CPointed {
 	private static FileRef _last;
 
 	private FileRef(File file, boolean isText, int rock) {
-		//super(rock);
+		super(rock);
 		mFile = file;
 		mIsText = isText;
 		
 		_fileRefs.add(this);
 	}
+*/
+	private FileRef() {}
 
 	/** A future which asks the user for a new filename.
 	 * @author divide
@@ -348,13 +351,14 @@ public class FileRef { // extends CPointed {
 	 * @param rock rock value to store in this fileref
 	 * @return C pointer to a reference to the new fileref or 0 if canceled or errored.
 	 */
+    /* moved to native code
 	public static FileRef createByPrompt(int usage, int mode, int rock) {
 		try {
 			Future<File> filename = new FilePrompt(usage & FILEUSAGE_TYPEMASK, mode);
 			File fname = filename.get();
 			//Log.d("FileRef", "got filename: " + fname.getAbsolutePath());
 			if (fname != null)
-				return (new FileRef(fname, (usage & ~FILEUSAGE_TYPEMASK) == FILEUSAGE_TEXTMODE, rock)); //.getPointer();
+				return (new FileRef(fname, (usage & ~FILEUSAGE_TYPEMASK) == FILEUSAGE_TEXTMODE, rock)).getPointer();
 			else
 				return null;
 		} catch (Exception e) {
@@ -362,6 +366,7 @@ public class FileRef { // extends CPointed {
 			return null;
 		}
 	}
+    */
 
 	public static String getPathByPrompt(int usage, int mode, int rock) {
 		try {
@@ -374,6 +379,7 @@ public class FileRef { // extends CPointed {
 		}
 	}
 
+	/* moved to native code
 	public File getFile() {
 		return mFile;
 	}
@@ -384,7 +390,7 @@ public class FileRef { // extends CPointed {
 	
 	public void destroy() {
 		_fileRefs.remove(this);
-		//release();
+		release();
 	}
 	
 	static public FileRef createTemp(int usage, int rock) {
@@ -429,7 +435,6 @@ public class FileRef { // extends CPointed {
 		return mFile.exists();
 	}
 
-	/*
 	@Override
 	public int getDispatchClass() {
 		return GIDISP_CLASS_FILEREF;

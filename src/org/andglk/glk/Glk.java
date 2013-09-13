@@ -156,7 +156,7 @@ public class Glk extends Thread {
 				overlay.layout(0, 0, overlay.getMeasuredWidth(), overlay.getMeasuredHeight());
 				overlay.draw(new Canvas(bitmap));
 				mFrame.setForeground(new BitmapDrawable(bitmap));
-				mFrame.setForegroundGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
+				mFrame.setForegroundGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
 			}
 		});
 	}
@@ -298,6 +298,8 @@ public class Glk extends Thread {
 
 	public int[] gestalt(int sel, int val) {
 		
+		//Log.d("Glk","gestalt " + Integer.toString(sel));
+
 		switch (sel) {
 		case GESTALT_VERSION:
 			return new int[] { 0x700 };
@@ -314,12 +316,13 @@ public class Glk extends Thread {
 		case GESTALT_CHARINPUT:
 			// TODO: handle special characters; this needs getChar support too.
 			return CharInputEvent.accepts(val) ? sOne : sZero;
+		case GESTALT_UNICODE:
+			return sZero;
 		default:
 			Log.w("Glk", "unhandled gestalt selector: " + Integer.toString(sel) + " (value " + val + ")");
 		// all below are TODO
 		case GESTALT_MOUSEINPUT:
 		case GESTALT_TIMER:
-		case GESTALT_UNICODE:
 		case GESTALT_GRAPHICS:
 		case GESTALT_DRAWIMAGE:
 		case GESTALT_GRAPHICSTRANSPARENCY:

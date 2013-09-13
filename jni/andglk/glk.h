@@ -68,7 +68,7 @@ typedef int32_t glsi32;
 
 /* These types are opaque object identifiers. They're pointers to opaque
     C structures, which are defined differently by each library. */
-typedef jobject winid_t;
+typedef jobject* winid_t;
 typedef struct glk_stream_struct *strid_t;
 typedef struct glk_fileref_struct *frefid_t;
 typedef jobject *schanid_t;
@@ -82,6 +82,7 @@ extern void ( * andglk_set_autorestore_hook ) (const char* filename);
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN   , "HunkyPunk", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR  , "HunkyPunk", __VA_ARGS__) 
 
+//#define DEBUG_LOGGING
 #ifdef DEBUG_LOGGING
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "HunkyPunk", __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "HunkyPunk", __VA_ARGS__)

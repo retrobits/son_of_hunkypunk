@@ -11,8 +11,8 @@
 // linkage fn pointers
 void ( * andglk_loader_glk_main ) (JavaVM* , JNIEnv*, jobject, const char*, glkunix_startup_t* data) = NULL; 
 void ( * andglk_loader_glk_Glk_notifyLinked ) (JNIEnv *env, jobject this) = NULL;
-//jint ( * andglk_loader_glk_CPointed_makePoint ) (JNIEnv *env, jobject this) = NULL;
-//void ( * andglk_loader_glk_CPointed_releasePoint ) (JNIEnv *env, jobject this, jint point) = NULL;
+jint ( * andglk_loader_glk_CPointed_makePoint ) (JNIEnv *env, jobject this) = NULL;
+void ( * andglk_loader_glk_CPointed_releasePoint ) (JNIEnv *env, jobject this, jint point) = NULL;
 void ( * andglk_loader_glk_MemoryStream_writeOut )(JNIEnv *env, jobject this, jint nativeBuf, jarray jbuf) = NULL;
 int  ( * andglk_loader_glk_MemoryStream_retainVmArray )(JNIEnv *env, jobject this, int buffer, long length) = NULL;
 void ( * andglk_loader_glk_MemoryStream_releaseVmArray )(JNIEnv *env, jobject this, int buffer, int length, int dispatchRock) = NULL;
@@ -84,8 +84,8 @@ JNIEXPORT void Java_org_andglk_glk_Glk_startTerp
 	andglk_loader_glk_MemoryStream_retainVmArray = link(copy_terpPath,"andglk_loader_glk_MemoryStream_retainVmArray");   
 	andglk_loader_glk_MemoryStream_releaseVmArray = link(copy_terpPath,"andglk_loader_glk_MemoryStream_releaseVmArray");   
 	andglk_loader_glk_MemoryStream_writeOut = link(copy_terpPath,"andglk_loader_glk_MemoryStream_writeOut");   
-	//andglk_loader_glk_CPointed_makePoint = link(copy_terpPath,"andglk_loader_glk_CPointed_makePoint");   
-	//andglk_loader_glk_CPointed_releasePoint = link(copy_terpPath,"andglk_loader_glk_CPointed_releasePoint");   
+	andglk_loader_glk_CPointed_makePoint = link(copy_terpPath,"andglk_loader_glk_CPointed_makePoint");   
+	andglk_loader_glk_CPointed_releasePoint = link(copy_terpPath,"andglk_loader_glk_CPointed_releasePoint");   
 
 	(*env)->ReleaseStringUTFChars(env, terpPath, copy_terpPath);
 
@@ -133,8 +133,8 @@ JNIEXPORT void Java_org_andglk_glk_Glk_startTerp
 	andglk_loader_glk_MemoryStream_retainVmArray = NULL;
 	andglk_loader_glk_MemoryStream_releaseVmArray = NULL;
 	andglk_loader_glk_MemoryStream_writeOut = NULL;
-	//andglk_loader_glk_CPointed_makePoint = NULL;
-	//andglk_loader_glk_CPointed_releasePoint = NULL;
+	andglk_loader_glk_CPointed_makePoint = NULL;
+	andglk_loader_glk_CPointed_releasePoint = NULL;
 
 	// signal game has exited
 	//(*env)->CallVoidMethod(env, GlkWrapperObj, GlkWrapper_onTerpExit);
@@ -151,7 +151,6 @@ JNIEXPORT void Java_org_andglkmod_glk_Glk_startTerp
 	Java_org_andglk_glk_Glk_startTerp(env,obj1,terpPath,saveFilePath,argc,argv);
 }
 
-/*
 JNIEXPORT jint Java_org_andglk_glk_CPointed_makePoint(JNIEnv *env, jobject this)
 {
 	jint result = -1;
@@ -194,7 +193,6 @@ JNIEXPORT void Java_org_andglkmod_glk_CPointed_releasePoint(JNIEnv *env, jobject
 {
 	Java_org_andglk_glk_CPointed_releasePoint(env,this,point);
 }
-*/
 
 JNIEXPORT void Java_org_andglk_glk_MemoryStream_writeOut(JNIEnv *env, jobject this, jint nativeBuf, jarray jbuf)
 {

@@ -282,8 +282,10 @@ public class GameDetails extends Activity implements OnClickListener {
 
 			Display display = getWindowManager().getDefaultDisplay(); 
 			int width = (int)(display.getWidth()/1.5);  // deprecated
+			int height = (int)(display.getHeight()/1.5);  // deprecated
+			int sz = Math.min(width,height);
 
-			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(width, width);
+			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(sz, sz);
 			lp.gravity = Gravity.CENTER_HORIZONTAL;
 			mCover.setLayoutParams(lp);
 		}

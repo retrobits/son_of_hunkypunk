@@ -26,6 +26,9 @@ import java.io.RandomAccessFile;
 
 import android.util.Log;
 
+public class FileStream {}
+
+/* moved to native code
 public class FileStream extends Stream {
 	private RandomAccessFile mFile;
 
@@ -113,7 +116,7 @@ public class FileStream extends Stream {
 		}
 		return buffer;
 	}
-
+ 
 	@Override
 	protected String doGetLine(int maxLen) {
 		StringBuilder sb = new StringBuilder(maxLen);
@@ -160,3 +163,4 @@ public class FileStream extends Stream {
 		}
 	}
 }
+*/

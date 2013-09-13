@@ -26,7 +26,7 @@ public abstract class CPointed {
 	public final static int GIDISP_CLASS_FILEREF = 2;
 	public final static int GIDISP_CLASS_SCHANNEL = 3;
 
-	protected int mPointer;
+	private int mPointer;
 	private int mRock;
 	private int mDispatchRock;
 	

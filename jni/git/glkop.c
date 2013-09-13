@@ -270,6 +270,8 @@ int git_init_dispatch()
 */
 glui32 git_perform_glk(glui32 funcnum, glui32 numargs, glui32 *arglist)
 {
+  //LOGD("git_perform_glk:0x%08x 0x%08x",funcnum,numargs);
+
   glui32 retval = 0;
 
   switch (funcnum) {
@@ -329,16 +331,20 @@ glui32 git_perform_glk(glui32 funcnum, glui32 numargs, glui32 *arglist)
     /* Phase 1. */
     argnum = 0;
     cx = proto;
+	//LOGD("git_perform_glk.1:0x%08x 0x%08x",funcnum,numargs);
     parse_glk_args(&splot, &cx, 0, &argnum, 0, 0);
 
     /* Phase 2. */
+	//LOGD("git_perform_glk.2:0x%08x 0x%08x",funcnum,numargs);
     gidispatch_call(funcnum, argnum, splot.garglist);
 
     /* Phase 3. */
     argnum = 0;
     cx = proto;
+	//LOGD("git_perform_glk.3:0x%08x 0x%08x",funcnum,numargs);
     unparse_glk_args(&splot, &cx, 0, &argnum, 0, 0);
 
+	//LOGD("git_perform_glk.99:0x%08x 0x%08x",funcnum,numargs);
     break;
   }
   }
