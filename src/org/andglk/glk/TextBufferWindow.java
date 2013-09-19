@@ -33,22 +33,24 @@ import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.os.SystemClock;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
-import android.text.Layout;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
-import android.text.method.MovementMethod;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Scroller;
+import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
@@ -185,7 +187,19 @@ public class TextBufferWindow extends Window {
 			mBuffer.setLength(0);
 			mSsb.clear();
 		}
-}
+	}
+
+	private class _ScrollView extends ScrollView {
+		public _ScrollView(Context context) {
+			super(context);
+		}
+
+		@Override
+		protected void onLayout(boolean changed, int l, int t, int r, int b) {
+			super.onLayout(changed, l, t, r, b);
+			fullScroll(View.FOCUS_DOWN);
+		}
+	}
 
 	protected Glk mGlk;
 	protected _View mView;
@@ -196,7 +210,9 @@ public class TextBufferWindow extends Window {
 	private int mLineEventBufferRock;
 	private boolean mUnicodeEvent = false;
 
-	private class _View extends TextView implements OnEditorActionListener {
+	private class _View extends EditText implements OnEditorActionListener {
+
+		/* possibly use this to capture touch events for input history, etc.
 		public class _MovementMethod implements MovementMethod {
 			@Override
 			public boolean canSelectArbitrarily() {
@@ -256,6 +272,8 @@ public class TextBufferWindow extends Window {
 				return false;
 			}
 		}
+		*/
+
 
 		@Override
 		public void onSelectionChanged(int start, int end) 
@@ -324,7 +342,7 @@ public class TextBufferWindow extends Window {
 				getEditableText().setSpan(mLineInputSpan, mLineInputStart - 1, length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
 				setFilters(mFilters);
 			}
-			scrollTo(getScrollX(), Math.max(0, (getUltimateBottom()) - getInnerHeight()));
+			sendScroll();
 		}
 
 		public void readState(ObjectInputStream stream) throws IOException {
@@ -356,69 +374,23 @@ public class TextBufferWindow extends Window {
 				ed.setSpan(mLineInputSpan, mLineInputStart - 1, length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
 				setFilters(mFilters);
 			}
-			scrollTo(getScrollX(), Math.max(0, (getUltimateBottom()) - getInnerHeight()));
+			sendScroll();
 		}
 
-		/**
-		 * Scrolls the view down a page or as far as possible, whichever is less.
-		 * 
-		 * @return whether any scroll was commenced
-		 */
-		private boolean scrollDown() {
-			final Layout layout = getLayout();
-			if (layout == null)
-				return false;
-			
-			final int currentScroll = getScrollY();
-			final int innerHeight = getInnerHeight();
-			final int ultimateTop = layout.getLineTop(getLineCount()) - getInnerHeight(); 
-			if (currentScroll >= ultimateTop)
-				return false;
-			
-			final int fadingEdgeLength = getVerticalFadingEdgeLength();
-			final int target = layout.getLineTop(layout.getLineForVertical(currentScroll + innerHeight))
-				- fadingEdgeLength;
-			
-			if (target + fadingEdgeLength < ultimateTop)
-				startScrollTo(target);
-			else {
-				mPaging = false;
-				startScrollTo(ultimateTop);
-			}
-			
-			return true;
-		}
-
-		/** Scroll the view up a page or as far as possible, whichever is less.
-		 * 
-		 * @return whether any scroll was commenced
-		 */
-		public boolean scrollUp() {
-			final Layout layout = getLayout();
-			if (layout == null)
-				return false;
-			
-			final int currentScroll = getScrollY();
-			if (currentScroll <= 0)
-				return false;
-			
-			final int fadingEdgeLength = getVerticalFadingEdgeLength();
-			final int target = layout.getLineBottom(layout.getLineForVertical(currentScroll)) 
-				- getInnerHeight() + fadingEdgeLength;
-			if (target < 0)
-				startScrollTo(0);
-			else
-				startScrollTo(target);
-			return true;
-		}
-
-		protected void startScrollTo(int dest) {
-			final int scrollY = getScrollY();
-			final int dy = dest - scrollY;
-			if (dy == 0)
-				return;
-			mScroller.startScroll(getScrollX(), scrollY, 0, dy);
-			postInvalidate();
+		private void sendScroll(){
+			new Thread(
+				new Runnable() {
+					@Override
+					public void run() {
+						try {Thread.sleep(100);} catch (InterruptedException e) {}
+						mHandler.post(new Runnable() {
+								@Override
+								public void run() {
+									mScrollView.fullScroll(View.FOCUS_DOWN);
+								}
+							});
+					}
+				}).start();			
 		}
 
 		protected int getUltimateBottom() {
@@ -437,7 +409,7 @@ public class TextBufferWindow extends Window {
 
 				Typeface tf = Typeface.SERIF;
 				
-				/* disabled temporarily due to view sizing bug
+				/* disabled temporarily due to view sizing bug - maybe this?
 				   http://stackoverflow.com/questions/9541196/androidtextview-height-doesnt-change-after-shrinking-the-font-size
 
 				Log.d("HunkyPunk","font: "+FontPath+" "+FontSize);
@@ -454,7 +426,7 @@ public class TextBufferWindow extends Window {
 				 if (tf != null) setTypeface(tf); 
 				*/
 
-				 setTextSize(FontSize);		
+				setTextSize(FontSize);		
 			}
 
 			/* super method does strange things with cursor and scrolling here */
@@ -466,19 +438,19 @@ public class TextBufferWindow extends Window {
 		private int mLineInputStart;
 		private Object mLineInputSpan;
 		private final InputFilter mNewLineFilter = new InputFilter() {
-			@Override
-			public CharSequence filter(CharSequence source, int start, int end,
-					Spanned dest, int dstart, int dend) {
-				if (dstart == 0)
-					while(start < end && source.charAt(start) == '\n')
-						start++;
+				@Override
+				public CharSequence filter(CharSequence source, int start, int end,
+										   Spanned dest, int dstart, int dend) {
+					if (dstart == 0)
+						while(start < end && source.charAt(start) == '\n')
+							start++;
 
-				if (start == end)
-					return "";
+					if (start == end)
+						return "";
 				
-				return source.subSequence(start, end);
-			}
-		};
+					return source.subSequence(start, end);
+				}
+			};
 		
 		private void beautify(Editable e, int position) {
 			int len = e.length();
@@ -670,54 +642,82 @@ public class TextBufferWindow extends Window {
 			}
 		}, mNewLineFilter };
 		
-		private final Scroller mScroller;
-		private _MovementMethod mMovementMethod;
-		private boolean mPaging;
-		
+		//private _MovementMethod mMovementMethod;
+
 		public _View(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
-
-			setMovementMethod(mMovementMethod = new _MovementMethod());
-			setFocusable(false);
-			mScroller = new Scroller(context);
-			setScroller(mScroller);
-			setFilters(mNormalFilters);
-
-			addTextChangedListener(new TextWatcher() {
-                public void afterTextChanged(Editable s) { 
-                }
-
-                public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-                }
-
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-					/* Hack to get the key. Why doesn't OnKeyUp work? */
-					if (mCharInputEnabled && count==1 && s.charAt(start)>0 && s.charAt(start)<255 ){
-						disableCharInput();
-						CharInputEvent ev = new CharInputEvent(TextBufferWindow.this,s.charAt(start));
-						mGlk.postEvent(ev);
-					}
-                }
-            });
-
-			final _View pwthis = this;
-			Glk.getInstance().waitForUi(new Runnable() {
-					@Override
-						public void run() {
-						pwthis.setText("", BufferType.EDITABLE);
-						pwthis.setInputType(0
-									 | InputType.TYPE_CLASS_TEXT 
-									 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
-									 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-									 );
-						pwthis.setOnEditorActionListener(pwthis);
-						pwthis.onPreDraw();
-					}
-				}
+			setInputType(0
+						 | InputType.TYPE_CLASS_TEXT 
+						 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+						 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+		    		   //| InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE
 				);
+			setFilters(mNormalFilters);
+			setOnEditorActionListener(this);
+
+			//setText("", BufferType.EDITABLE);
+			//setFocusableInTouchMode(true);
+			//setFocusable(false);
+
+			addTextChangedListener(
+				new TextWatcher() {
+					public void afterTextChanged(Editable s) { 
+					}
+					
+					public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+					}
+					
+					public void onTextChanged(CharSequence s, int start, int before, int count) {
+						// Hack to get single key input. Why doesn't OnKeyUp work? 
+						if (mCharInputEnabled && count==1 && s.charAt(start)>0 && s.charAt(start)<255 ){
+							disableCharInput();
+							CharInputEvent ev = new CharInputEvent(TextBufferWindow.this,s.charAt(start));
+							mGlk.postEvent(ev);
+						}
+					}
+				});
+			
+			this.onPreDraw();						
+		}		
+
+
+		public void showKeyboard() {
+			(new Handler()).postDelayed(
+				new Runnable() {
+					public void run() {
+						
+						// no workee
+						//InputMethodManager imm = 
+						//   (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+						//imm.showSoftInput(_View.this, InputMethodManager.SHOW_IMPLICIT);
+
+						_View.this.dispatchTouchEvent(
+							MotionEvent.obtain(
+								SystemClock.uptimeMillis(), 
+								SystemClock.uptimeMillis(), 
+								MotionEvent.ACTION_DOWN , 
+								0, 0, 0
+								)
+							);
+						_View.this.dispatchTouchEvent(
+							MotionEvent.obtain(
+								SystemClock.uptimeMillis(), 
+								SystemClock.uptimeMillis(), 
+								MotionEvent.ACTION_UP, 
+								0, 0, 0
+								)
+							);   
+
+						_View.this.dispatchKeyEvent(
+							new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DEL)
+							);   
+						_View.this.dispatchKeyEvent(
+							new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DEL)
+							);   
+					}
+				}, 100);
 		}
-		
 
 		public void print(CharSequence text) {
 			final int start = length() - 1;
@@ -729,8 +729,13 @@ public class TextBufferWindow extends Window {
 		/* see TextBufferWindow.clear() */
 		public void clear() {
 			mLineInputStart = 0;
-			setText("", BufferType.EDITABLE);
-			scrollTo(getScrollX(), 0);
+			Glk.getInstance().waitForUi(
+				new Runnable() {
+					@Override
+					public void run() {					   
+						setText(""); //, BufferType.EDITABLE);
+					}
+				});
 		}
 
 		public void enableCharInput() {
@@ -739,72 +744,82 @@ public class TextBufferWindow extends Window {
 		}
 		
 		private void enableInput() {
-			setFocusableInTouchMode(true);
-			requestFocus();
-			mPaging = true;
-			if (getScrollY() != 0)
-				scrollDown();
-			
-			Selection.setSelection(getEditableText(), length());
+			Log.d("Glk/TextBufferWindow","enableInput");
+			Glk.getInstance().waitForUi(
+				new Runnable() {
+					@Override
+					public void run() {					   
+						setFocusableInTouchMode(true);
+						showKeyboard();
+
+						//requestFocus();
+						//mPaging = true;
+						//sendScroll();						
+						//Selection.setSelection(getEditableText(), length());
+						//clearFocus();
+					}
+				});
 		}
 
 		protected void disableCharInput() {
-			mCharInputEnabled = false;
-			
+			mCharInputEnabled = false;			
 			disableInput();
 		}
 		
 		private void disableInput() {
-			final Spannable s = (Spannable) getText();
-			Selection.removeSelection(s);
-			
-			setFocusable(false);
+			Log.d("Glk/TextBufferWindow","disableInput");
+			Glk.getInstance().waitForUi(
+				new Runnable() {
+					@Override
+					public void run() {					   
+						final Spannable s = (Spannable) getText();
+						Selection.removeSelection(s);
+						setFocusable(false);
+					}
+				});
 		}
-
+		
 		@Override
 		public boolean onKeyUp(int keyCode, KeyEvent event) {
-			if (mMovementMethod.onKeyUp(this, (Spannable) getText(), keyCode, event))
-				return true;
+			//if (mMovementMethod.onKeyUp(this, (Spannable) getText(), keyCode, event))
+			//	return true;
 			return super.onKeyUp(keyCode, event);
 		}
 
 		@Override
 		public boolean onKeyDown(int keyCode, KeyEvent event) {
-			if (mMovementMethod.onKeyDown(this, (Spannable) getText(), keyCode, event))
-				return true;
-
-			final int ultimateTop = getUltimateBottom() - getInnerHeight(); 
-			if (mPaging && scrollDown()) {
-				if (mScroller.getFinalY() != ultimateTop)
-					return true;
-			} else if (keyCode != KeyEvent.KEYCODE_DPAD_UP && getScrollY() < ultimateTop) { 
-				startScrollTo(ultimateTop);
-				if (mCharInputEnabled)
-					// passing the key would be confusing
-					return true;
-			}
-
+			//if (mMovementMethod.onKeyDown(this, (Spannable) getText(), keyCode, event))
+			//	return true;
 			return super.onKeyDown(keyCode, event);
 		}
 
-		public void enableLineInput(String initial) {
+		public void enableLineInput(String ainitial) {
 
-			final Editable e = getEditableText();
-			
-			/* don't allow overlapping input spans */
-			if (mLineInputEnabled && mLineInputSpan != null) 
-				e.removeSpan(mLineInputSpan);
+			final String initial = ainitial;
 
-			mLineInputEnabled = true;
-			mLineInputSpan = makeInputSpan(); 
-			append("\u200b"); // to attach the span to
-			mLineInputStart = length();
-			e.setSpan(mLineInputSpan, mLineInputStart - 1, mLineInputStart, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
-			if (initial != null)
-				e.append(initial);
+			Log.d("Glk/TextBufferWindow","disableInput");
+			Glk.getInstance().waitForUi(
+				new Runnable() {
+					@Override
+					public void run() {					   
+						final Editable e = getEditableText();
 			
-			setFilters(mFilters);
+						/* don't allow overlapping input spans */
+						if (mLineInputEnabled && mLineInputSpan != null) 
+							e.removeSpan(mLineInputSpan);
+
+						mLineInputEnabled = true;
+						mLineInputSpan = makeInputSpan(); 
+						append("\u200b"); // to attach the span to
+						mLineInputStart = length();
+						e.setSpan(mLineInputSpan, mLineInputStart - 1, mLineInputStart, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+						if (initial != null)
+							e.append(initial);
 			
+						setFilters(mFilters);
+					}
+				});
+
 			enableInput();
 		}
 		
@@ -819,40 +834,53 @@ public class TextBufferWindow extends Window {
 			return true;
 		}
 
+		private CharSequence mResult;
 		private CharSequence finishLineInput() {
 			disableInput();
-			setFilters(mNormalFilters);
+			Glk.getInstance().waitForUi(new Runnable() {
+					@Override
+					public void run() {					   
+						setFilters(mNormalFilters);
 			
-			final Editable e = getEditableText();
-			final int len = e.length();
-			e.setSpan(mLineInputSpan, mLineInputStart - 1, len, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			final CharSequence result = e.subSequence(mLineInputStart, len);
+						final Editable e = getEditableText();
+						final int len = e.length();
+						e.setSpan(mLineInputSpan, mLineInputStart - 1, len, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+						_View.this.mResult = e.subSequence(mLineInputStart, len);
 			
-			e.append("\n");
-			mLineInputSpan = null;
-			mLineInputStart = -1;
-			mLineInputEnabled = false;
+						e.append("\n");
+						mLineInputSpan = null;
+						mLineInputStart = -1;
+						mLineInputEnabled = false;
+					}});
 			
-			return result;
+			return mResult;
 		}
 	}
 
 	public static String DefaultFontPath = null;
 	public static int DefaultFontSize = 0;
-
 	public String FontPath = null;
 	public int FontSize = 0;
+	private _ScrollView mScrollView = null;
 
 	public TextBufferWindow(Glk glk, int rock) {
 		super(rock);
 
 		mGlk = glk;
 		mContext = glk.getContext();
-		mView = new _View(mContext);
-		mStream = new _Stream();
 		mHandler = mGlk.getUiHandler();
-		// when window is created, style hints are fixed
-		stylehints = new Styles(_stylehints);
+
+		Glk.getInstance().waitForUi(new Runnable() {
+				@Override
+					public void run() {
+					mScrollView = new _ScrollView(mContext);
+					mView = new _View(mContext);
+					mScrollView.addView(mView);
+					mStream = new _Stream();
+					// when window is created, style hints are fixed
+					stylehints = new Styles(_stylehints);
+				}
+			});		
 	}
 	
 	public Object makeInputSpan() {
@@ -918,7 +946,7 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public View getView() {
-		return mView;
+		return mScrollView;
 	}
 
 	@Override
