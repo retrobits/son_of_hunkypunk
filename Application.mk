@@ -15,5 +15,4 @@
 #	You should have received a copy of the GNU General Public License
 #	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 
-APP_MODULES      := nitfol andglk babel
 APP_OPTIM	 := release

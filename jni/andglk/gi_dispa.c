@@ -382,6 +382,7 @@ gidispatch_function_t *gidispatch_get_function_by_id(glui32 id)
 
 char *gidispatch_prototype(glui32 funcnum)
 {
+	LOGD("gididispatch_call 0x%04x", funcnum);
     switch (funcnum) {
         case 0x0001: /* exit */
             return "0:";

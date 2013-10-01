@@ -37,9 +37,8 @@
         <activity android:name="org.andglk.hunkypunk.Interpreter"
                   android:label="@string/app_name"
 				  android:launchMode="singleTask" 
-
-                  android:configChanges="orientation|keyboard|keyboardHidden"
-			>
+				  android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+>
 <!-- for debugging remove android:process above, the debugger can't cope with it -->
 
             <intent-filter>
@@ -90,6 +89,5 @@
 		</activity>
 		
 	</application>
-    <uses-sdk android:minSdkVersion="3" />
-
+    <uses-sdk android:minSdkVersion="14" />
 </manifest>

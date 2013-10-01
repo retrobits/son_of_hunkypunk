@@ -28,6 +28,7 @@ import org.andglk.hunkypunk.R;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Handler;
@@ -35,22 +36,23 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ScrollView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
@@ -159,7 +161,8 @@ public class TextBufferWindow extends Window {
 				return;
 			
 			final SpannableString ss = new SpannableString(mBuffer);
-			ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo), 0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo), 
+					   0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			mSsb.append(ss);
 			
 			mBuffer.setLength(0);
@@ -210,455 +213,13 @@ public class TextBufferWindow extends Window {
 	private int mLineEventBufferRock;
 	private boolean mUnicodeEvent = false;
 
-	private class _View extends EditText implements OnEditorActionListener {
+	private class _CommandView extends EditText {
 
-		/* possibly use this to capture touch events for input history, etc.
-		public class _MovementMethod implements MovementMethod {
-			@Override
-			public boolean canSelectArbitrarily() {
-				return false;
-			}
+		public boolean mCharInputEnabled;
+		public boolean mLineInputEnabled;
 
-			@Override
-			public void initialize(TextView widget, Spannable text) {
-			}
-
-			@Override
-			public boolean onKeyDown(TextView widget, Spannable text, int keyCode, KeyEvent event) {
-				switch (keyCode) {
-				case KeyEvent.KEYCODE_DPAD_DOWN:
-					return scrollDown();
-				case KeyEvent.KEYCODE_DPAD_UP:
-					return scrollUp();
-				// TODO: cursor movement
-				default:
-					return false;
-				}
-			}
-
-			@Override
-			public boolean onKeyOther(TextView view, Spannable text, KeyEvent event) {
-				return false;
-			}
-
-			@Override
-			public boolean onKeyUp(TextView widget, Spannable text, int keyCode, KeyEvent event) {
-				return false;
-			}
-
-			@Override
-			public void onTakeFocus(TextView widget, Spannable text, int direction) {
-			}
-
-			@Override
-			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
-				if (event.getAction()==MotionEvent.ACTION_UP) {
-					int x = (int) event.getX();
-					int y = (int) event.getY();
-
-					if (y > getHeight()/2)
-						scrollDown();
-					else
-						scrollUp();			
-					return true;
-				}
-				else 
-					return false;
-			}
-
-			@Override
-			public boolean onTrackballEvent(TextView widget, Spannable text, MotionEvent event) {
-				// maybe TODO
-				return false;
-			}
-		}
-		*/
-
-
-		@Override
-		public void onSelectionChanged(int start, int end) 
-		{ 
-			CharSequence text = getText(); 
-			if (text != null) { 
-				if (start != text.length() || end != text.length()) { 
-					Selection.setSelection(getEditableText(), length());
-					return; 
-				} 
-			} 
-			super.onSelectionChanged(start, end); 
-		}
-
-		@Override
-		public Parcelable onSaveInstanceState() {
-			TextBufferWindow._SavedState ss = new TextBufferWindow._SavedState();
-			final Editable e = getEditableText();
-			if (mLineInputEnabled)
-				e.removeSpan(mLineInputSpan);
-			ss.mSuperState = super.onSaveInstanceState();
-			if (mLineInputEnabled)
-				e.setSpan(mLineInputSpan, mLineInputStart, e.length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
-			ss.mLineInputEnabled = mLineInputEnabled;
-			ss.mLineInputStart = mLineInputStart;
-			ss.mCharInputEnabled = mCharInputEnabled;
-			return ss;
-		}
-		
-		public void writeState(ObjectOutputStream stream) throws IOException {
-			final Editable e = getEditableText();
-			if (mLineInputEnabled)
-				e.removeSpan(mLineInputSpan);
-			
-			stream.writeUTF(e.toString());
-			stream.writeInt(Selection.getSelectionStart(e));
-			stream.writeInt(Selection.getSelectionEnd(e));
-			StyleSpan[] spans = e.getSpans(0, e.length(), StyleSpan.class);
-			stream.writeLong(spans.length);
-			for (StyleSpan ss : spans) {
-				stream.writeInt(e.getSpanStart(ss));
-				stream.writeInt(e.getSpanEnd(ss));
-				stream.writeInt(ss.getStyle());
-				stream.writeInt(ss.getReverse());
-			}
-			
-			if (mLineInputEnabled)
-				e.setSpan(mLineInputSpan, mLineInputStart, e.length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
-			stream.writeBoolean(mLineInputEnabled);
-			stream.writeInt(mLineInputStart);
-			stream.writeBoolean(mCharInputEnabled);
-		}
-
-		@Override
-		public void onRestoreInstanceState(Parcelable state) {
-			setFilters(mNormalFilters);
-			TextBufferWindow._SavedState ss = (_SavedState) state;
-			mLineInputEnabled = ss.mLineInputEnabled;
-			if (mCharInputEnabled && !ss.mCharInputEnabled)
-				disableCharInput();
-			mCharInputEnabled = ss.mCharInputEnabled;
-			mLineInputStart = ss.mLineInputStart;
-			super.onRestoreInstanceState(ss.mSuperState);
-			if (mLineInputEnabled) {
-				mLineInputSpan = makeInputSpan();
-				getEditableText().setSpan(mLineInputSpan, mLineInputStart - 1, length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
-				setFilters(mFilters);
-			}
-			sendScroll();
-		}
-
-		public void readState(ObjectInputStream stream) throws IOException {
-			setFilters(mNormalFilters);
-
-			setText(stream.readUTF(), BufferType.EDITABLE);
-			final Editable ed = getEditableText();
-			final int selectionStart = stream.readInt();
-			final int selectionEnd = stream.readInt();
-			Selection.setSelection(ed, selectionStart, selectionEnd);
-			final long spanCount = stream.readLong();
-			for (long i = 0; i < spanCount; i++) {
-				final int spanStart = stream.readInt();
-				final int spanEnd = stream.readInt();
-				final int spanStyle = stream.readInt();
-				final int spanReverse = stream.readInt();
-				ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			}
-			
-			mLineInputEnabled = stream.readBoolean();
-			final int lineInputStart = stream.readInt();
-			final boolean charInputEnabled = stream.readBoolean();
-			if (mCharInputEnabled && !charInputEnabled)
-				disableCharInput();
-			mCharInputEnabled = charInputEnabled;
-			mLineInputStart = lineInputStart;
-			if (mLineInputEnabled) {
-				mLineInputSpan = makeInputSpan();
-				ed.setSpan(mLineInputSpan, mLineInputStart - 1, length(), Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
-				setFilters(mFilters);
-			}
-			sendScroll();
-		}
-
-		private void sendScroll(){
-			new Thread(
-				new Runnable() {
-					@Override
-					public void run() {
-						try {Thread.sleep(100);} catch (InterruptedException e) {}
-						mHandler.post(new Runnable() {
-								@Override
-								public void run() {
-									mScrollView.fullScroll(View.FOCUS_DOWN);
-								}
-							});
-					}
-				}).start();			
-		}
-
-		protected int getUltimateBottom() {
-			return getLayout().getLineTop(getLineCount());
-		}
-
-		protected int getInnerHeight() {
-			return getHeight() - getTotalPaddingBottom() - getTotalPaddingTop();
-		}
-
-		@Override
-		public boolean onPreDraw() {
-			if (FontPath == null || FontPath.compareTo(DefaultFontPath)!=0 || FontSize != DefaultFontSize) {
-				FontPath = DefaultFontPath;
-				FontSize = DefaultFontSize;
-
-				Typeface tf = Typeface.SERIF;
-				
-				/* disabled temporarily due to view sizing bug - maybe this?
-				   http://stackoverflow.com/questions/9541196/androidtextview-height-doesnt-change-after-shrinking-the-font-size
-
-				Log.d("HunkyPunk","font: "+FontPath+" "+FontSize);
-
-				 if (FontPath.endsWith("ttf") || FontPath.endsWith("otf"))
-					 try {
-						 tf = Typeface.createFromFile(FontPath);
-					 } catch (Exception ex) {}
-				 else if (FontPath.endsWith("Droid Sans")) 
-					 tf = Typeface.SANS_SERIF;
-				 else if (FontPath.endsWith("Droid Mono")) 
-					 tf = Typeface.MONOSPACE;
-
-				 if (tf != null) setTypeface(tf); 
-				*/
-
-				setTextSize(FontSize);		
-			}
-
-			/* super method does strange things with cursor and scrolling here */
-			return true;
-		}
-
-		private boolean mCharInputEnabled;
-		private boolean mLineInputEnabled;
-		private int mLineInputStart;
-		private Object mLineInputSpan;
-		private final InputFilter mNewLineFilter = new InputFilter() {
-				@Override
-				public CharSequence filter(CharSequence source, int start, int end,
-										   Spanned dest, int dstart, int dend) {
-					if (dstart == 0)
-						while(start < end && source.charAt(start) == '\n')
-							start++;
-
-					if (start == end)
-						return "";
-				
-					return source.subSequence(start, end);
-				}
-			};
-		
-		private void beautify(Editable e, int position) {
-			int len = e.length();
-			
-			final int NOTHING = 0;
-			final int SPACE = 1;
-			final int DASH = 2;
-			final int SPACEQUOTE = 3;
-			final int NDASH = 4;
-			final int DOT = 5;
-			final int DOUBLEDOT = 6;
-			
-			int state = NOTHING;
-			
-			if (position < 0)
-				position = 0;
-			if (len == position)
-				return;
-			
-			do {
-				final char c = e.charAt(position); 
-				switch (state) {
-				
-				case NOTHING:
-					switch (c) {
-					case ' ':
-					case '\n':
-						state = SPACE;
-						continue;
-					case '"':
-						e.replace(position, position + 1, "”");
-						continue;
-					case '-':
-						state = DASH;
-						continue;
-					case '.':
-						state = DOT;
-						continue;
-					default:
-						continue;
-					}
-					
-				case SPACE:
-					switch (c) {
-					case ' ':
-					case '\n':
-						continue;
-					case '"':
-						state = SPACEQUOTE;
-						continue;
-					case '-':
-						state = DASH;
-						continue;
-					case '.':
-						state = DOT;
-						continue;
-					default:
-						state = NOTHING;
-						continue;
-					}
-
-				case DASH:
-					switch (c) {
-					case ' ':
-					case '\n':
-						state = SPACE;
-						continue;
-					case '-':
-						state = NDASH;
-						continue;
-					case '.':
-						state = DOT;
-						continue;
-					case '"':
-						e.replace(position, position + 1, "”");
-					default:
-						state = NOTHING;
-						continue;
-					}
-					
-				case SPACEQUOTE:
-					switch (c) {
-					case ' ':
-					case '\n':
-						state = SPACE;
-						continue;
-					case '-':
-						e.replace(position - 1, position, "“");
-						state = DASH;
-						continue;
-					case '.':
-						e.replace(position - 1, position, "“");
-						state = DOT;
-						continue;
-					case '"':
-						e.replace(position, position + 1, "”");
-					default:
-						e.replace(position - 1, position, "“");
-						state = NOTHING;
-						continue;
-					}
-					
-				case NDASH:
-					switch (c) {
-					case '-':
-						e.replace(position - 2, position + 1, "—");
-						position -= 2;
-						len -= 2;
-						state = NOTHING;
-						continue;
-					case '"':
-						e.replace(position, position + 1, "”");
-					default:
-						state = NOTHING;
-						break;
-					case '.':
-						state = DOT;
-						break;
-					case ' ':
-					case '\n':
-						state = SPACE;
-						break;
-					}
-					e.replace(position - 2, position, "–");
-					position--;
-					len--;
-					continue;
-				
-				case DOT:
-					switch (c) {
-					case '.':
-						state = DOUBLEDOT;
-						continue;
-					case ' ':
-					case '\n':
-						state = SPACE;
-						continue;
-					case '-':
-						state = DASH;
-						continue;
-					case '"':
-						e.replace(position, position + 1, "”");
-					default:
-						state = NOTHING;
-						continue;
-					}
-
-				case DOUBLEDOT:
-					switch (c) {
-					case ' ':
-					case '\n':
-						state = SPACE;
-						continue;
-					case '-':
-						state = DASH;
-						continue;
-					case '"':
-						e.replace(position, position + 1, "”");
-						break;
-					case '.':
-						e.replace(position - 2, position + 1, "…");
-						position -= 2;
-						len -= 2;
-						break;
-					default:
-					}
-					state = NOTHING;
-					continue;
-				}
-			} while (++position < len);
-		}
-		
-		private final InputFilter[] mNormalFilters = { mNewLineFilter };
-		private final InputFilter[] mFilters = { new InputFilter() {
-			SpannableStringBuilder mSsb = new SpannableStringBuilder();
-
-			@Override
-			public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-				assert mLineInputEnabled;
-				
-				if (dstart > mLineInputStart)
-					return null;
-
-				mSsb.clear();
-				mSsb.append(dest, dstart, mLineInputStart);
-				mSsb.append(source, start, end);
-				
-				return mSsb;
-			}
-		}, mNewLineFilter };
-		
-		//private _MovementMethod mMovementMethod;
-
-		public _View(Context context) {
-			super(context, null, R.attr.textBufferWindowStyle);
-			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
-			setInputType(0
-						 | InputType.TYPE_CLASS_TEXT 
-						 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
-						 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-		    		   //| InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE
-				);
-			setFilters(mNormalFilters);
-			setOnEditorActionListener(this);
-
-			//setText("", BufferType.EDITABLE);
-			//setFocusableInTouchMode(true);
-			//setFocusable(false);
+		public _CommandView(Context context) {
+			super(context);
 
 			addTextChangedListener(
 				new TextWatcher() {
@@ -670,37 +231,75 @@ public class TextBufferWindow extends Window {
 					
 					public void onTextChanged(CharSequence s, int start, int before, int count) {
 						// Hack to get single key input. Why doesn't OnKeyUp work? 
-						if (mCharInputEnabled && count==1 && s.charAt(start)>0 && s.charAt(start)<255 ){
-							disableCharInput();
+
+						if (mCharInputEnabled 
+							&& count==1 && s.charAt(start)>0 && s.charAt(start)<255 ){
+							Log.d("CharInputEvent",Integer.toString(s.charAt(start)));
 							CharInputEvent ev = new CharInputEvent(TextBufferWindow.this,s.charAt(start));
-							mGlk.postEvent(ev);
+							TextBufferWindow.this.mGlk.postEvent(ev);
+							_CommandView.this.clear();
+							disableCharInput();
 						}
 					}
 				});
-			
-			this.onPreDraw();						
-		}		
+		}
 
+		public void clear() {
+			setText("");
+			Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+			getText().setSpan(sp, 0, 0, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+		}
 
-		public void showKeyboard() {
+		public void enableCharInput(){
+			mCharInputEnabled = true;
+			enableInput();
+		}
+		public void disableCharInput(){
+			mCharInputEnabled = false;
+			disableInput();
+		}
+
+		public void enableInput() {
+			setFocusableInTouchMode(true);
+			requestFocus();
+			showKeyboard();
+		}
+		public void disableInput() {
+			setFocusable(false);
+		}
+
+		@Override
+		public boolean onKeyUp(int keyCode, KeyEvent event) {
+			if (keyCode == KeyEvent.KEYCODE_ENTER) { // && TextBufferWindow.this.mLineInputEnabled){
+
+				SpannableStringBuilder sb = new SpannableStringBuilder();
+				sb.append(getText().toString());
+				Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+				sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				
+				TextBufferWindow.this.lineInputAccepted(sb);
+
+				clear();
+				disableInput();
+
+				return true;
+			}
+			return super.onKeyUp(keyCode, event);
+		}
+
+		private void showKeyboard(){
 			(new Handler()).postDelayed(
 				new Runnable() {
-					public void run() {
-						
-						// no workee
-						//InputMethodManager imm = 
-						//   (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-						//imm.showSoftInput(_View.this, InputMethodManager.SHOW_IMPLICIT);
-
-						_View.this.dispatchTouchEvent(
+					public void run() {						
+						_CommandView.this.dispatchTouchEvent(
 							MotionEvent.obtain(
 								SystemClock.uptimeMillis(), 
 								SystemClock.uptimeMillis(), 
-								MotionEvent.ACTION_DOWN , 
+								MotionEvent.ACTION_DOWN, 
 								0, 0, 0
 								)
 							);
-						_View.this.dispatchTouchEvent(
+					   _CommandView.this.dispatchTouchEvent(
 							MotionEvent.obtain(
 								SystemClock.uptimeMillis(), 
 								SystemClock.uptimeMillis(), 
@@ -708,152 +307,172 @@ public class TextBufferWindow extends Window {
 								0, 0, 0
 								)
 							);   
-
-						_View.this.dispatchKeyEvent(
-							new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DEL)
-							);   
-						_View.this.dispatchKeyEvent(
-							new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DEL)
-							);   
 					}
-				}, 100);
+				}, 100);		
+		}
+	}
+
+	private class _View extends TextView { 
+		@Override
+		public Parcelable onSaveInstanceState() {
+			TextBufferWindow._SavedState ss = new TextBufferWindow._SavedState();
+			ss.mSuperState = super.onSaveInstanceState();
+			return ss;
+		}
+		
+		private String nullInd = "@!nul!@";
+		public void writeState(ObjectOutputStream stream) throws IOException {
+			final Editable e = getEditableText();
+			stream.writeUTF(e.toString());
+			StyleSpan[] spans = e.getSpans(0, e.length(), StyleSpan.class);
+			stream.writeLong(spans.length);
+			for (StyleSpan ss : spans) {
+				stream.writeInt(e.getSpanStart(ss));
+				stream.writeInt(e.getSpanEnd(ss));
+				stream.writeInt(ss.getStyle());
+				stream.writeInt(ss.getReverse());
+			}
+			stream.writeBoolean(mTrailingCr);
+			stream.writeUTF(mLastLine.toString());
+
+			if (TextBufferWindow.this.mCommandText == null)
+				stream.writeUTF(nullInd);
+			else
+				stream.writeUTF(TextBufferWindow.this.mCommandText.toString());
+
+			if (TextBufferWindow.this.mPrompt.getText() == null)
+				stream.writeUTF(nullInd);
+			else {
+				final CharSequence p = TextBufferWindow.this.mPrompt.getText();
+				stream.writeUTF(p.toString());
+			}
+		}
+
+		@Override
+		public void onRestoreInstanceState(Parcelable state) {
+			TextBufferWindow._SavedState ss = (_SavedState) state;
+			super.onRestoreInstanceState(ss.mSuperState);
+		}
+
+		public void readState(ObjectInputStream stream) throws IOException {
+			setText(stream.readUTF());
+			final Editable ed = getEditableText();
+			final long spanCount = stream.readLong();
+			for (long i = 0; i < spanCount; i++) {
+				final int spanStart = stream.readInt();
+				final int spanEnd = stream.readInt();
+				final int spanStyle = stream.readInt();
+				final int spanReverse = stream.readInt();
+				ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), 
+						   spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}
+			
+			mTrailingCr = stream.readBoolean();
+			mLastLine = stream.readUTF();
+			String foo = null;
+
+			foo = stream.readUTF();
+			if (foo.compareTo(nullInd) != 0)
+				TextBufferWindow.this.mCommandText = foo;
+
+			foo = stream.readUTF();
+			if (foo.compareTo(nullInd) != 0)
+				TextBufferWindow.this.mPrompt.setText(foo);
+		}
+
+		public _View(Context context) {
+			super(context);
+			
+			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+			setBackgroundResource(0);
+			setTextSize(DefaultFontSize);		
+			setTypeface(TextBufferWindow.this.getDefaultTypeface());
+			
+			setInputType(0
+						 | InputType.TYPE_CLASS_TEXT 
+						 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+						 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+			);
+		}		
+
+
+		private CharSequence mLastLine = null;
+		private boolean mTrailingCr = false;
+		public void setTextEx(CharSequence t){
+			setText("");
+			appendEx(t);
+		}
+		public void appendEx(CharSequence t){
+			if (t == null || t.length() == 0) return;			
+
+			if (mTrailingCr) {
+				mTrailingCr = false;
+				append("\n");
+			}
+
+			if (mLastLine != null){
+				append(mLastLine);
+				mLastLine = null;
+			}
+			
+			CharSequence ct = TextBufferWindow.this.mCommandText;
+			if (ct != null){
+				append(" ");
+
+				int j = TextUtils.lastIndexOf(ct,'\n');
+
+				if (j>-1) {
+					mTrailingCr = true;
+					ct = ct.subSequence(0,j);
+				}
+				
+				append(ct);
+
+				TextBufferWindow.this.mCommandText = null;
+			}
+
+			CharSequence buf = null;
+			int i = TextUtils.lastIndexOf(t,'\n');
+
+			if (i>-1){
+				if (mTrailingCr) {
+					mTrailingCr = false;
+					append("\n");
+				}
+
+				append(t.subSequence(0,i));
+				mLastLine = t.subSequence(i,t.length());
+			} else {
+				mLastLine = t;
+			}
+
+			if (mLastLine.charAt(0) == '\n') {
+				if (mLastLine.length() == 1)
+					;//no prompt
+				else
+					TextBufferWindow.this.setPrompt(mLastLine.subSequence(1,mLastLine.length()));
+			}
+			else {
+				TextBufferWindow.this.setPrompt(mLastLine);
+			}
 		}
 
 		public void print(CharSequence text) {
 			final int start = length() - 1;
-			append(text);
+		    appendEx(text);
 			Editable e = getEditableText();
-			beautify(e, start);
+			Utils.beautify(e, start);
 		}
 
 		/* see TextBufferWindow.clear() */
 		public void clear() {
-			mLineInputStart = 0;
 			Glk.getInstance().waitForUi(
 				new Runnable() {
 					@Override
 					public void run() {					   
-						setText(""); //, BufferType.EDITABLE);
+						setTextEx("");
 					}
 				});
-		}
-
-		public void enableCharInput() {
-			mCharInputEnabled = true;
-			enableInput();
-		}
-		
-		private void enableInput() {
-			Log.d("Glk/TextBufferWindow","enableInput");
-			Glk.getInstance().waitForUi(
-				new Runnable() {
-					@Override
-					public void run() {					   
-						setFocusableInTouchMode(true);
-						showKeyboard();
-
-						//requestFocus();
-						//mPaging = true;
-						//sendScroll();						
-						//Selection.setSelection(getEditableText(), length());
-						//clearFocus();
-					}
-				});
-		}
-
-		protected void disableCharInput() {
-			mCharInputEnabled = false;			
-			disableInput();
-		}
-		
-		private void disableInput() {
-			Log.d("Glk/TextBufferWindow","disableInput");
-			Glk.getInstance().waitForUi(
-				new Runnable() {
-					@Override
-					public void run() {					   
-						final Spannable s = (Spannable) getText();
-						Selection.removeSelection(s);
-						setFocusable(false);
-					}
-				});
-		}
-		
-		@Override
-		public boolean onKeyUp(int keyCode, KeyEvent event) {
-			//if (mMovementMethod.onKeyUp(this, (Spannable) getText(), keyCode, event))
-			//	return true;
-			return super.onKeyUp(keyCode, event);
-		}
-
-		@Override
-		public boolean onKeyDown(int keyCode, KeyEvent event) {
-			//if (mMovementMethod.onKeyDown(this, (Spannable) getText(), keyCode, event))
-			//	return true;
-			return super.onKeyDown(keyCode, event);
-		}
-
-		public void enableLineInput(String ainitial) {
-
-			final String initial = ainitial;
-
-			Log.d("Glk/TextBufferWindow","disableInput");
-			Glk.getInstance().waitForUi(
-				new Runnable() {
-					@Override
-					public void run() {					   
-						final Editable e = getEditableText();
-			
-						/* don't allow overlapping input spans */
-						if (mLineInputEnabled && mLineInputSpan != null) 
-							e.removeSpan(mLineInputSpan);
-
-						mLineInputEnabled = true;
-						mLineInputSpan = makeInputSpan(); 
-						append("\u200b"); // to attach the span to
-						mLineInputStart = length();
-						e.setSpan(mLineInputSpan, mLineInputStart - 1, mLineInputStart, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
-						if (initial != null)
-							e.append(initial);
-			
-						setFilters(mFilters);
-					}
-				});
-
-			enableInput();
-		}
-		
-		@Override
-		public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-			if (!mLineInputEnabled)
-				return false;
-			if (event != null && event.getAction() != KeyEvent.ACTION_DOWN)
-				return false;
-			
-			lineInputAccepted(finishLineInput().toString());
-			return true;
-		}
-
-		private CharSequence mResult;
-		private CharSequence finishLineInput() {
-			disableInput();
-			Glk.getInstance().waitForUi(new Runnable() {
-					@Override
-					public void run() {					   
-						setFilters(mNormalFilters);
-			
-						final Editable e = getEditableText();
-						final int len = e.length();
-						e.setSpan(mLineInputSpan, mLineInputStart - 1, len, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-						_View.this.mResult = e.subSequence(mLineInputStart, len);
-			
-						e.append("\n");
-						mLineInputSpan = null;
-						mLineInputStart = -1;
-						mLineInputEnabled = false;
-					}});
-			
-			return mResult;
 		}
 	}
 
@@ -862,6 +481,11 @@ public class TextBufferWindow extends Window {
 	public String FontPath = null;
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
+	private _CommandView mCommand = null;
+	private TextView mPrompt = null;
+	private LinearLayout mLayout = null;
+	private CharSequence mCommandText = null;
+	private Object mLineInputSpan;
 
 	public TextBufferWindow(Glk glk, int rock) {
 		super(rock);
@@ -870,29 +494,117 @@ public class TextBufferWindow extends Window {
 		mContext = glk.getContext();
 		mHandler = mGlk.getUiHandler();
 
-		Glk.getInstance().waitForUi(new Runnable() {
+		Glk.getInstance().waitForUi(
+			new Runnable() {
 				@Override
 					public void run() {
-					mScrollView = new _ScrollView(mContext);
-					mView = new _View(mContext);
-					mScrollView.addView(mView);
-					mStream = new _Stream();
 					// when window is created, style hints are fixed
 					stylehints = new Styles(_stylehints);
+
+					mScrollView = new _ScrollView(mContext);
+					mScrollView.setPadding(0, 0, 0, 0);
+					mScrollView.setFocusable(false);
+
+					LinearLayout.LayoutParams paramsDefault = new
+						LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
+					LinearLayout.LayoutParams paramsHLayout = new
+						LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
+					LinearLayout.LayoutParams paramsPrompt = new
+						LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
+					LinearLayout.LayoutParams paramsCommand = new
+						LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
+					paramsPrompt.setMargins(0, -10, 0, 0);
+					paramsCommand.setMargins(0, -10, 0, 0);
+
+					mLayout = new LinearLayout(mContext);
+					mLayout.setOrientation(LinearLayout.VERTICAL);
+					mLayout.setPadding(0, 0, 0, 0);
+
+					LinearLayout hl = new LinearLayout(mContext);
+					hl.setPadding(0, 0, 0, 0);
+					hl.setOrientation(LinearLayout.HORIZONTAL);
+				   
+					mCommand = new _CommandView(mContext);
+					mCommand.setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG 
+										   | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+					mCommand.setPadding(5, 0, 5, 5);
+					mCommand.setBackgroundResource(0);
+					mCommand.setTextSize(DefaultFontSize);		
+					mCommand.setTypeface(getDefaultTypeface());
+
+					mCommand.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+					mCommand.clear();
+					mCommand.disableInput();
+
+					mPrompt = new TextView(mContext);
+					mPrompt.setPadding(5, 0, 5, 5);
+					mPrompt.setBackgroundResource(0);
+					mPrompt.setTypeface(getDefaultTypeface());
+					mPrompt.setTextSize(DefaultFontSize);		
+					mPrompt.setFocusable(false);
+
+					hl.addView(mPrompt, paramsPrompt);
+					hl.addView(mCommand, paramsCommand);
+					
+					mView = new _View(mContext);
+					mView.setPadding(5, 5, 5, 0);
+					mView.setFocusable(false);
+
+					mLayout.addView(mView,paramsDefault);
+					mLayout.addView(hl,paramsHLayout);
+
+					mScrollView.addView(mLayout);
+					mStream = new _Stream();
 				}
 			});		
+	}
+
+	private Typeface _typeface = null;
+	public Typeface getDefaultTypeface() {
+		if (_typeface == null) {
+			Typeface tf = null; 
+			
+			//TODO: this is broken & disabled for now
+
+			// if (DefaultFontPath.endsWith("ttf") 
+			// 	|| DefaultFontPath.endsWith("otf"))
+			// 	try {
+			// 		tf = Typeface.createFromFile(DefaultFontPath);
+			// 	} catch (Exception ex) {}
+			// else if (DefaultFontPath.endsWith("Droid Sans")) 
+			// 	tf = Typeface.SANS_SERIF;
+			// else if (DefaultFontPath.endsWith("Droid Mono")) 
+			// 	tf = Typeface.MONOSPACE;
+
+			if (tf == null) tf = Typeface.SERIF;
+
+			_typeface = tf;
+		}
+
+		return _typeface;
+	}
+
+	public void setPrompt(CharSequence p){
+		mPrompt.setText(p);
 	}
 	
 	public Object makeInputSpan() {
 		return stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
 	}
 
-	public void lineInputAccepted(String result) {
+	public void lineInputAccepted(Spannable s) {
+		String result = s.toString().trim();
+
+		mCommandText = s;
+		mPrompt.setText("");
+
 		final org.andglk.glk.Stream echo = mStream.mEchoStream;
 		if (echo != null) {
 			echo.putString(result);
 			echo.putChar('\n');
 		}
+
+		Log.d("Glk/TextBufferWindow", "lineInputAccepted:"+result);
 		
 		LineInputEvent lie = new LineInputEvent(this, result, mLineEventBuffer, 
 												mLineEventBufferLength, mLineEventBufferRock, mUnicodeEvent);
@@ -905,7 +617,7 @@ public class TextBufferWindow extends Window {
 		mGlk.getUiHandler().post(new Runnable() {
 			@Override
 			public void run() {
-				mView.disableCharInput();	
+				mCommand.disableCharInput();	
 			}
 		});
 	}
@@ -963,29 +675,35 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void requestCharEvent() {
-		mHandler.post(new Runnable() {
-			@Override
-			public void run() {
-				mView.enableCharInput();
-			}
-		});
+		Log.d("Glk/TextBufferWindow","requestCharEvent");
+		Glk.getInstance().waitForUi(
+			new Runnable() {
+				@Override
+				public void run() {					   
+					mCommand.enableCharInput();		
+					mScrollView.fullScroll(View.FOCUS_DOWN);
+				}
+			});
 	}
 
 	@Override
-		public void requestLineEvent(final String initial, long maxlen, int buffer, int unicode) {
+	public void requestLineEvent(final String initial, final long maxlen, 
+								 final int buffer, final int unicode) {
+		Log.d("Glk/TextBufferWindow","requestCharEvent");
 		flush();
 		
-		mLineEventBuffer = buffer;
-		mLineEventBufferLength = maxlen;
-		mLineEventBufferRock = retainVmArray(buffer, maxlen);
-		mUnicodeEvent = (unicode != 0);
-
-		mHandler.post(new Runnable() {
-			@Override
-			public void run() {
-				mView.enableLineInput(initial);
-			}
-		});
+		Glk.getInstance().waitForUi(
+			new Runnable() {
+				@Override
+				public void run() {					   
+					mLineEventBuffer = buffer;
+					mLineEventBufferLength = maxlen;
+					mLineEventBufferRock = retainVmArray(buffer, maxlen);
+					mUnicodeEvent = (unicode != 0);
+					mCommand.enableInput();		
+					mScrollView.fullScroll(View.FOCUS_DOWN);
+				}
+			});
 	}
 
 	@Override
@@ -996,7 +714,8 @@ public class TextBufferWindow extends Window {
 		int res1, res2;
 		res1 = getTextAppearanceId(style1);
 		res2 = getTextAppearanceId(style2);
-		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor, android.R.attr.typeface, android.R.attr.textStyle };
+		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor, 
+							   android.R.attr.typeface, android.R.attr.textStyle };
 		TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
 		TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);
 		

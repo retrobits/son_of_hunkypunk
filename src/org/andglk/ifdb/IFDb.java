@@ -325,6 +325,7 @@ public class IFDb {
 		IFictionHandler handler = new IFictionHandler();
 		xr.setContentHandler(handler);
 		try {
+			//Log.v(TAG, "fetching IFDB info " + url.toString());
 			xr.parse(new InputSource(url.openStream()));
 		} catch (IOException e) {
 			Log.w(TAG, "IO exception while fetching record on " + ifid + " from IFDb, possibly doesn't exist", e);

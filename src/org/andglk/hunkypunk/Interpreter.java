@@ -196,7 +196,9 @@ public class Interpreter extends Activity {
     @Override
     protected void onResume() {
     	super.onResume();
-		if (setFont()) glk.getView().invalidate();
+
+		//TODO: this is broken
+		//if (setFont()) glk.getView().invalidate();
 	}
 
 	private boolean setFont() {
