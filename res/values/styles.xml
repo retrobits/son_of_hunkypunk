@@ -20,11 +20,12 @@
 
 <resources>
 	<style name="TextBufferWindow" parent="@android:style/Widget.TextView">
-		<item name="android:typeface">serif</item>
-		<item name="android:fadingEdge">vertical</item>
-		<!-- <item name="android:padding">5sp</item> -->
-		<item name="android:textColor">@android:color/primary_text_light_nodisable</item>
-		<item name="android:scrollbars">vertical</item>
+		<item name="android:scrollbars">none</item>
+		<item name="android:inputType">text|textMultiLine|textNoSuggestions</item>
+	</style>
+	<style name="TextBufferWindowEdit" parent="@android:style/Widget.TextView">
+		<item name="android:scrollbars">none</item>
+		<item name="android:inputType">text|textMultiLine</item>
 	</style>
 	
 	<style name="TextGridWindow" parent="@android:style/Widget.TextView">
@@ -39,6 +40,7 @@
 	
 	<style name="theme" parent="@android:style/Theme.Light.NoTitleBar">
 		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
+		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
 		<item name="textGridWindowStyle">@style/TextGridWindow</item>
 	</style>
 	

@@ -20,5 +20,6 @@
 
 <resources>
     <attr name="textBufferWindowStyle" format="reference"/>
+    <attr name="textBufferWindowEditStyle" format="reference"/>
     <attr name="textGridWindowStyle" format="reference"/>
 </resources>

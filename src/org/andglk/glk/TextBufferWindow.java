@@ -37,6 +37,7 @@ import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.method.MovementMethod;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -49,6 +50,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.LinearLayout;
@@ -219,7 +221,12 @@ public class TextBufferWindow extends Window {
 		public boolean mLineInputEnabled;
 
 		public _CommandView(Context context) {
-			super(context);
+			super(context, null, R.attr.textBufferWindowEditStyle);
+			
+			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+			setBackgroundResource(0);
+			setTextSize(DefaultFontSize);		
+			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 
 			addTextChangedListener(
 				new TextWatcher() {
@@ -312,7 +319,72 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
+	private class _PromptView extends TextView {
+		public _PromptView(Context context) {
+			super(context, null, R.attr.textBufferWindowStyle);
+			
+			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+			setBackgroundResource(0);
+			setTextSize(DefaultFontSize);		
+			setTypeface(TextBufferWindow.this.getDefaultTypeface());
+		}		
+	}
+							  
+
 	private class _View extends TextView { 
+
+		public class _MovementMethod implements MovementMethod {
+
+			@Override
+			public boolean onGenericMotionEvent(TextView widget, Spannable text, MotionEvent event) {
+				return false;
+			}
+
+			@Override
+			public boolean canSelectArbitrarily() {
+				return false;
+			}
+
+			@Override
+			public void initialize(TextView widget, Spannable text) {
+			}
+
+			@Override
+			public boolean onKeyDown(TextView widget, Spannable text, int keyCode, KeyEvent event) {
+				return false;
+			}
+
+			@Override
+			public boolean onKeyOther(TextView view, Spannable text, KeyEvent event) {
+				return false;
+			}
+
+			@Override
+			public boolean onKeyUp(TextView widget, Spannable text, int keyCode, KeyEvent event) {
+				return false;
+			}
+
+			@Override
+			public void onTakeFocus(TextView widget, Spannable text, int direction) {
+			}
+
+			@Override
+			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
+				if (event.getAction()==MotionEvent.ACTION_UP) {
+					TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
+					TextBufferWindow.this.mCommand.showKeyboard();
+					return true;
+				}
+				else 
+					return false;
+			}
+
+			@Override
+			public boolean onTrackballEvent(TextView widget, Spannable text, MotionEvent event) {
+				return false;
+			}
+		}
+
 		@Override
 		public Parcelable onSaveInstanceState() {
 			TextBufferWindow._SavedState ss = new TextBufferWindow._SavedState();
@@ -380,19 +452,16 @@ public class TextBufferWindow extends Window {
 				TextBufferWindow.this.mPrompt.setText(foo);
 		}
 
+		private _MovementMethod mMovementMethod;
 		public _View(Context context) {
-			super(context);
+			super(context, null, R.attr.textBufferWindowStyle);
 			
+			setMovementMethod(mMovementMethod = new _MovementMethod());
+
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
 			setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
-			
-			setInputType(0
-						 | InputType.TYPE_CLASS_TEXT 
-						 | InputType.TYPE_TEXT_FLAG_MULTI_LINE
-						 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-			);
 		}		
 
 
@@ -482,7 +551,7 @@ public class TextBufferWindow extends Window {
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
 	private _CommandView mCommand = null;
-	private TextView mPrompt = null;
+	private _PromptView mPrompt = null;
 	private LinearLayout mLayout = null;
 	private CharSequence mCommandText = null;
 	private Object mLineInputSpan;
@@ -525,22 +594,13 @@ public class TextBufferWindow extends Window {
 					hl.setOrientation(LinearLayout.HORIZONTAL);
 				   
 					mCommand = new _CommandView(mContext);
-					mCommand.setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG 
-										   | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 					mCommand.setPadding(5, 0, 5, 5);
-					mCommand.setBackgroundResource(0);
-					mCommand.setTextSize(DefaultFontSize);		
-					mCommand.setTypeface(getDefaultTypeface());
-
 					mCommand.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
 					mCommand.clear();
 					mCommand.disableInput();
 
-					mPrompt = new TextView(mContext);
+					mPrompt = new _PromptView(mContext);
 					mPrompt.setPadding(5, 0, 5, 5);
-					mPrompt.setBackgroundResource(0);
-					mPrompt.setTypeface(getDefaultTypeface());
-					mPrompt.setTextSize(DefaultFontSize);		
 					mPrompt.setFocusable(false);
 
 					hl.addView(mPrompt, paramsPrompt);
