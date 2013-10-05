@@ -37,9 +37,8 @@
         <activity android:name="org.andglkmod.hunkypunk.Interpreter"
                   android:label="@string/app_name"
 				  android:launchMode="singleTask" 
-
-                  android:configChanges="orientation|keyboard|keyboardHidden"
-			>
+				  android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+>
 <!-- for debugging remove android:process above, the debugger can't cope with it -->
 
             <intent-filter>
@@ -111,7 +110,6 @@
 				<data android:mimeType="application/x-glulx" scheme="file"/>
 -->
 			</intent-filter>
-
 		</activity-alias>
 
 		<activity android:name=".PreferencesActivity" android:label="@string/preferences"
@@ -123,6 +121,5 @@
 		</activity>
 		
 	</application>
-    <uses-sdk android:minSdkVersion="3" />
-
+    <uses-sdk android:minSdkVersion="14" />
 </manifest>

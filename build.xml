@@ -4,6 +4,9 @@
     <property file="local.properties"/>
     <property file="project.properties"/>
     <property file="ant.properties"/>
+    <condition property="is.dropbox.set">
+	  <isset property="dropbox-location" />
+    </condition>
 
     <target name="hunkypunk-release" depends="clean, jnilibs, release" />
 
@@ -67,7 +70,19 @@
     </target>
     <target name="mod-release" depends="mod-copy,mod-release-override">
 	  <ant inheritAll="false" dir="./alt-apk/mod" antfile="build.xml" target="hunkypunk-release" />
-	  <move file="./alt-apk/mod/bin/HunkyPunk-release.apk" tofile="./alt-apk/mod/bin/HunkyMod-release.apk"/>
+	  <move file="./alt-apk/mod/bin/HunkyPunk-release.apk" tofile="./alt-apk/mod/bin/SonOfHunkyPunk-release.apk"/>
+	  <copy file="./alt-apk/mod/bin/SonOfHunkyPunk-release.apk" todir="${dropbox-location}"/>
+    </target>
+    <target name="mod4-release" depends="mod-copy,mod-release-override">
+	  <delete> 
+		<fileset dir="./alt-apk/mod" defaultexcludes="false">
+		  <include name="AndroidManifest.xml"/>		  
+		</fileset>
+	  </delete>
+	  <copy file="./alt-apk/override/mod4/AndroidManifest.xml" tofile="./alt-apk/mod/AndroidManifest.xml"/>
+	  <ant inheritAll="false" dir="./alt-apk/mod" antfile="build.xml" target="hunkypunk-release" />
+	  <move file="./alt-apk/mod/bin/HunkyPunk-release.apk" tofile="./alt-apk/mod/bin/SonOfHunkyPunk-Android4-release.apk"/>
+	  <copy file="./alt-apk/mod/bin/SonOfHunkyPunk-Android4-release.apk" todir="${dropbox-location}"/>
     </target>
 	<target name="mod-copy">
 	  <copy todir="./alt-apk/mod">
@@ -80,6 +95,9 @@
 		  <exclude name="**/override/**" />
 		  <exclude name="**/web/**" />
 		  <exclude name="**/artwork/**" />
+
+		  <exclude name="**/jni/garglk/**" />
+		  <exclude name="**/jni/bocfel/**" />
 		</fileset>
 	  </copy>
 	  <exec dir="./alt-apk/mod" executable="${bash-location}">
@@ -109,9 +127,6 @@
 	  -->
     </target>
 
-    <condition property="is.dropbox.set">
-	  <isset property="dropbox-location" />
-    </condition>
     <target name="dropbox" if="is.dropbox.set">
 	  <copy file="${dropbox-target}" todir="${dropbox-location}"/>
 	</target>

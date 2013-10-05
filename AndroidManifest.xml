@@ -20,8 +20,8 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.andglk.hunkypunk"
-      android:versionCode="2"
-      android:versionName="0.2">
+      android:versionCode="1"
+      android:versionName="0.6">
       
     <supports-screens
     	android:smallScreens="true"
@@ -43,7 +43,6 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-                <data android:mimeType="application/x-zmachine" />
             </intent-filter>
         </activity>
     	<provider android:name=".HunkyPunkProvider"
@@ -73,10 +72,43 @@
     	>
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
-				<data android:mimeType="application/x-zmachine" scheme="file"/>
-				<data android:mimeType="application/x-glulx" scheme="file"/>
-				<data android:mimeType="application/x-blorb" scheme="file"/>
 				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="file" />
+				<data android:mimeType="*/*" />
+				<data android:pathPattern=".*\\.z1" />
+				<data android:pathPattern=".*\\.z2" />
+				<data android:pathPattern=".*\\.z3" />
+				<data android:pathPattern=".*\\.z4" />
+				<data android:pathPattern=".*\\.z5" />
+				<data android:pathPattern=".*\\.z6" />
+				<data android:pathPattern=".*\\.z7" />
+				<data android:pathPattern=".*\\.z8" />
+				<data android:pathPattern=".*\\.z9" />
+				<data android:pathPattern=".*\\.Z1" />
+				<data android:pathPattern=".*\\.Z2" />
+				<data android:pathPattern=".*\\.Z3" />
+				<data android:pathPattern=".*\\.Z4" />
+				<data android:pathPattern=".*\\.Z5" />
+				<data android:pathPattern=".*\\.Z6" />
+				<data android:pathPattern=".*\\.Z7" />
+				<data android:pathPattern=".*\\.Z8" />
+				<data android:pathPattern=".*\\.Z9" />
+				<data android:pathPattern=".*\\.gam" />
+				<data android:pathPattern=".*\\.GAM" />
+				<data android:pathPattern=".*\\.t2" />
+				<data android:pathPattern=".*\\.T2" />
+				<data android:pathPattern=".*\\.t3" />
+				<data android:pathPattern=".*\\.T3" />
+				<data android:pathPattern=".*\\.zblorb" />
+				<data android:pathPattern=".*\\.zblb" />
+				<data android:host="*" />
+<!--
+				<data android:mimeType="application/x-zmachine" scheme="file"/>
+				<data android:mimeType="application/x-tads" scheme="file"/>
+				<data android:mimeType="application/x-blorb" scheme="file"/>
+				<data android:mimeType="application/x-glulx" scheme="file"/>
+-->
 			</intent-filter>
 		</activity-alias>
 

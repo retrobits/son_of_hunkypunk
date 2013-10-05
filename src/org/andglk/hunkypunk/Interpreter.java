@@ -115,9 +115,7 @@ public class Interpreter extends Activity {
 		case '2':
 			AlertDialog builder;
 			try {
-				builder = AboutDialogBuilder.create(this);
-				builder.setInverseBackgroundForced(true);
-				builder.show();
+				builder = AboutDialogBuilder.show(this);
 			} catch (NameNotFoundException e) {
 				e.printStackTrace();
 			}

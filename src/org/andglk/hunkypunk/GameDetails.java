@@ -20,6 +20,12 @@
 package org.andglk.hunkypunk;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.io.RandomAccessFile;
 
 import org.andglk.hunkypunk.HunkyPunk.Games;
@@ -134,8 +140,36 @@ public class GameDetails extends Activity implements OnClickListener {
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
 		Uri game = getIntent().getData();
+		
+		//Log.d("GameDetails.onCreate",(String)game.getScheme());
+	   
 		if (game.getScheme().equals(ContentResolver.SCHEME_FILE))
 			install(game);
+/* TODO: check if game is not installed and install it
+		} else if (game.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
+			ContentResolver cr = getContentResolver();
+			AssetFileDescriptor afd = cr.openAssetFileDescriptor(u, "r");
+			long length = afd.getLength();
+			byte[] filedata = new byte[(int) length];
+			InputStream in = cr.openInputStream(u);
+			String dst = Paths.ifDirectory().getAbsolutePath()+"/"+"tmpgame";
+			OutputStream out = new FileOutputStream(dst);
+			String ifid = null;
+			try
+			{
+				in.read(filedata, 0, length);
+				out.write(filedata, 0, length);
+				in.close();
+				out.close();
+				ifid = Babel.examine(dst);
+			}
+			catch(IOException e)
+			{
+				Toast.makeText(GameDetails.this, R.string.install_failure, Toast.LENGTH_SHORT).show();
+				return;
+			}   
+			install(game);
+*/
 		else
 			show(game);
 	}
@@ -158,8 +192,7 @@ public class GameDetails extends Activity implements OnClickListener {
 		case '2':
 			AlertDialog builder;
 			try {
-				builder = AboutDialogBuilder.create(this);
-				builder.show();
+				builder = AboutDialogBuilder.show(this);
 			} catch (NameNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -174,10 +207,28 @@ public class GameDetails extends Activity implements OnClickListener {
 		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 		mProgressDialog.setCancelable(false);
 		mProgressDialog.show();
-		
+
+		File fgame = new File(game.getPath());
+		String src = fgame.getAbsolutePath();
+		String dst = Paths.ifDirectory().getAbsolutePath()+"/"+fgame.getName();
+		if (dst.compareTo(src)!=0) {
+			try{
+			InputStream in = new FileInputStream(src);
+			OutputStream out = new FileOutputStream(dst);
+
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = in.read(buf)) > 0){
+				out.write(buf, 0, len);
+			}
+			in.close();
+			out.close();
+			}catch(Exception e){}
+		}
+
 		StorageManager mediaScanner = StorageManager.getInstance(getContentResolver());
 		mediaScanner.setHandler(mInstallHandler);
-		mediaScanner.startCheckingFile(new File(game.getPath()));
+		mediaScanner.startCheckingFile(new File(dst));
 	}
 
 	private void show(Uri game) {
@@ -335,6 +386,7 @@ public class GameDetails extends Activity implements OnClickListener {
 		String ext = "||";
 		int dot = fullPath.lastIndexOf(".");
 		if (dot > -1) ext = "|"+fullPath.substring(dot+1)+"|";
+		ext = ext.toLowerCase();
 
 		if ("|ulx|blb|blorb|glb|gblorb|".indexOf(ext) > -1) return "git";
 		else if ("|gam|t2|t3|".indexOf(ext) > -1) return "tads";

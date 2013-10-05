@@ -91,24 +91,26 @@ public class StorageManager {
 			if (!f.isDirectory())
 				try {
 					
+					String g = f.getName().toLowerCase();
 					if (
 						/* zcode: frotz, nitfol */
-						f.getName().matches(".*\\.z[1-9]$")
-						|| f.getName().matches(".*\\.zblorb$")
-						|| f.getName().matches(".*\\.zlb$")
+						g.matches(".*\\.z[1-9]$")
+						|| g.matches(".*\\.zcode$")
+						|| g.matches(".*\\.zblorb$")
+						|| g.matches(".*\\.zlb$")
 
 						/* tads */
-						|| f.getName().matches(".*\\.gam$")
-						|| f.getName().matches(".*\\.t2$")
-						|| f.getName().matches(".*\\.t3$")
+						|| g.matches(".*\\.gam$")
+						|| g.matches(".*\\.t2$")
+						|| g.matches(".*\\.t3$")
 
 						/* glulx */
 						/*
-						|| f.getName().matches(".*\\.blorb$")
-						|| f.getName().matches(".*\\.gblorb$")
-						|| f.getName().matches(".*\\.blb$")
-						|| f.getName().matches(".*\\.glb$")
-						|| f.getName().matches(".*\\.ulx$")
+						|| g.matches(".*\\.blorb$")
+						|| g.matches(".*\\.gblorb$")
+						|| g.matches(".*\\.blb$")
+						|| g.matches(".*\\.glb$")
+						|| g.matches(".*\\.ulx$")
 						*/
 						)
 						checkFile(f);

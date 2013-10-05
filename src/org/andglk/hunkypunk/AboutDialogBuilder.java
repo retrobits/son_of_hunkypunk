@@ -25,15 +25,19 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
 import android.text.util.Linkify;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.TextView;
 
 public class AboutDialogBuilder {
-	public static AlertDialog create( Context context ) throws NameNotFoundException {
+	public static AlertDialog show( Context context ) throws NameNotFoundException {
 		PackageInfo pInfo = context.getPackageManager().getPackageInfo(
 			context.getPackageName(), 
 			PackageManager.GET_META_DATA
@@ -41,30 +45,48 @@ public class AboutDialogBuilder {
 
 		String versionInfo = pInfo.versionName;
 
-		String aboutTitle = String.format("About %s", context.getString(R.string.app_name));
+		String aboutTitle = String.format("About %s", context.getString(R.string.hunky_punk));
 		String versionString = String.format("Version: %s", versionInfo);
 		String aboutText = "By Dan Vernon\n\n";
 		aboutText += "(cloned from the original Hunky Punk by Rafał Rzepecki)\n\n";
 		aboutText += "Improvements include:\n";
 		aboutText += "  * Tads support (Tads 2.5.14, 3.0.18) \n";
-		aboutText += "  * improved Z-code support (Frotz 2.50) \n";
-		aboutText += "  * blorb support\n";
-		aboutText += "  * improved stability & misc bug fixes\n\n";
+		aboutText += "  * Improved Z-code support (Frotz 2.50) \n";
+		aboutText += "  * Auto-complete, Auto-correction\n";
+		aboutText += "  * Swype, voice, 3rd party keyboards\n";
+		aboutText += "  * Fling scrollback\n";
+		aboutText += "  * Font size preference\n";
+		aboutText += "  * Blorb support\n";
+		aboutText += "  * Improved stability & misc bug fixes\n\n";
+		aboutText += "special thanks to:\n";
+		aboutText += "  Stefan Jokisch for frotz\n";
+		aboutText += "  Michael J. Roberts for tads and ifdb\n";
+		aboutText += "  Ross Raszewski for babel\n";
+		aboutText += "  Tor Andersson and others for gargoyle bits\n";
+		aboutText += "  Martin Norbäck for work on Glk styles\n\n";
 		aboutText += "Please report issues and requests at\n";
-		aboutText += "http://code.google.com/p/hunkypunk/issues";
+		String link = "http://code.google.com/p/hunkypunk/issues\n";
 
-		final TextView message = new TextView(context);
-		final SpannableString s = new SpannableString(aboutText);
+		final SpannableString s1 = new SpannableString(aboutText);
+		final SpannableString s2 = new SpannableString(link);
+		Linkify.addLinks(s2, Linkify.WEB_URLS);
+		final CharSequence s = TextUtils.concat(s1,s2);
 
-		message.setPadding(5, 5, 5, 5);
-		message.setText(versionString + "\n\n" + s);
-		Linkify.addLinks(message, Linkify.ALL);
-
-		return new AlertDialog.Builder(context)
-			.setTitle(aboutTitle)
-			.setCancelable(true)
-			.setIcon(R.drawable.icon)
+		AlertDialog d = new AlertDialog.Builder(context)
 			.setPositiveButton(context.getString(android.R.string.ok), null)
-			.setView(message).create();
+			.setIcon(R.drawable.icon)
+			.setMessage(s)
+			.setCancelable(true)
+			.setTitle(aboutTitle).create();
+
+		d.show();
+
+		TextView tv = ((TextView)d.findViewById(android.R.id.message));
+		TextView tvDefault = new TextView(context);
+
+		tv.setMovementMethod(LinkMovementMethod.getInstance());
+		tv.setTextSize(TypedValue.COMPLEX_UNIT_PX,tvDefault.getTextSize());
+
+		return d;
 	}
 }
