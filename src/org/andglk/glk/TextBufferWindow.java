@@ -225,7 +225,7 @@ public class TextBufferWindow extends Window {
 			
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
-			setTextSize(DefaultFontSize);		
+			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 
 			addTextChangedListener(
@@ -277,10 +277,10 @@ public class TextBufferWindow extends Window {
 
 		@Override
 		public boolean onKeyUp(int keyCode, KeyEvent event) {
-			if (keyCode == KeyEvent.KEYCODE_ENTER) { // && TextBufferWindow.this.mLineInputEnabled){
+			if (keyCode == KeyEvent.KEYCODE_ENTER) { 
 
 				SpannableStringBuilder sb = new SpannableStringBuilder();
-				sb.append(getText().toString());
+				sb.append(getText().toString().replace("\n","")+"\n");
 				Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
 				sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				
@@ -317,6 +317,17 @@ public class TextBufferWindow extends Window {
 					}
 				}, 100);		
 		}
+
+		private int FontSize = 0;
+		@Override
+		public boolean onPreDraw() {
+			if (FontSize != DefaultFontSize) {
+				FontSize = DefaultFontSize;
+				setTextSize(FontSize);      
+				mPrompt.setTextSize(FontSize);
+			}
+			return true;
+		}
 	}
 
 	private class _PromptView extends TextView {
@@ -325,11 +336,10 @@ public class TextBufferWindow extends Window {
 			
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
-			setTextSize(DefaultFontSize);		
+			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 		}		
-	}
-							  
+	}							  
 
 	private class _View extends TextView { 
 
@@ -460,7 +470,7 @@ public class TextBufferWindow extends Window {
 
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
-			setTextSize(DefaultFontSize);		
+			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 		}		
 
@@ -542,6 +552,15 @@ public class TextBufferWindow extends Window {
 						setTextEx("");
 					}
 				});
+		}
+		private int FontSize = 0;
+		@Override
+		public boolean onPreDraw() {
+			if (FontSize != DefaultFontSize) {
+				FontSize = DefaultFontSize;
+				setTextSize(FontSize);          
+			}
+			return true;
 		}
 	}
 

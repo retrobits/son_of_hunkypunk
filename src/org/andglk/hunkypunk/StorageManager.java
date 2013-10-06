@@ -65,6 +65,25 @@ public class StorageManager {
 	public void setHandler(Handler h) {
 		mHandler = h;
 	}
+
+	public String gameInstalledFilePath(File f) {
+		String ifid = null;
+		String path = null;
+
+		try {
+			ifid = Babel.examine(f);
+		}catch(Exception e){}
+		
+		if (ifid == null)
+			return path;
+		
+		Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, ifid);
+		Cursor query = mContentResolver.query(uri, PROJECTION, null, null, null);		
+		if (query != null || query.getCount() == 1)
+			if (query.moveToNext())
+				path = query.getString(PATH);			
+		return path;
+	}
 	
 	public void checkExisting() {
 		Cursor c = mContentResolver.query(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);

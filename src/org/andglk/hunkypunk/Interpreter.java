@@ -195,25 +195,27 @@ public class Interpreter extends Activity {
     protected void onResume() {
     	super.onResume();
 
-		//TODO: this is broken
-		//if (setFont()) glk.getView().invalidate();
+		if (setFont()) glk.getView().invalidate();
 	}
 
 	private boolean setFont() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		
-		String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
-		String fontFile = prefs.getString("fontFileName", "Droid Serif");
-		String fontPath = new File(fontFolder, fontFile).getAbsolutePath();
+		//TODO: changing font is broken (text overflows the view)
+		
+		//String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
+		//String fontFile = prefs.getString("fontFileName", "Droid Serif");
+		//String fontPath = new File(fontFolder, fontFile).getAbsolutePath();
 		int fontSize = 14;
 		try{
 			fontSize = Integer.parseInt(prefs.getString("fontSize", Integer.toString(fontSize)));
 		}catch(Exception e){}
 
-		if (TextBufferWindow.DefaultFontPath == null 
-			|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0 
-			|| TextBufferWindow.DefaultFontSize != fontSize) {
-			TextBufferWindow.DefaultFontPath = fontPath;
+		if (TextBufferWindow.DefaultFontSize != fontSize) {
+			//(TextBufferWindow.DefaultFontPath == null 
+			//|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0 
+
+			//TextBufferWindow.DefaultFontPath = fontPath;
 			TextBufferWindow.DefaultFontSize = fontSize;
 			return true;
 		}
