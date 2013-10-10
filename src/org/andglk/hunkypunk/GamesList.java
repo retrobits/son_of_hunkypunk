@@ -106,7 +106,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 		
 		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 		
-		mScanner = StorageManager.getInstance(getContentResolver());
+		mScanner = StorageManager.getInstance(this);
 		mScanner.setHandler(mHandler);
 		mScanner.checkExisting();
 
@@ -126,7 +126,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		MenuInflater inflater = new MenuInflater(getApplication());
-		inflater.inflate(R.menu.main, menu);
+		inflater.inflate(R.layout.menu_main, menu);
 		return true;
 	}
 

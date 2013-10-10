@@ -39,6 +39,12 @@ public abstract class Paths {
 		return f;
 	}
 
+	public static File tempDirectory() {
+		File f = new File(dataDirectory(),"temp");
+		if (!f.exists()) f.mkdir();
+		return f;
+	}
+
 	public static File fontDirectory() {
 		File f = new File(cardDirectory(),"Fonts");
 		if (!f.exists()) f.mkdir();

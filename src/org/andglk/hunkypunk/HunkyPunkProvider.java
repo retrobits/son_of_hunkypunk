@@ -36,59 +36,8 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 public class HunkyPunkProvider extends ContentProvider {
-	private static final String DATABASE_NAME = "hunky_punk.db";
-	private static final int DATABASE_VERSION = 2;
-	private static final String GAMES_TABLE_NAME = "games";
-	
-	private static final int GAMES = 1;
-	private static final int GAME_ID = 2;
-	private static final int GAME_IFID = 3;
 	
 	private static final UriMatcher sUriMatcher;
-	
-	private static class DatabaseHelper extends SQLiteOpenHelper {
-		public DatabaseHelper(Context context) {
-			super(context, DATABASE_NAME, null, DATABASE_VERSION);
-		}
-
-		@Override
-		public void onCreate(SQLiteDatabase db) {
-			final String query =
-				"CREATE TABLE " + GAMES_TABLE_NAME + " ("
-					+ Games._ID + " INTEGER PRIMARY KEY, "
-					+ Games.IFID + " TEXT UNIQUE NOT NULL, "
-
-					+ Games.TITLE + " TEXT, "
-					+ Games.AUTHOR + " TEXT, "
-					+ Games.LANGUAGE + " TEXT, "
-					+ Games.HEADLINE + " TEXT, "
-					+ Games.FIRSTPUBLISHED + " TEXT, "
-					+ Games.GENRE + " TEXT, "
-					+ Games.GROUP + " TEXT, "
-					+ Games.DESCRIPTION + " TEXT, "
-					+ Games.SERIES + " TEXT, "
-					+ Games.SERIESNUMBER + " INTEGER, "
-					+ Games.FORGIVENESS + " TEXT, "
-
-					+ Games.PATH + " TEXT, "
-					+ Games.LOOKED_UP
-					+ ");";
-			db.execSQL(query);
-		}
-
-		@Override
-		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			if (oldVersion == 1) {
-				/* we don't need the old FILENAME column but there's nothing to be done */
-				final String query = 
-					"ALTER TABLE " + GAMES_TABLE_NAME + 
-					" ADD COLUMN "
-					+ Games.PATH + " TEXT;";
-				db.execSQL(query);
-				/* PATHs will get filled automatically on next scan */
-			}
-		}
-	}
 	
 	private DatabaseHelper mOpenHelper;
 	
@@ -105,14 +54,14 @@ public class HunkyPunkProvider extends ContentProvider {
 		
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 		
-		qb.setTables(GAMES_TABLE_NAME);
+		qb.setTables(DatabaseHelper.GAMES_TABLE_NAME);
 		switch (sUriMatcher.match(uri)) {
-		case GAMES:
+		case DatabaseHelper.GAMES:
 			break;
-		case GAME_ID:
+		case DatabaseHelper.GAME_ID:
 			qb.appendWhere(Games._ID + " = " + Long.toString(ContentUris.parseId(uri)));
 			break;
-		case GAME_IFID:
+		case DatabaseHelper.GAME_IFID:
 			qb.appendWhere(Games.IFID + " = ");
 			qb.appendWhereEscapeString(uri.getPathSegments().get(1));
 			break;
@@ -136,11 +85,11 @@ public class HunkyPunkProvider extends ContentProvider {
 	@Override
 	public String getType(Uri uri) {
 		switch (sUriMatcher.match(uri)) {
-		case GAMES:
+		case DatabaseHelper.GAMES:
 			return Games.CONTENT_TYPE;
 
-		case GAME_ID:
-		case GAME_IFID:
+		case DatabaseHelper.GAME_ID:
+		case DatabaseHelper.GAME_IFID:
 			return Games.CONTENT_ITEM_TYPE;
 
 		default:
@@ -150,11 +99,11 @@ public class HunkyPunkProvider extends ContentProvider {
 	
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
-		if (sUriMatcher.match(uri) != GAMES)
+		if (sUriMatcher.match(uri) != DatabaseHelper.GAMES)
 			throw new IllegalArgumentException("Unknown URI " + uri);
 
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-		long rowId = db.insert(GAMES_TABLE_NAME, Games.IFID, values);
+		long rowId = db.insert(DatabaseHelper.GAMES_TABLE_NAME, Games.IFID, values);
 		if (rowId > 0) {
 			Uri gameUri = ContentUris.withAppendedId(Games.CONTENT_URI, rowId);
 			getContext().getContentResolver().notifyChange(gameUri, null);
@@ -170,13 +119,13 @@ public class HunkyPunkProvider extends ContentProvider {
 		int count = 0;
 		StringBuilder sb = null;
 		switch (sUriMatcher.match(uri)) {
-		case GAMES:
-			count = db.delete(GAMES_TABLE_NAME, selection, selectionArgs);
+		case DatabaseHelper.GAMES:
+			count = db.delete(DatabaseHelper.GAMES_TABLE_NAME, selection, selectionArgs);
 			break;
-		case GAME_ID:
+		case DatabaseHelper.GAME_ID:
 			sb = new StringBuilder(Games._ID + " = " + Long.toString(ContentUris.parseId(uri)));
 			break;
-		case GAME_IFID:
+		case DatabaseHelper.GAME_IFID:
 			sb = new StringBuilder(Games.IFID + " = \'" + DatabaseUtils.sqlEscapeString(uri.getLastPathSegment()) + "\'");
 			break;
 		default:
@@ -186,7 +135,7 @@ public class HunkyPunkProvider extends ContentProvider {
 		if (sb != null) {
 			if (selection != null)
 				sb.append(" AND (" + selection + ")");
-			count = db.delete(GAMES_TABLE_NAME, sb.toString(), selectionArgs);
+			count = db.delete(DatabaseHelper.GAMES_TABLE_NAME, sb.toString(), selectionArgs);
 		}
 		
 		getContext().getContentResolver().notifyChange(uri, null);
@@ -199,13 +148,13 @@ public class HunkyPunkProvider extends ContentProvider {
 		int count = 0;
 		StringBuilder sb = null;
 		switch (sUriMatcher.match(uri)) {
-		case GAMES:
-			count = db.update(GAMES_TABLE_NAME, values, selection, selectionArgs);
+		case DatabaseHelper.GAMES:
+			count = db.update(DatabaseHelper.GAMES_TABLE_NAME, values, selection, selectionArgs);
 			break;
-		case GAME_ID:
+		case DatabaseHelper.GAME_ID:
 			sb = new StringBuilder(Games._ID + " = " + Long.toString(ContentUris.parseId(uri)));
 			break;
-		case GAME_IFID:
+		case DatabaseHelper.GAME_IFID:
 			sb = new StringBuilder(Games.IFID + " = " + DatabaseUtils.sqlEscapeString(uri.getLastPathSegment()));
 			break;
 		default:
@@ -215,7 +164,7 @@ public class HunkyPunkProvider extends ContentProvider {
 		if (sb != null) {
 			if (selection != null)
 				sb.append(" AND (" + selection + ")");
-			count = db.update(GAMES_TABLE_NAME, values, sb.toString(), selectionArgs);
+			count = db.update(DatabaseHelper.GAMES_TABLE_NAME, values, sb.toString(), selectionArgs);
 		}
 		
 		getContext().getContentResolver().notifyChange(uri, null);
@@ -224,8 +173,8 @@ public class HunkyPunkProvider extends ContentProvider {
 
 	static {
 		sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games", GAMES);
-		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games/#", GAME_ID);
-		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games/*", GAME_IFID);
+		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games", DatabaseHelper.GAMES);
+		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games/#", DatabaseHelper.GAME_ID);
+		sUriMatcher.addURI(HunkyPunk.AUTHORITY, "games/*", DatabaseHelper.GAME_IFID);
 	}
 }

@@ -46,6 +46,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -401,9 +402,11 @@ public class TextBufferWindow extends Window {
 			ss.mSuperState = super.onSaveInstanceState();
 			return ss;
 		}
-		
+
+		private int bookmarkVersion = 1;
 		private String nullInd = "@!nul!@";
 		public void writeState(ObjectOutputStream stream) throws IOException {
+			stream.writeInt(bookmarkVersion);
 			final Editable e = getEditableText();
 			stream.writeUTF(e.toString());
 			StyleSpan[] spans = e.getSpans(0, e.length(), StyleSpan.class);
@@ -437,6 +440,7 @@ public class TextBufferWindow extends Window {
 		}
 
 		public void readState(ObjectInputStream stream) throws IOException {
+			int version = stream.readInt();
 			setText(stream.readUTF());
 			final Editable ed = getEditableText();
 			final long spanCount = stream.readLong();
@@ -586,6 +590,14 @@ public class TextBufferWindow extends Window {
 			new Runnable() {
 				@Override
 					public void run() {
+					int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
+															  2, 
+															  mContext.getResources().getDisplayMetrics());
+					int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
+															  3, 
+															  mContext.getResources().getDisplayMetrics());
+
+
 					// when window is created, style hints are fixed
 					stylehints = new Styles(_stylehints);
 
@@ -601,8 +613,8 @@ public class TextBufferWindow extends Window {
 						LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
 					LinearLayout.LayoutParams paramsCommand = new
 						LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
-					paramsPrompt.setMargins(0, -10, 0, 0);
-					paramsCommand.setMargins(0, -10, 0, 0);
+					paramsPrompt.setMargins(0, -margin, 0, 0);
+					paramsCommand.setMargins(0, -margin, 0, 0);
 
 					mLayout = new LinearLayout(mContext);
 					mLayout.setOrientation(LinearLayout.VERTICAL);
@@ -613,20 +625,20 @@ public class TextBufferWindow extends Window {
 					hl.setOrientation(LinearLayout.HORIZONTAL);
 				   
 					mCommand = new _CommandView(mContext);
-					mCommand.setPadding(5, 0, 5, 5);
+					mCommand.setPadding(pad, 0, pad, pad);
 					mCommand.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
 					mCommand.clear();
 					mCommand.disableInput();
 
 					mPrompt = new _PromptView(mContext);
-					mPrompt.setPadding(5, 0, 5, 5);
+					mPrompt.setPadding(pad, 0, pad, pad);
 					mPrompt.setFocusable(false);
 
 					hl.addView(mPrompt, paramsPrompt);
 					hl.addView(mCommand, paramsCommand);
 					
 					mView = new _View(mContext);
-					mView.setPadding(5, 5, 5, 0);
+					mView.setPadding(pad, pad, pad, 0);
 					mView.setFocusable(false);
 
 					mLayout.addView(mView,paramsDefault);

@@ -20,18 +20,13 @@
 package org.andglk.hunkypunk;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.io.RandomAccessFile;
 
 import org.andglk.hunkypunk.HunkyPunk.Games;
 import org.andglk.hunkypunk.R.id;
 import org.andglk.babel.Babel;
 import org.andglk.ifdb.IFDb;
+import org.andglk.glk.Utils;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -47,6 +42,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -57,6 +53,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -142,58 +139,22 @@ public class GameDetails extends Activity implements OnClickListener {
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
 		Uri game = getIntent().getData();
-			   
-		if (game.getScheme().equals(ContentResolver.SCHEME_FILE)) {
-			install(game);
-		}
-		else if (game.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
-			
-			// custom "HunkyPunk" content intent
-			if (game.toString().indexOf("HunkyPunk/games")>0) {
-				show(game);
-			} 
+		String scheme = game.getScheme();
 
-			else { // generic Android content intent
-				String base = Paths.ifDirectory().getAbsolutePath() + "/";
-				String tmpfile = base+"tmpgame";
-
-				String ifid = null;
-				File fnewGame = null;
-
-				try{
-					InputStream in = getContentResolver().openInputStream(game);
-					OutputStream out = new FileOutputStream(tmpfile);
-
-					byte[] buf = new byte[1024];
-					int len;
-					while ((len = in.read(buf)) > 0){
-						out.write(buf, 0, len);
-					}
-					in.close();
-					out.close();
-
-					File ftmpfile = new File(tmpfile);
-					ifid = Babel.examine(ftmpfile);
-					String ext = "zcode";					
-					if (ifid.indexOf("TADS")==0) ext="gam";
-					fnewGame = new File(base + ifid + "." + ext);
-					ftmpfile.renameTo(fnewGame);
-				}catch(Exception e){}
-
-				if (fnewGame == null || !fnewGame.exists())
-					Toast.makeText(GameDetails.this, R.string.install_failure, Toast.LENGTH_SHORT).show();
-				else 
-					install(android.net.Uri.parse(fnewGame.toURI().toString()));
-			}
-		}
+		if (scheme.equals(ContentResolver.SCHEME_CONTENT)
+			&& game.toString().indexOf("HunkyPunk/games")>0)
+			show(game);
+		else
+			install(game, scheme);
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		MenuInflater inflater = new MenuInflater(getApplication());
-		inflater.inflate(R.menu.main, menu);
+		inflater.inflate(R.layout.menu_game_details, menu);
 		return true;
 	}
+
 
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
@@ -204,6 +165,42 @@ public class GameDetails extends Activity implements OnClickListener {
 			startActivity(intent);
 			break;
 		case '2':
+			// Set an EditText view to get user input 
+			final EditText input = new EditText(this);
+			input.setText(mTitle.getText());
+			input.setSelection(input.getText().length());
+			new AlertDialog.Builder(this)
+				.setTitle(R.string.edit_title)
+				.setView(input)
+				.setPositiveButton(android.R.string.ok, 
+								   new DialogInterface.OnClickListener() {
+									   public void onClick(DialogInterface dialog, int whichButton) {
+										   Editable value = input.getText(); 
+										   StorageManager.getInstance(GameDetails.this)
+											   .updateGame(mGameIfid,value.toString());
+										   show(HunkyPunk.Games.uriOfIfid(mGameIfid));
+									   }
+								   })
+				.setNegativeButton(this.getString(android.R.string.cancel), null).show();
+			break;
+		case '3':
+			AlertDialog d = new AlertDialog.Builder(this)
+				.setPositiveButton(this.getString(android.R.string.ok), 
+								   new DialogInterface.OnClickListener() {
+									   public void onClick(DialogInterface dialog, int whichButton) {
+										   StorageManager.getInstance(GameDetails.this)
+											   .deleteGame(mGameIfid);
+										   GameDetails.this.finish();
+									   }
+								   })
+				.setNegativeButton(this.getString(android.R.string.cancel), null)
+				.setIcon(R.drawable.icon)
+				.setMessage(R.string.delete_confirm)
+				.setCancelable(true)
+				.setTitle(R.string.delete_title).create();
+			d.show();
+			break;
+		case '4':
 			AlertDialog builder;
 			try {
 				builder = AboutDialogBuilder.show(this);
@@ -215,44 +212,18 @@ public class GameDetails extends Activity implements OnClickListener {
 		return super.onMenuItemSelected(featureId, item);
 	}
 
-	private void install(Uri game) {
+	private void install(Uri game, String scheme) {
 		mProgressDialog = new ProgressDialog(this);
 		mProgressDialog.setMessage(getString(R.string.examining_file, game.getLastPathSegment()));
 		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 		mProgressDialog.setCancelable(false);
 		mProgressDialog.show();
 
-		StorageManager mediaScanner = StorageManager.getInstance(getContentResolver());
-		File fgame = new File(game.getPath());
-		String src = fgame.getAbsolutePath();
-		String dst = Paths.ifDirectory().getAbsolutePath()+"/"+fgame.getName();
-		
-		String installedPath = mediaScanner.gameInstalledFilePath(fgame);
-
-		if (installedPath == null || !(new File(installedPath).exists())) {
-			if (dst.compareTo(src)!=0) {
-				try{
-					InputStream in = new FileInputStream(src);
-					OutputStream out = new FileOutputStream(dst);
-
-					byte[] buf = new byte[1024];
-					int len;
-					while ((len = in.read(buf)) > 0){
-						out.write(buf, 0, len);
-					}
-					in.close();
-					out.close();
-				}catch(Exception e){}
-			}
-		}
-		else {
-			dst = installedPath;
-		}
-
+		StorageManager mediaScanner = StorageManager.getInstance(this);
 		mediaScanner.setHandler(mInstallHandler);
-		mediaScanner.startCheckingFile(new File(dst));
+		mediaScanner.startInstall(game, scheme);
 	}
-
+		
 	private void show(Uri game) {
 		setContentView(R.layout.game_details);
 		mTitle = (TextView) findViewById(R.id.title);
@@ -368,7 +339,7 @@ public class GameDetails extends Activity implements OnClickListener {
 
 	private File getBookmark() {
 		return new File(
-						HunkyPunk.getGameDataDir(Uri.parse(mGameFile.getAbsolutePath()), mGameIfid), "bookmark");
+			HunkyPunk.getGameDataDir(Uri.parse(mGameFile.getAbsolutePath()), mGameIfid), "bookmark");
 	}
 	
 	@Override
@@ -404,15 +375,12 @@ public class GameDetails extends Activity implements OnClickListener {
 	}
 
 	private String getTerp() {
-		String fullPath = mGameFile.getAbsolutePath();
-		String ext = "||";
-		int dot = fullPath.lastIndexOf(".");
-		if (dot > -1) ext = "|"+fullPath.substring(dot+1)+"|";
-		ext = ext.toLowerCase();
-
+		String ext = Utils.getFileExtension(mGameFile).toLowerCase();
+		ext = "|" + ext + "|";
+		
 		if ("|ulx|blb|blorb|glb|gblorb|".indexOf(ext) > -1) return "git";
 		else if ("|gam|t2|t3|".indexOf(ext) > -1) return "tads";
-		else /* *.z[1-9] */
+		else /* *.z[1-9] dat zcode zblorb zblb */
 			return (getZcodeVersion().compareTo("6")==0) ? "nitfol" : "frotz";
 	}
 

@@ -20,16 +20,39 @@
 package org.andglk.glk;
 
 import android.text.Editable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Utils {
+
 	public static void copyStream(InputStream is, OutputStream os) throws IOException {
 		int count;
 		byte[] buf = new byte[32768];
 		while ((count = is.read(buf)) != -1)
 			os.write(buf, 0, count);
+	}
+
+	public static String getFileExtension(File f) {
+		String fullPath = f.getAbsolutePath();
+		String ext = "";
+		int dot = fullPath.lastIndexOf(".");
+		if (dot > -1) ext = fullPath.substring(dot+1);
+		return ext;
+	}
+	public static String getFileNameNoExtension(File f) {
+		String fullPath = f.getAbsolutePath();
+		int dot = fullPath.lastIndexOf(".");
+		int slash = fullPath.lastIndexOf("/");
+		if (dot == -1 && slash == -1)
+			return fullPath;
+		else if (slash > -1 && dot == -1)
+			return fullPath.substring(slash+1);
+		else if (slash == -1 && dot > -1)
+			return fullPath.substring(0,dot);
+		else
+			return fullPath.substring(slash+1,dot);
 	}
 
 	public static void beautify(Editable e, int position) {

@@ -41,6 +41,8 @@
     <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string>
 
     <string name="about">About</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
     <string name="open">Open</string>
     <string name="preferences">Preferences</string>
     <string name="remove">Remove</string>
@@ -58,6 +60,9 @@
     <string name="looking_up">Please wait while I\'m looking up details on IFDb...</string>
     <string name="install_with_hunky_punk">Install with Hunky Punk</string>
     <string name="restart_warning">Do you want to restart the story? (This won\'t affect your saved states.)</string>
+    <string name="delete_title">Delete Game?</string>
+    <string name="edit_title">Edit Game Title</string>
+    <string name="delete_confirm">Really delete this game?</string>
     
     <string name="empty_list">You seem to have no stories installed.
     	To install one, just put it in the Interactive Fiction directory of the SD card.

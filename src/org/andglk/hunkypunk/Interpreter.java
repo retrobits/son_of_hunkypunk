@@ -100,7 +100,7 @@ public class Interpreter extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		MenuInflater inflater = new MenuInflater(getApplication());
-		inflater.inflate(R.menu.main, menu);
+		inflater.inflate(R.layout.menu_main, menu);
 		return true;
 	}
 

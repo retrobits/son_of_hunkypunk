@@ -20,7 +20,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.andglk.hunkypunk"
-      android:versionCode="1"
+      android:versionCode="2"
       android:versionName="0.6">
       
     <supports-screens
@@ -69,47 +69,117 @@
     		android:label="@string/hunky_punk"
     		android:name=".InstallGame"
     		android:targetActivity=".GameDetails"
+			android:excludeFromRecents="true"
     	>
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="file" />
-				<data android:mimeType="*/*" />
-				<data android:pathPattern=".*\\.z1" />
-				<data android:pathPattern=".*\\.z2" />
-				<data android:pathPattern=".*\\.z3" />
-				<data android:pathPattern=".*\\.z4" />
-				<data android:pathPattern=".*\\.z5" />
-				<data android:pathPattern=".*\\.z6" />
-				<data android:pathPattern=".*\\.z7" />
-				<data android:pathPattern=".*\\.z8" />
-				<data android:pathPattern=".*\\.z9" />
-				<data android:pathPattern=".*\\.Z1" />
-				<data android:pathPattern=".*\\.Z2" />
-				<data android:pathPattern=".*\\.Z3" />
-				<data android:pathPattern=".*\\.Z4" />
-				<data android:pathPattern=".*\\.Z5" />
-				<data android:pathPattern=".*\\.Z6" />
-				<data android:pathPattern=".*\\.Z7" />
-				<data android:pathPattern=".*\\.Z8" />
-				<data android:pathPattern=".*\\.Z9" />
-				<data android:pathPattern=".*\\.gam" />
-				<data android:pathPattern=".*\\.GAM" />
-				<data android:pathPattern=".*\\.t2" />
-				<data android:pathPattern=".*\\.T2" />
-				<data android:pathPattern=".*\\.t3" />
-				<data android:pathPattern=".*\\.T3" />
-				<data android:pathPattern=".*\\.zblorb" />
-				<data android:pathPattern=".*\\.zblb" />
-				<data android:host="*" />
-<!--
-				<data android:mimeType="application/x-zmachine" scheme="file"/>
-				<data android:mimeType="application/x-tads" scheme="file"/>
-				<data android:mimeType="application/x-blorb" scheme="file"/>
-				<data android:mimeType="application/x-glulx" scheme="file"/>
--->
-			</intent-filter>
+
+		  <intent-filter>
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+
+			<data android:scheme="content" />
+			<data android:mimeType="application/x-zmachine"/>		
+			<data android:mimeType="application/x-tads"/>		
+			<data android:mimeType="application/x-blorb;profile=zcode"/>
+			<data android:host="*" />
+		  </intent-filter>
+
+		  <!-- the dev responsible for pathPattern should pay for this mess -->
+		  <intent-filter>
+			<action android:name="android.intent.action.VIEW" />
+			<category android:name="android.intent.category.DEFAULT" />
+			<category android:name="android.intent.category.BROWSABLE" />
+			<data android:scheme="file" />
+			<data android:mimeType="*/*"/>		
+			<data android:pathPattern=".*\\..*\\..*\\.z1" />
+			<data android:pathPattern=".*\\..*\\.z1" />
+			<data android:pathPattern=".*\\.z1" />
+			<data android:pathPattern=".*\\..*\\..*\\.z2" />
+			<data android:pathPattern=".*\\..*\\.z2" />
+			<data android:pathPattern=".*\\.z2" />
+			<data android:pathPattern=".*\\..*\\..*\\.z3" />
+			<data android:pathPattern=".*\\..*\\.z3" />
+			<data android:pathPattern=".*\\.z3" />
+			<data android:pathPattern=".*\\..*\\..*\\.z4" />
+			<data android:pathPattern=".*\\..*\\.z4" />
+			<data android:pathPattern=".*\\.z4" />
+			<data android:pathPattern=".*\\..*\\..*\\.z5" />
+			<data android:pathPattern=".*\\..*\\.z5" />
+			<data android:pathPattern=".*\\.z5" />
+			<data android:pathPattern=".*\\..*\\..*\\.z6" />
+			<data android:pathPattern=".*\\..*\\.z6" />
+			<data android:pathPattern=".*\\.z6" />
+			<data android:pathPattern=".*\\..*\\..*\\.z7" />
+			<data android:pathPattern=".*\\..*\\.z7" />
+			<data android:pathPattern=".*\\.z7" />
+			<data android:pathPattern=".*\\..*\\..*\\.z8" />
+			<data android:pathPattern=".*\\..*\\.z8" />
+			<data android:pathPattern=".*\\.z8" />
+			<data android:pathPattern=".*\\..*\\..*\\.Z1" />
+			<data android:pathPattern=".*\\..*\\.Z1" />
+			<data android:pathPattern=".*\\.Z1" />
+			<data android:pathPattern=".*\\..*\\..*\\.Z2" />
+			<data android:pathPattern=".*\\..*\\.Z2" />
+			<data android:pathPattern=".*\\.Z2" />
+			<data android:pathPattern=".*\\..*\\..*\\.Z3" />
+			<data android:pathPattern=".*\\..*\\.Z3" />
+			<data android:pathPattern=".*\\.Z3" />
+			<data android:pathPattern=".*\\..*\\..*\\.Z4" />
+			<data android:pathPattern=".*\\..*\\.Z4" />
+			<data android:pathPattern=".*\\.Z4" />
+			<data android:pathPattern=".*\\..*\\..*\\.Z5" />
+			<data android:pathPattern=".*\\..*\\.Z5" />
+			<data android:pathPattern=".*\\.Z5" />
+			<data android:pathPattern=".*\\..*\\..*\\.Z6" />
+			<data android:pathPattern=".*\\..*\\.Z6" />
+			<data android:pathPattern=".*\\.Z6" />
+			<data android:pathPattern=".*\\..*\\..*\\.Z7" />
+			<data android:pathPattern=".*\\..*\\.Z7" />
+			<data android:pathPattern=".*\\.Z7" />
+			<data android:pathPattern=".*\\..*\\..*\\.Z8" />
+			<data android:pathPattern=".*\\..*\\.Z8" />
+			<data android:pathPattern=".*\\.Z8" />
+			<data android:pathPattern=".*\\..*\\..*\\.dat" />
+			<data android:pathPattern=".*\\..*\\.dat" />
+			<data android:pathPattern=".*\\.dat" />
+			<data android:pathPattern=".*\\..*\\..*\\.DAT" />
+			<data android:pathPattern=".*\\..*\\.DAT" />
+			<data android:pathPattern=".*\\.DAT" />
+			<data android:pathPattern=".*\\..*\\..*\\.gam" />
+			<data android:pathPattern=".*\\..*\\.gam" />
+			<data android:pathPattern=".*\\.gam" />
+			<data android:pathPattern=".*\\..*\\..*\\.GAM" />
+			<data android:pathPattern=".*\\..*\\.GAM" />
+			<data android:pathPattern=".*\\.GAM" />
+			<data android:pathPattern=".*\\..*\\..*\\.t2" />
+			<data android:pathPattern=".*\\..*\\.t2" />
+			<data android:pathPattern=".*\\.t2" />
+			<data android:pathPattern=".*\\..*\\..*\\.T2" />
+			<data android:pathPattern=".*\\..*\\.T2" />
+			<data android:pathPattern=".*\\.T2" />
+			<data android:pathPattern=".*\\..*\\..*\\.t3" />
+			<data android:pathPattern=".*\\..*\\.t3" />
+			<data android:pathPattern=".*\\.t3" />
+			<data android:pathPattern=".*\\..*\\..*\\.T3" />
+			<data android:pathPattern=".*\\..*\\.T3" />
+			<data android:pathPattern=".*\\.T3" />
+			<data android:pathPattern=".*\\..*\\..*\\.zcode" />
+			<data android:pathPattern=".*\\..*\\.zcode" />
+			<data android:pathPattern=".*\\.zcode" />
+			<data android:pathPattern=".*\\..*\\..*\\.zblorb" />
+			<data android:pathPattern=".*\\..*\\.zblorb" />
+			<data android:pathPattern=".*\\.zblorb" />
+			<data android:pathPattern=".*\\..*\\..*\\.ZBLORB" />
+			<data android:pathPattern=".*\\..*\\.ZBLORB" />
+			<data android:pathPattern=".*\\.ZBLORB" />
+			<data android:pathPattern=".*\\..*\\..*\\.zblb" />
+			<data android:pathPattern=".*\\..*\\.zblb" />
+			<data android:pathPattern=".*\\.zblb" />
+			<data android:pathPattern=".*\\..*\\..*\\.ZBLB" />
+			<data android:pathPattern=".*\\..*\\.ZBLB" />
+			<data android:pathPattern=".*\\.ZBLB" />
+			<data android:host="*" />
+		  </intent-filter>
 		</activity-alias>
 
 		<activity android:name=".PreferencesActivity" android:label="@string/preferences"
