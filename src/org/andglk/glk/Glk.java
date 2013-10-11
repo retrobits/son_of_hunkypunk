@@ -224,7 +224,7 @@ public class Glk extends Thread {
 
 	public boolean postAutoSaveEvent(String fileName) {
 		if (_needToSave) {
-			Toast.makeText(mContext, "Saved game.", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(mContext, "Saved game.", Toast.LENGTH_SHORT).show();
 			_eventQueue.add(new AutoSaveEvent(Window.getRoot(),fileName, 1)); //_autoSaveLineEvent));
 			_needToSave = false;
 			return true;
