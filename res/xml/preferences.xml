@@ -4,7 +4,7 @@
 	  android:title="Font size"
 	  android:key="fontSize"
 	  android:summary="font size"
-	  android:defaultValue="14"
+	  android:defaultValue="16"
 	  android:entries="@array/fontSizeArray"
 	  android:entryValues="@array/fontSizeArray" />
   <EditTextPreference

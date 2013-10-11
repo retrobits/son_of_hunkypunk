@@ -30,7 +30,7 @@ public class Styles {
 		if (styl >= 0 && styl < Glk.STYLE_NUMSTYLES && hint >= 0 && hint < Glk.STYLEHINT_NUMHINTS) {
 			_styles[styl][hint] = val;
 		} else {
-			Log.w("Glk/Styles/set", "unknown style or hint: " + styl + " " + hint);
+			//Log.w("Glk/Styles/set", "unknown style or hint: " + styl + " " + hint);
 		}
 	}
 	
@@ -39,7 +39,7 @@ public class Styles {
 		if (styl >= 0 && styl < Glk.STYLE_NUMSTYLES && hint >= 0 && hint < Glk.STYLEHINT_NUMHINTS) {
 			_styles[styl][hint] = null;
 		} else {
-			Log.w("Glk/Styles/clear", "unknown style or hint: " + styl + " " + hint);
+			//Log.w("Glk/Styles/clear", "unknown style or hint: " + styl + " " + hint);
 		}
 	}
 	

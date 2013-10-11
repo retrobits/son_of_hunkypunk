@@ -64,28 +64,38 @@
     *                                                                      *
     ************************************************************************
 -->
-    <target name="mod-debug" depends="mod-copy,mod-debug-override">
-	  <ant inheritAll="false" dir="./alt-apk/mod" antfile="build.xml" target="hunkypunk-debug" />
-	  <move file="./alt-apk/mod/bin/HunkyPunk-debug.apk" tofile="./alt-apk/mod/bin/HunkyPunkMod-debug.apk"/>
+	<target name="all-release" depends="mod-release,mod4-release"/>
+
+    <target name="mod-release">
+	  <ant inheritAll="true" antfile="build.xml" target="mod-builder">
+	    <property name="mod-name" value="mod"/>
+	    <property name="rename-script" value="fix-mod.sh"/>
+	  </ant>
     </target>
-    <target name="mod-release" depends="mod-copy,mod-release-override">
-	  <ant inheritAll="false" dir="./alt-apk/mod" antfile="build.xml" target="hunkypunk-release" />
-	  <move file="./alt-apk/mod/bin/HunkyPunk-release.apk" tofile="./alt-apk/mod/bin/SonOfHunkyPunk-release.apk"/>
-	  <copy file="./alt-apk/mod/bin/SonOfHunkyPunk-release.apk" todir="${dropbox-location}"/>
+    <target name="mod4-release">
+	  <ant inheritAll="true" antfile="build.xml" target="mod-builder">
+	    <property name="mod-name" value="mod4"/>
+	    <property name="rename-script" value="fix-mod.sh"/>
+	  </ant>
     </target>
-    <target name="mod4-release" depends="mod-copy,mod-release-override">
-	  <delete> 
-		<fileset dir="./alt-apk/mod" defaultexcludes="false">
-		  <include name="AndroidManifest.xml"/>		  
-		</fileset>
-	  </delete>
-	  <copy file="./alt-apk/override/mod4/AndroidManifest.xml" tofile="./alt-apk/mod/AndroidManifest.xml"/>
-	  <ant inheritAll="false" dir="./alt-apk/mod" antfile="build.xml" target="hunkypunk-release" />
-	  <move file="./alt-apk/mod/bin/HunkyPunk-release.apk" tofile="./alt-apk/mod/bin/SonOfHunkyPunk-Android4-release.apk"/>
-	  <copy file="./alt-apk/mod/bin/SonOfHunkyPunk-Android4-release.apk" todir="${dropbox-location}"/>
+
+	<!--
+    <target name="modp-release">
+	  <ant inheritAll="true" antfile="build.xml" target="mod-builder">
+	    <property name="mod-name" value="modp"/>
+	    <property name="rename-script" value="fix-modp.sh"/>
+	  </ant>
     </target>
-	<target name="mod-copy">
-	  <copy todir="./alt-apk/mod">
+    <target name="mod4p-release">
+	  <ant inheritAll="true" antfile="build.xml" target="mod-builder">
+	    <property name="mod-name" value="mod4p"/>
+	    <property name="rename-script" value="fix-modp.sh"/>
+	  </ant>
+    </target>
+	-->
+
+	<target name="mod-builder">
+	  <copy todir="./alt-apk/${mod-name}">
 		<fileset dir=".">
 		  <exclude name="**/alt-apk/**" />
 		  <exclude name="**/bin/**" />
@@ -96,35 +106,41 @@
 		  <exclude name="**/web/**" />
 		  <exclude name="**/artwork/**" />
 
+		  <exclude name="**/jni/git/**" />
 		  <exclude name="**/jni/garglk/**" />
 		  <exclude name="**/jni/bocfel/**" />
 		</fileset>
 	  </copy>
-	  <exec dir="./alt-apk/mod" executable="${bash-location}">
-		<arg value="fix-mod.sh"/>
+	  <exec dir="./alt-apk/${mod-name}" executable="${bash-location}">
+		<arg value="${rename-script}"/>
 	  </exec>
 	  <delete> 
-		<fileset dir="./alt-apk/mod" defaultexcludes="false">
+		<fileset dir="./alt-apk/${mod-name}" defaultexcludes="false">
 		  <include name="**/*~"/>		  
 		</fileset>
 	  </delete>
-	  <copy todir="./alt-apk/mod" overwrite="true">
+	  <copy todir="./alt-apk/${mod-name}" overwrite="true">
 		<fileset dir="./alt-apk/override/mod" />
 	  </copy>
-    </target>
-	<target name="mod-debug-override">
-	  <!-- todo
-	  <copy todir="./alt-apk/mod" overwrite="true">
-		<fileset dir="./alt-apk/override/mod-debug" />
-	  </copy>
-	  -->
-    </target>
-	<target name="mod-release-override">
-	  <!-- todo
-	  <copy todir="./alt-apk/mod" overwrite="true">
-		<fileset dir="./alt-apk/override/mod-debug" />
-	  </copy>
-	  -->
+
+	  <delete> 
+		<fileset dir="./alt-apk/${mod-name}" defaultexcludes="false">
+		  <include name="AndroidManifest.xml"/>		  
+		  <include name="project.properties"/>		  
+		</fileset>
+	  </delete>
+	  <copy file="./alt-apk/override/${mod-name}/AndroidManifest.xml" 
+			tofile="./alt-apk/${mod-name}/AndroidManifest.xml"/>
+	  <copy file="./alt-apk/override/${mod-name}/project.properties" 
+			tofile="./alt-apk/${mod-name}/project.properties"/>
+
+	  <ant inheritAll="false" dir="./alt-apk/${mod-name}" 
+		   antfile="build.xml" target="hunkypunk-release" />
+	  <move file="./alt-apk/${mod-name}/bin/HunkyPunk-release.apk" 
+			tofile="${dropbox-location}/SonOfHunkyPunk-${mod-name}-release.apk"/>
+<!--
+	  <copy file="./alt-apk/${mod-name}/bin/SonOfHunkyPunk-${mod-name}-release.apk" todir="${dropbox-location}"/>
+-->
     </target>
 
     <target name="dropbox" if="is.dropbox.set">

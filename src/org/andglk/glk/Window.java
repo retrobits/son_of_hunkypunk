@@ -378,7 +378,7 @@ public abstract class Window extends CPointed {
 		case Glk.STYLE_USER2:
 			return R.style.user2;
 		default:
-			Log.w("Glk/Window", "unknown style: " + Integer.toString(style));
+			//Log.w("Glk/Window", "unknown style: " + Integer.toString(style));
 			return R.style.normal;
 		}
 	}

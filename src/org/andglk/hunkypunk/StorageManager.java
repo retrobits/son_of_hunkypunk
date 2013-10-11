@@ -167,8 +167,7 @@ public class StorageManager {
 	public void deleteGame(String ifid) {
 		String path = null;
 		Uri uri = HunkyPunk.Games.uriOfIfid(ifid);
-		Log.d("StorageManager",uri.toString());
-		//Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, ifid.replace("'",""));
+		//Log.d("StorageManager",uri.toString());
 		Cursor query = mContentResolver.query(uri, PROJECTION, null, null, null);		
 		if (query != null || query.getCount() == 1)
 			if (query.moveToNext())

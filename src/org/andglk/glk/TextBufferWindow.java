@@ -103,7 +103,7 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
-	public static final String TAG = "AndGlk";
+	public static final String TAG = "Glk/TextBufferWindow";
 	
 	@Override
 	public Parcelable saveInstanceState() {
@@ -242,7 +242,7 @@ public class TextBufferWindow extends Window {
 
 						if (mCharInputEnabled 
 							&& count==1 && s.charAt(start)>0 && s.charAt(start)<255 ){
-							Log.d("CharInputEvent",Integer.toString(s.charAt(start)));
+							//Log.d("CharInputEvent",Integer.toString(s.charAt(start)));
 							CharInputEvent ev = new CharInputEvent(TextBufferWindow.this,s.charAt(start));
 							TextBufferWindow.this.mGlk.postEvent(ev);
 							_CommandView.this.clear();
@@ -346,7 +346,6 @@ public class TextBufferWindow extends Window {
 
 		public class _MovementMethod implements MovementMethod {
 
-			@Override
 			public boolean onGenericMotionEvent(TextView widget, Spannable text, MotionEvent event) {
 				return false;
 			}
@@ -405,31 +404,55 @@ public class TextBufferWindow extends Window {
 
 		private int bookmarkVersion = 1;
 		private String nullInd = "@!nul!@";
+		private String errorStateMsg = "[An error occurred saving the window contents.  The game in progress should still be playable.]";
 		public void writeState(ObjectOutputStream stream) throws IOException {
 			stream.writeInt(bookmarkVersion);
-			final Editable e = getEditableText();
-			stream.writeUTF(e.toString());
-			StyleSpan[] spans = e.getSpans(0, e.length(), StyleSpan.class);
-			stream.writeLong(spans.length);
-			for (StyleSpan ss : spans) {
-				stream.writeInt(e.getSpanStart(ss));
-				stream.writeInt(e.getSpanEnd(ss));
-				stream.writeInt(ss.getStyle());
-				stream.writeInt(ss.getReverse());
+
+			final Editable ed = getEditableText();
+			boolean err = false;
+
+			try {
+				stream.writeUTF(ed.toString());
+			}catch(Exception e){
+				err = true;
+				Log.e(TAG,"failure in writeState. "+e.toString());
+				stream.writeUTF(errorStateMsg);
+				stream.writeLong(0);				
 			}
+
+			if (!err) {
+				StyleSpan[] spans = ed.getSpans(0, ed.length(), StyleSpan.class);
+				stream.writeLong(spans.length);
+				for (StyleSpan ss : spans) {
+					stream.writeInt(ed.getSpanStart(ss));
+					stream.writeInt(ed.getSpanEnd(ss));
+					stream.writeInt(ss.getStyle());
+					stream.writeInt(ss.getReverse());
+				}
+			}
+
 			stream.writeBoolean(mTrailingCr);
-			stream.writeUTF(mLastLine.toString());
 
-			if (TextBufferWindow.this.mCommandText == null)
-				stream.writeUTF(nullInd);
-			else
+			try {
+				stream.writeUTF(mLastLine.toString());
+			}catch(Exception e){
+				Log.e(TAG,"failure in writeState. "+e.toString());
+				stream.writeUTF("");
+			}
+
+			try {
 				stream.writeUTF(TextBufferWindow.this.mCommandText.toString());
-
-			if (TextBufferWindow.this.mPrompt.getText() == null)
+			}catch(Exception e){
+				Log.e(TAG,"failure in writeState. "+e.toString());
 				stream.writeUTF(nullInd);
-			else {
+			}
+
+			try {
 				final CharSequence p = TextBufferWindow.this.mPrompt.getText();
 				stream.writeUTF(p.toString());
+			}catch(Exception e){
+				Log.e(TAG,"failure in writeState. "+e.toString());
+				stream.writeUTF(nullInd);
 			}
 		}
 
@@ -440,30 +463,48 @@ public class TextBufferWindow extends Window {
 		}
 
 		public void readState(ObjectInputStream stream) throws IOException {
-			int version = stream.readInt();
-			setText(stream.readUTF());
-			final Editable ed = getEditableText();
-			final long spanCount = stream.readLong();
-			for (long i = 0; i < spanCount; i++) {
-				final int spanStart = stream.readInt();
-				final int spanEnd = stream.readInt();
-				final int spanStyle = stream.readInt();
-				final int spanReverse = stream.readInt();
-				ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), 
-						   spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			int version = 0;
+			try {
+				version = stream.readInt();
+			}catch(Exception e){
+				Log.e(TAG,"failure in readState. "+e.toString());
 			}
+
+			String contents = errorStateMsg;
+			try{
+				contents = stream.readUTF();
+			}catch(Exception e){
+				Log.e(TAG,"failure in readState. "+e.toString());
+			}
+
+			setText(contents);
+
+			try{
+				final Editable ed = getEditableText();
+				final long spanCount = stream.readLong();
+				for (long i = 0; i < spanCount; i++) {
+					final int spanStart = stream.readInt();
+					final int spanEnd = stream.readInt();
+					final int spanStyle = stream.readInt();
+					final int spanReverse = stream.readInt();
+					ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), 
+							   spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				}
 			
-			mTrailingCr = stream.readBoolean();
-			mLastLine = stream.readUTF();
-			String foo = null;
+				mTrailingCr = stream.readBoolean();
+				mLastLine = stream.readUTF();
+				String foo = null;
 
-			foo = stream.readUTF();
-			if (foo.compareTo(nullInd) != 0)
-				TextBufferWindow.this.mCommandText = foo;
+				foo = stream.readUTF();
+				if (foo.compareTo(nullInd) != 0)
+					TextBufferWindow.this.mCommandText = foo;
 
-			foo = stream.readUTF();
-			if (foo.compareTo(nullInd) != 0)
-				TextBufferWindow.this.mPrompt.setText(foo);
+				foo = stream.readUTF();
+				if (foo.compareTo(nullInd) != 0)
+					TextBufferWindow.this.mPrompt.setText(foo);
+			}catch(Exception e){
+				Log.e(TAG,"failure in readState. "+e.toString());
+			}
 		}
 
 		private _MovementMethod mMovementMethod;
@@ -695,7 +736,7 @@ public class TextBufferWindow extends Window {
 			echo.putChar('\n');
 		}
 
-		Log.d("Glk/TextBufferWindow", "lineInputAccepted:"+result);
+		//Log.d("Glk/TextBufferWindow", "lineInputAccepted:"+result);
 		
 		LineInputEvent lie = new LineInputEvent(this, result, mLineEventBuffer, 
 												mLineEventBufferLength, mLineEventBufferRock, mUnicodeEvent);
@@ -766,7 +807,7 @@ public class TextBufferWindow extends Window {
 
 	@Override
 	public void requestCharEvent() {
-		Log.d("Glk/TextBufferWindow","requestCharEvent");
+		//Log.d("Glk/TextBufferWindow","requestCharEvent");
 		Glk.getInstance().waitForUi(
 			new Runnable() {
 				@Override
@@ -780,7 +821,7 @@ public class TextBufferWindow extends Window {
 	@Override
 	public void requestLineEvent(final String initial, final long maxlen, 
 								 final int buffer, final int unicode) {
-		Log.d("Glk/TextBufferWindow","requestCharEvent");
+		//Log.d("Glk/TextBufferWindow","requestLineEvent");
 		flush();
 		
 		Glk.getInstance().waitForUi(

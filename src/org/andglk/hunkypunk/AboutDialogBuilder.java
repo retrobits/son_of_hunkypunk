@@ -48,29 +48,26 @@ public class AboutDialogBuilder {
 		String aboutTitle = String.format("About %s", context.getString(R.string.hunky_punk));
 		String versionString = String.format("Version: %s", versionInfo);
 		String aboutText = "By Dan Vernon\n\n";
-		aboutText += "(cloned from the original Hunky Punk by Rafał Rzepecki)\n\n";
+
+		aboutText += "(based on the original Hunky Punk by Rafał Rzepecki)\n\n";
+
 		aboutText += "Improvements include:\n";
 		aboutText += "  * Tads support (Tads 2.5.14, 3.0.18) \n";
-		aboutText += "  * Improved Z-code support (Frotz 2.50) \n";
-		aboutText += "  * Auto-complete, Auto-correction\n";
+		aboutText += "  * Better Z-code support (Frotz 2.50) \n";
 		aboutText += "  * Swype, voice, 3rd party keyboards\n";
 		aboutText += "  * Fling scrollback\n";
 		aboutText += "  * Font size preference\n";
 		aboutText += "  * Blorb support\n";
-		aboutText += "  * Improved stability & misc bug fixes\n\n";
-		aboutText += "special thanks to:\n";
-		aboutText += "  Stefan Jokisch for frotz\n";
-		aboutText += "  Michael J. Roberts for tads and ifdb\n";
-		aboutText += "  Ross Raszewski for babel\n";
-		aboutText += "  Tor Andersson and others for gargoyle bits\n";
-		aboutText += "  Martin Norbäck for work on Glk styles\n\n";
-		aboutText += "Please report issues and requests at\n";
-		String link = "http://code.google.com/p/hunkypunk/issues\n";
+		aboutText += "  * Stability\n\n";
+ 
+		aboutText += "Help topics can be found here:\n";
+		aboutText += "http://code.google.com/p/hunkypunk/wiki/Introduction\n\n";
 
-		final SpannableString s1 = new SpannableString(aboutText);
-		final SpannableString s2 = new SpannableString(link);
-		Linkify.addLinks(s2, Linkify.WEB_URLS);
-		final CharSequence s = TextUtils.concat(s1,s2);
+		aboutText += "Please report issues & requests here:\n";
+		aboutText += "http://code.google.com/p/hunkypunk/issues\n\n";
+
+		final SpannableString s = new SpannableString(aboutText);
+		Linkify.addLinks(s, Linkify.WEB_URLS);
 
 		AlertDialog d = new AlertDialog.Builder(context)
 			.setPositiveButton(context.getString(android.R.string.ok), null)
