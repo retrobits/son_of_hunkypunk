@@ -206,7 +206,7 @@ public class Interpreter extends Activity {
 		//String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
 		//String fontFile = prefs.getString("fontFileName", "Droid Serif");
 		//String fontPath = new File(fontFolder, fontFile).getAbsolutePath();
-		int fontSize = 14;
+		int fontSize = 16;
 		try{
 			fontSize = Integer.parseInt(prefs.getString("fontSize", Integer.toString(fontSize)));
 		}catch(Exception e){}

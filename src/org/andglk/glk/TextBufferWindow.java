@@ -220,6 +220,65 @@ public class TextBufferWindow extends Window {
 
 		public boolean mCharInputEnabled;
 		public boolean mLineInputEnabled;
+		private TextWatcher mWatcher = 
+			new TextWatcher() 
+			{
+				public void afterTextChanged(Editable s) { 
+				}
+					
+				public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+				}
+					
+				public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+					int char_inp = 0;
+
+					// Hack to get single key input. 
+					// OnKeyUp is not reliable
+					if (mCharInputEnabled) {
+
+						try{
+							if (count==1 && s.charAt(start)>0 && s.charAt(start)<255)
+								char_inp = s.charAt(start);
+						}
+						catch(Exception ex){}
+						
+						if (char_inp>0) {
+							disableCharInput();
+
+							CharInputEvent ev = new CharInputEvent(TextBufferWindow.this,s.charAt(start));
+
+							clear();
+
+							TextBufferWindow.this.mGlk.postEvent(ev);
+						}
+					}
+
+					// Standard line input handler 
+					// OnKeyUp doesn't work on all devices (i.e. Xperia J, Android 4.1.2)
+					else {
+						
+						try {
+							if (count >= 1 && s.charAt(start)=='\n') 
+								char_inp = '\n';
+						}
+						catch(Exception ex){}
+
+						if (char_inp > 0) {
+							disableInput();	
+
+							SpannableStringBuilder sb = new SpannableStringBuilder();
+							sb.append(getText().toString().replace("\n","")+"\n");
+
+							clear();
+
+							Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+							sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+							TextBufferWindow.this.lineInputAccepted(sb);
+						}
+					}
+				}
+			};
 
 		public _CommandView(Context context) {
 			super(context, null, R.attr.textBufferWindowEditStyle);
@@ -228,28 +287,7 @@ public class TextBufferWindow extends Window {
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
-
-			addTextChangedListener(
-				new TextWatcher() {
-					public void afterTextChanged(Editable s) { 
-					}
-					
-					public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-					}
-					
-					public void onTextChanged(CharSequence s, int start, int before, int count) {
-						// Hack to get single key input. Why doesn't OnKeyUp work? 
-
-						if (mCharInputEnabled 
-							&& count==1 && s.charAt(start)>0 && s.charAt(start)<255 ){
-							//Log.d("CharInputEvent",Integer.toString(s.charAt(start)));
-							CharInputEvent ev = new CharInputEvent(TextBufferWindow.this,s.charAt(start));
-							TextBufferWindow.this.mGlk.postEvent(ev);
-							_CommandView.this.clear();
-							disableCharInput();
-						}
-					}
-				});
+			addTextChangedListener(mWatcher);
 		}
 
 		public void clear() {
@@ -268,31 +306,19 @@ public class TextBufferWindow extends Window {
 		}
 
 		public void enableInput() {
+
+			//addTextChangedListener(mWatcher);
+
 			setFocusableInTouchMode(true);
 			requestFocus();
 			showKeyboard();
 		}
 		public void disableInput() {
+
+            //causes exception in TextView
+			//removeTextChangedListener(mWatcher);
+
 			setFocusable(false);
-		}
-
-		@Override
-		public boolean onKeyUp(int keyCode, KeyEvent event) {
-			if (keyCode == KeyEvent.KEYCODE_ENTER) { 
-
-				SpannableStringBuilder sb = new SpannableStringBuilder();
-				sb.append(getText().toString().replace("\n","")+"\n");
-				Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
-				sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-				
-				TextBufferWindow.this.lineInputAccepted(sb);
-
-				clear();
-				disableInput();
-
-				return true;
-			}
-			return super.onKeyUp(keyCode, event);
 		}
 
 		private void showKeyboard(){
