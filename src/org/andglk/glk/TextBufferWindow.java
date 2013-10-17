@@ -160,12 +160,13 @@ public class TextBufferWindow extends Window {
 		}
 
 		private void applyStyle() {
-			if (mBuffer.length() == 0)
+			if (mBuffer != null && mBuffer.length() == 0)
 				return;
 			
 			final SpannableString ss = new SpannableString(mBuffer);
-			ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo), 
-					   0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			if (ss.length() > 0)
+				ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo), 
+						   0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			mSsb.append(ss);
 			
 			mBuffer.setLength(0);
@@ -273,7 +274,8 @@ public class TextBufferWindow extends Window {
 							clear();
 
 							Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
-							sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+							if (sb.length() > 0)
+								sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 							TextBufferWindow.this.lineInputAccepted(sb);
 						}
 					}
@@ -430,54 +432,75 @@ public class TextBufferWindow extends Window {
 
 		private int bookmarkVersion = 1;
 		private String nullInd = "@!nul!@";
-		private String errorStateMsg = "[An error occurred saving the window contents.  The game in progress should still be playable.]";
+		public String errorStateMsg = "[An error occurred saving the window contents.  The game in progress should still be playable.]";
 		public void writeState(ObjectOutputStream stream) throws IOException {
 			stream.writeInt(bookmarkVersion);
 
-			final Editable ed = getEditableText();
+			Spannable ed = getEditableText();
 			boolean err = false;
+			int max = 48*1024;
+			int chop = 0;
 
 			try {
-				stream.writeUTF(ed.toString());
+				String text = null;
+				if (ed.length() > max) {
+					chop = TextUtils.indexOf(ed, '\n', ed.length() - max);
+					if (chop == -1) chop = ed.length() - max;
+					chop++;
+					text = ed.subSequence(chop, ed.length()).toString();
+				}
+				if (text == null) text = ed.toString();
+				stream.writeUTF(text);
 			}catch(Exception e){
 				err = true;
-				Log.e(TAG,"failure in writeState. "+e.toString());
+				Log.e(TAG,"failure in writeState. (1) "+e.toString());
 				stream.writeUTF(errorStateMsg);
 				stream.writeLong(0);				
 			}
 
 			if (!err) {
 				StyleSpan[] spans = ed.getSpans(0, ed.length(), StyleSpan.class);
-				stream.writeLong(spans.length);
+				
+				long spanct = 0;
 				for (StyleSpan ss : spans) {
-					stream.writeInt(ed.getSpanStart(ss));
-					stream.writeInt(ed.getSpanEnd(ss));
-					stream.writeInt(ss.getStyle());
-					stream.writeInt(ss.getReverse());
+					if (ed.getSpanStart(ss) >= chop) spanct++;
+				}
+				stream.writeLong(spanct);
+				for (StyleSpan ss : spans) {
+					if (ed.getSpanStart(ss) >= chop) {
+						stream.writeInt(ed.getSpanStart(ss)-chop);
+						stream.writeInt(ed.getSpanEnd(ss)-chop);
+						stream.writeInt(ss.getStyle());
+						stream.writeInt(ss.getReverse());
+					}
 				}
 			}
 
 			stream.writeBoolean(mTrailingCr);
 
 			try {
-				stream.writeUTF(mLastLine.toString());
+				stream.writeUTF(mLastLine == null ? nullInd : mLastLine.toString());
 			}catch(Exception e){
-				Log.e(TAG,"failure in writeState. "+e.toString());
-				stream.writeUTF("");
-			}
-
-			try {
-				stream.writeUTF(TextBufferWindow.this.mCommandText.toString());
-			}catch(Exception e){
-				Log.e(TAG,"failure in writeState. "+e.toString());
+				Log.e(TAG,"failure in writeState. (2)"+e.toString());
 				stream.writeUTF(nullInd);
 			}
 
 			try {
-				final CharSequence p = TextBufferWindow.this.mPrompt.getText();
-				stream.writeUTF(p.toString());
+				CharSequence w = TextBufferWindow.this.mCommandText;
+				stream.writeUTF(w == null ? nullInd : w.toString());
 			}catch(Exception e){
-				Log.e(TAG,"failure in writeState. "+e.toString());
+				Log.e(TAG,"failure in writeState. (3)"+e.toString());
+				stream.writeUTF(nullInd);
+			}
+
+			try {
+				CharSequence w = null;
+				if (TextBufferWindow.this.mPrompt != null)
+					w = TextBufferWindow.this.mPrompt.getText();
+
+				stream.writeUTF(w == null ? nullInd : w.toString());
+			}catch(Exception e){
+				Log.e(TAG,"failure in writeState. (4)"+e.toString());
 				stream.writeUTF(nullInd);
 			}
 		}
@@ -493,14 +516,16 @@ public class TextBufferWindow extends Window {
 			try {
 				version = stream.readInt();
 			}catch(Exception e){
-				Log.e(TAG,"failure in readState. "+e.toString());
+				Log.e(TAG,"failure in readState. (1)"+e.toString());
 			}
 
 			String contents = errorStateMsg;
 			try{
 				contents = stream.readUTF();
+				if (contents == null || contents.equals(nullInd)) contents = "";
 			}catch(Exception e){
-				Log.e(TAG,"failure in readState. "+e.toString());
+				Log.e(TAG,"failure in readState. (2)"+e.toString());
+				contents = errorStateMsg;
 			}
 
 			setText(contents);
@@ -513,23 +538,31 @@ public class TextBufferWindow extends Window {
 					final int spanEnd = stream.readInt();
 					final int spanStyle = stream.readInt();
 					final int spanReverse = stream.readInt();
-					ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), 
-							   spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+					if (spanStart != spanEnd)
+						ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), 
+								   spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				}
 			
 				mTrailingCr = stream.readBoolean();
 				mLastLine = stream.readUTF();
-				String foo = null;
+				if (mLastLine == null || mLastLine.equals(nullInd)) mLastLine = null;
 
-				foo = stream.readUTF();
-				if (foo.compareTo(nullInd) != 0)
-					TextBufferWindow.this.mCommandText = foo;
+				String text = null;
 
-				foo = stream.readUTF();
-				if (foo.compareTo(nullInd) != 0)
-					TextBufferWindow.this.mPrompt.setText(foo);
+				text = stream.readUTF();
+				if (text == null || text.equals(nullInd))
+					TextBufferWindow.this.mCommandText = null;
+				else
+					TextBufferWindow.this.mCommandText = text;
+
+				text = stream.readUTF();
+				if (text == null || text.equals(nullInd))
+					TextBufferWindow.this.mPrompt.setText("");
+				else
+					TextBufferWindow.this.mPrompt.setText(text);
 			}catch(Exception e){
-				Log.e(TAG,"failure in readState. "+e.toString());
+				Log.e(TAG,"failure in readState. (3)"+e.toString());
 			}
 		}
 

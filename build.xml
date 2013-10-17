@@ -64,7 +64,7 @@
     *                                                                      *
     ************************************************************************
 -->
-	<target name="all-release" depends="mod-release,mod4-release"/>
+	<target name="all-release" depends="mod4-release,mod-release"/>
 
     <target name="mod-release">
 	  <ant inheritAll="true" antfile="build.xml" target="mod-builder">
