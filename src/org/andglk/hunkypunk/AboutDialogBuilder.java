@@ -46,7 +46,8 @@ public class AboutDialogBuilder {
 
 		String aboutTitle = String.format("About %s", context.getString(R.string.hunky_punk));
 		String versionString = String.format("Version: %s", versionInfo);
-		String aboutText = "By Dan Vernon\n\n";
+		
+		String aboutText = versionString + "\n\nBy Dan Vernon\n\n";
 
 		aboutText += "(based on the original Hunky Punk by Rafał Rzepecki)\n\n";
 

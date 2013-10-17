@@ -90,10 +90,18 @@ public class Interpreter extends Activity {
 		glk.setArguments(args.toArray(arga));
 
         super.onCreate(savedInstanceState);
-        if (savedInstanceState != null)
-        	restore(savedInstanceState.getParcelableArrayList("windowStates"));
-        else if (i.getBooleanExtra("loadBookmark", false))
+
+		// dead code, doesn't work
+		// TODO: remove all the Parcelable/SavedState objects and onRestoreInstanceState code in Windows 
+		//if (savedInstanceState != null)
+        //	restore(savedInstanceState.getParcelableArrayList("windowStates"));
+        //else 
+
+		if (i.getBooleanExtra("loadBookmark", false) || savedInstanceState != null) {
+			/* either the user's intent is to restore from bookmark,
+			   or the OS has killed our app and is now restoring state */
         	loadBookmark();
+		}
     	glk.start();
     }
 
@@ -160,6 +168,8 @@ public class Interpreter extends Activity {
     	}
 	}
 
+	/* dead code, doesn't work
+	// TODO: remove all the Parcelable/SavedState objects and onRestoreInstanceState code in Windows
 	private void restore(final ArrayList<Parcelable> windowStates) {
     	final File f = getBookmark(); 
     	if (!f.exists())
@@ -184,6 +194,7 @@ public class Interpreter extends Activity {
     		}
     	});
     }
+	*/
 	
 	@Override
     public void onConfigurationChanged(Configuration newConfig) {
