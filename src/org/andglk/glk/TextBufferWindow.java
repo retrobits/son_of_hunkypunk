@@ -248,10 +248,9 @@ public class TextBufferWindow extends Window {
 							disableCharInput();
 
 							CharInputEvent ev = new CharInputEvent(TextBufferWindow.this,s.charAt(start));
-
-							clear();
-
-							TextBufferWindow.this.mGlk.postEvent(ev);
+							mGlk.postEvent(ev);
+							
+							ToggleCommandView();
 						}
 					}
 
@@ -271,12 +270,13 @@ public class TextBufferWindow extends Window {
 							SpannableStringBuilder sb = new SpannableStringBuilder();
 							sb.append(getText().toString().replace("\n","")+"\n");
 
-							clear();
-
 							Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
 							if (sb.length() > 0)
 								sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-							TextBufferWindow.this.lineInputAccepted(sb);
+
+							lineInputAccepted(sb);
+							
+							ToggleCommandView();
 						}
 					}
 				}
@@ -307,19 +307,22 @@ public class TextBufferWindow extends Window {
 			disableInput();
 		}
 
+		/*
+		public void enableWatcher(){
+			addTextChangedListener(mWatcher);
+		}
+		public void disableWatcher() {
+            //causes exception in TextView
+			removeTextChangedListener(mWatcher);
+		}
+		*/
+
 		public void enableInput() {
-
-			//addTextChangedListener(mWatcher);
-
 			setFocusableInTouchMode(true);
 			requestFocus();
 			showKeyboard();
 		}
 		public void disableInput() {
-
-            //causes exception in TextView
-			//removeTextChangedListener(mWatcher);
-
 			setFocusable(false);
 		}
 
@@ -410,7 +413,7 @@ public class TextBufferWindow extends Window {
 			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
 				if (event.getAction()==MotionEvent.ACTION_UP) {
 					TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
-					TextBufferWindow.this.mCommand.showKeyboard();
+					TextBufferWindow.this.mActiveCommand.showKeyboard();
 					return true;
 				}
 				else 
@@ -673,7 +676,9 @@ public class TextBufferWindow extends Window {
 	public String FontPath = null;
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
-	private _CommandView mCommand = null;
+	private _CommandView mActiveCommand = null;
+	private _CommandView mCommand1 = null;
+	private _CommandView mCommand2 = null;
 	private _PromptView mPrompt = null;
 	private LinearLayout mLayout = null;
 	private CharSequence mCommandText = null;
@@ -724,18 +729,27 @@ public class TextBufferWindow extends Window {
 					hl.setPadding(0, 0, 0, 0);
 					hl.setOrientation(LinearLayout.HORIZONTAL);
 				   
-					mCommand = new _CommandView(mContext);
-					mCommand.setPadding(pad, 0, pad, pad);
-					mCommand.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-					mCommand.clear();
-					mCommand.disableInput();
+					mCommand1 = new _CommandView(mContext);
+					mCommand1.setPadding(pad, 0, pad, pad);
+					mCommand1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+					mCommand1.clear();
+					mCommand1.disableInput();
+					//mCommand1.setBackgroundColor(Color.YELLOW);
+					mCommand2 = new _CommandView(mContext);
+					mCommand2.setPadding(pad, 0, pad, pad);
+					mCommand2.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+					mCommand2.clear();
+					mCommand2.disableInput();
+					//mCommand2.setBackgroundColor(Color.LTGRAY);
+					ToggleCommandView();
 
 					mPrompt = new _PromptView(mContext);
 					mPrompt.setPadding(pad, 0, pad, pad);
 					mPrompt.setFocusable(false);
 
 					hl.addView(mPrompt, paramsPrompt);
-					hl.addView(mCommand, paramsCommand);
+					hl.addView(mCommand1, paramsCommand);
+					hl.addView(mCommand2, paramsCommand);
 					
 					mView = new _View(mContext);
 					mView.setPadding(pad, pad, pad, 0);
@@ -748,6 +762,30 @@ public class TextBufferWindow extends Window {
 					mStream = new _Stream();
 				}
 			});		
+	}
+
+	// hack to fix fatal exception from Android framework thrown by spellchecker.
+	// basic idea is to hide the textview (and show another one) rather than clearing it.
+	// just before we need to use the old textview again we clear it & hopefully by
+	// then the idiot spellchecker bot has visited and moved on.
+	//
+	// Issue 41971:	setText() in afterTextChanged function may case spellChecker bug
+	// http://code.google.com/p/android/issues/detail?id=41971
+	public void ToggleCommandView() {
+		if (mActiveCommand == mCommand1) {
+			mCommand1.setVisibility(View.GONE);
+
+			mCommand2.clear();
+			mCommand2.setVisibility(View.VISIBLE);
+			mActiveCommand = mCommand2;
+		}
+		else {
+			mCommand2.setVisibility(View.GONE);
+
+			mCommand1.clear();
+			mCommand1.setVisibility(View.VISIBLE);
+			mActiveCommand = mCommand1;
+		}
 	}
 
 	private Typeface _typeface = null;
@@ -808,7 +846,7 @@ public class TextBufferWindow extends Window {
 		mGlk.getUiHandler().post(new Runnable() {
 			@Override
 			public void run() {
-				mCommand.disableCharInput();	
+				mActiveCommand.disableCharInput();	
 			}
 		});
 	}
@@ -871,7 +909,7 @@ public class TextBufferWindow extends Window {
 			new Runnable() {
 				@Override
 				public void run() {					   
-					mCommand.enableCharInput();		
+					mActiveCommand.enableCharInput();		
 					mScrollView.fullScroll(View.FOCUS_DOWN);
 				}
 			});
@@ -891,7 +929,7 @@ public class TextBufferWindow extends Window {
 					mLineEventBufferLength = maxlen;
 					mLineEventBufferRock = retainVmArray(buffer, maxlen);
 					mUnicodeEvent = (unicode != 0);
-					mCommand.enableInput();		
+					mActiveCommand.enableInput();		
 					mScrollView.fullScroll(View.FOCUS_DOWN);
 				}
 			});
