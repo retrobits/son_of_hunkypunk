@@ -687,8 +687,9 @@ void winopenfile(char *prompt, char *buf, int buflen, int filter);
 void winsavefile(char *prompt, char *buf, int buflen, int filter);
 void winexit(void);
 void winclipstore(glui32 *text, int len);
+#ifdef GLK_MODULE_DATETIME
 void wincounter(glktimeval_t *time);
-
+#endif
 void fontreplace(char *font, int type);
 void fontload(void);
 void fontunload(void);

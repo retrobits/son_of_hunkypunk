@@ -145,6 +145,7 @@ void win_textbuffer_destroy(window_textbuffer_t *dwin)
 
 static void reflow(window_t *win)
 {
+#ifdef GLK_MODULE_IMAGE
     window_textbuffer_t *dwin = win->data;
     int inputbyte = -1;
     attr_t curattr;
@@ -261,6 +262,7 @@ static void reflow(window_t *win)
     win->attr = oldattr;
 
     touchscroll(dwin);
+#endif
 }
 
 void win_textbuffer_rearrange(window_t *win, rect_t *box)
@@ -1699,6 +1701,7 @@ void gcmd_buffer_accept_readline(window_t *win, glui32 arg)
 static glui32
 put_picture(window_textbuffer_t *dwin, picture_t *pic, glui32 align, glui32 linkval)
 {
+#ifdef GLK_MODULE_IMAGE
     if (align == imagealign_MarginRight)
     {
         if (dwin->lines[0].rpic || dwin->numchars)
@@ -1728,7 +1731,7 @@ put_picture(window_textbuffer_t *dwin, picture_t *pic, glui32 align, glui32 link
         if (align != imagealign_MarginLeft)
             win_textbuffer_flow_break(dwin);
     }
-
+#endif
     return TRUE;
 }
 
