@@ -22,15 +22,11 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := garglk
 LOCAL_SRC_FILES := gi_blorb.c gi_dispa.c \
 	cggestal.c cgblorb.c cgfref.c cgmisc.c \
-	cgstyle.c cgstream.c cgunicod.c cgdate.c \
-	window.c winblank.c winpair.c wingrid.c wintext.c \
-	winmask.c wingfx.c \
+	cgstream.c cgunicod.c cgdate.c \
+	window.c winblank.c sndnull.c \
 	event.c config.c \
-	fontdata.c babeldata.c \
-	sndnull.c draw_null.c imgload_null.c imgscale_null.c \
 	sysand.c
 
 LOCAL_CFLAGS	:= -DANDROID -DGARGLKINI=\"gargoyle.ini\"
-#LOCAL_LDLIBS	:= -llog
 
 include $(BUILD_STATIC_LIBRARY)

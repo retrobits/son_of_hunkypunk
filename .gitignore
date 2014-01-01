@@ -3,5 +3,6 @@ libs
 gen
 obj
 alt-apk/mod
+alt-apk/mod4
 
 *.trace
