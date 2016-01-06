@@ -191,5 +191,5 @@
 		</activity>
 		
 	</application>
-    <uses-sdk android:minSdkVersion="14" />
+    <uses-sdk android:minSdkVersion="16" />
 </manifest>

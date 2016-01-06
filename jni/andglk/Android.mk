@@ -23,6 +23,5 @@ LOCAL_MODULE    := andglk
 LOCAL_SRC_FILES := andglk.c cgblorb.c cgfref.c cgmisc.c cgstream.c \
 				   gi_blorb.c gi_dispa.c imgnull.c
 LOCAL_CFLAGS	:= -DANDGLK 
-LOCAL_LDLIBS	:= -llog
 
 include $(BUILD_STATIC_LIBRARY)
