@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+	
+	This file is part of Hunky Punk.
+	
+	Hunky Punk is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	Hunky Punk is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal"
+	android:layout_margin="0sp"
+	android:gravity="center_vertical"
+>
+	<ImageView
+		android:id="@+id/cover"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:adjustViewBounds="true"
+		android:maxWidth="215dip"
+		android:maxHeight="215dip"
+		android:tag="fill_screen_v"
+	/>
+	<include layout="@layout/game_details_header_title" />
+</LinearLayout>

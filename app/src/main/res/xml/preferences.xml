@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <ListPreference
+	  android:title="Font size"
+	  android:key="fontSize"
+	  android:summary="font size"
+	  android:defaultValue="16"
+	  android:entries="@array/fontSizeArray"
+	  android:entryValues="@array/fontSizeArray" />
+  <EditTextPreference
+      android:enabled="false"
+	  android:title="Font folder path"
+	  android:key="fontFolderPath" 
+	  android:summary="folder to store custom TTF font files"
+	  android:defaultValue="/sdcard/Fonts" />
+  <ListPreference
+      android:enabled="false"
+	  android:title="Font file name"
+	  android:key="fontFileName"
+	  android:summary="Custom TTF font file"
+	  android:defaultValue="Droid Serif"
+	  android:entries="@array/fontNameArray"
+	  android:entryValues="@array/fontNameArray" />
+</PreferenceScreen>

@@ -1,0 +1,7 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+	  android:id="@+id/menu_game_details">
+   <item android:title="@string/preferences" android:numericShortcut="1" android:icon="@drawable/menu_preferences"/>   
+   <item android:title="@string/edit" android:numericShortcut="2" android:icon="@drawable/menu_edit"/>   
+   <item android:title="@string/delete" android:numericShortcut="3" android:icon="@drawable/menu_delete"/>   
+   <item android:title="@string/about" android:numericShortcut="4" android:icon="@drawable/menu_help"/>   
+</menu>

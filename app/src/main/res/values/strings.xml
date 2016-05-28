@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Copyright © 2009-2010 Rafał Rzepecki <divided.mind@gmail.com>
+	
+	This file is part of Hunky Punk.
+	
+	Hunky Punk is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	Hunky Punk is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<resources>
+    <string name="app_name">Son of Hunky Punk</string>
+    <string name="new_saved_game">New saved game</string>
+    <string name="pick_saved_game">Pick saved game</string>
+    <string name="replace_warning">This file already exists. Do you want to replace it?</string>
+    <string name="modify_warning">Do you want to modify this file?</string>
+    <string name="create_new_file">Create new...</string>
+    <string name="pick_transcript">Pick transcript</string>
+    <string name="new_transcript">New transcript</string>
+    <string name="pick_input_record">Pick input record</string>
+    <string name="new_input_record">New input record</string>
+    <string name="pick_data">Pick data file</string>
+    <string name="new_data">New data file</string>
+    <string name="name">Name</string>
+    <string name="game_quit">The game has quit. You can examine the output.\nUse the BACK button to exit.</string>
+    
+    <string name="examining_file">Examining file %s...</string>
+    <string name="install_success">Successfully installed a new story.</string>
+    <string name="install_failure">Could not read the story file.</string>
+    <string name="hunky_punk">Son of Hunky Punk</string>
+    <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string>
+
+    <string name="about">About</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="open">Open</string>
+    <string name="preferences">Preferences</string>
+    <string name="remove">Remove</string>
+    <string name="restart">Restart</string>
+    <string name="game_details">Story details</string>
+    <string name="by_author">by %s</string> 
+    <string name="first_published_s">First published: %s</string>
+    <string name="genre_s">Genre: %s</string>
+    <string name="group_s">Group: %s</string>
+    <string name="series_s">Series: %s</string>
+    <string name="seriesnumber_s">Number in series: %s</string>
+    <string name="forgiveness_s">Forgiveness: %s</string>
+    <string name="language_s">Language: %s</string>
+    <string name="lookup_failure">Could not connect to IFDb to lookup details about the story.</string>
+    <string name="looking_up">Please wait while I\'m looking up details on IFDb...</string>
+    <string name="install_with_hunky_punk">Install with Hunky Punk</string>
+    <string name="restart_warning">Do you want to restart the story? (This won\'t affect your saved states.)</string>
+    <string name="delete_title">Delete Game?</string>
+    <string name="edit_title">Edit Game Title</string>
+    <string name="delete_confirm">Really delete this game?</string>
+    
+    <string name="empty_list">You seem to have no stories installed.
+    	To install one, just put it in the Interactive Fiction directory of the SD card.
+    	You may find many stories at IFDb, or you can just
+    	let me download for you a handful to get you started. 
+		Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
+		Tads files (ending in .t2, t3, or .gam) are currently supported.
+   	</string>
+   	<string name="go_to_ifdb">Go to IFDb</string>
+   	<string name="download_preselected">Download preselected</string> 
+   	<string name="please_wait">Please wait</string>
+   	<string name="downloading_stories">Downloading stories...</string>
+</resources>
