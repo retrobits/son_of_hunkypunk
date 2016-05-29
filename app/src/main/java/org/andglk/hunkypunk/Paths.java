@@ -20,46 +20,54 @@
 package org.andglk.hunkypunk;
 
 import android.os.Environment;
+
 import java.io.File;
 
 public abstract class Paths {
-	public static File cardDirectory() {
-		return new File(Environment.getExternalStorageDirectory().getPath());
-	}
+    private static File ifDirectory;
 
-	public static File dataDirectory() {
-		File f = new File(cardDirectory(),"Android/data/org.andglk.hunkypunk");
-		if (!f.exists()) f.mkdir();
-		return f;
-	}
+    public static File cardDirectory() {
+        return new File(Environment.getExternalStorageDirectory().getPath());
+    }
 
-	public static File coverDirectory() {
-		File f = new File(dataDirectory(),"covers");
-		if (!f.exists()) f.mkdir();
-		return f;
-	}
+    public static File dataDirectory() {
+        File f = new File(cardDirectory(), "Android/data/org.andglk.hunkypunk");
+        if (!f.exists()) f.mkdir();
+        return f;
+    }
 
-	public static File tempDirectory() {
-		File f = new File(dataDirectory(),"temp");
-		if (!f.exists()) f.mkdir();
-		return f;
-	}
+    public static File coverDirectory() {
+        File f = new File(dataDirectory(), "covers");
+        if (!f.exists()) f.mkdir();
+        return f;
+    }
 
-	public static File fontDirectory() {
-		File f = new File(cardDirectory(),"Fonts");
-		if (!f.exists()) f.mkdir();
-		return f;
-	}
+    public static File tempDirectory() {
+        File f = new File(dataDirectory(), "temp");
+        if (!f.exists()) f.mkdir();
+        return f;
+    }
 
-	public static File ifDirectory() {
-		File f = new File(cardDirectory(),"Interactive Fiction");
-		if (!f.exists()) f.mkdir();
-		return f;
-	}
+    public static File fontDirectory() {
+        File f = new File(cardDirectory(), "Fonts");
+        if (!f.exists()) f.mkdir();
+        return f;
+    }
 
-	public static File transcriptDirectory() {
-		File f = new File(ifDirectory(),"transcripts");
-		if (!f.exists()) f.mkdir();
-		return f;
-	}
+    public static File ifDirectory() {
+        if (ifDirectory != null)
+            return ifDirectory;
+        File f = new File(cardDirectory(), "Interactive Fiction");
+        if (!f.exists()) f.mkdir();
+        return f;
+    }
+
+    public static void setIfDirectory(File file) {
+        ifDirectory = file;
+    }
+    public static File transcriptDirectory() {
+        File f = new File(ifDirectory(), "transcripts");
+        if (!f.exists()) f.mkdir();
+        return f;
+    }
 }

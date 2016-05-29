@@ -40,6 +40,9 @@
     <string name="hunky_punk">Son of Hunky Punk</string>
     <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string>
 
+
+    <string name="ifdef">Restore default If-Directory</string>
+    <string name="add">Select a new If-Directory</string>
     <string name="about">About</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
