@@ -17,6 +17,30 @@
     along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+/* Comments by: JPDOB-Team
+*               University of Constance, 2016
+*
+* Copyright: The following version of 'Son of Hunky Punk' obeys the 
+*            GNU General Public License. Since it is clearly stated in  
+*            5. c), 'Son of Hunky Punk' obeys only the GNU GPL v3.
+*            All modifications are (to be) done according to 
+*            the GNU GPL v3, paragraph 5.
+*            
+*            All contributors as of GNU GPL are in a way stated.
+*
+*
+	Glk is kind of an IF virtual machine, without the virtual machine 
+	part. The "machine" is just portable C code.[Glk API]
+
+	Here are processed all inputted commands passed from the 
+	TextBufferWindow. Basically, the main *loop* is in the select()
+	which takes events from the BlockingQueue and executes them on
+	the respective game. Additionally, there is the gestalt(), where 
+	one can test if some feature is already implemented or is TODO. 
+	Moreover, here are handled the saves and the compass flags.
+*/
+
 package org.andglk.glk;
 
 import java.io.File;
@@ -34,6 +58,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +67,8 @@ import android.view.WindowManager;
 import android.view.View.MeasureSpec;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
 
 /** <strong>DO NOT EVER INSTANTIATE OR START THIS CLASS MORE THAN ONCE IN A PROCESS' LIFETIME</strong> */
 public class Glk extends Thread {
@@ -117,6 +144,14 @@ public class Glk extends Thread {
 	private boolean _needToSave = false;
 	private boolean _exiting = false;
 
+
+
+	/*Directions, idea: Set the flag in the respective Listener and then pass it onto the TextWatcher.*/
+	private boolean goNorth = false;
+	private boolean goEast = false;
+	private boolean goSouth = false;
+	private boolean goWest = false;
+
 	@Override
 	public void run() {
 		startTerp(_arguments[0], _autoSavePath, _arguments.length, _arguments);
@@ -183,7 +218,8 @@ public class Glk extends Thread {
 	public void setWindow(Window window) {
 		mCurrentStream = window.getStream();
 	}
-	
+
+	/*Main method*/
 	@SuppressWarnings("unused")
 	private Event select()
 	{
@@ -423,5 +459,71 @@ public class Glk extends Thread {
 			sanePath = saneFile.getAbsolutePath();
 		}
 		return sanePath;
+	}
+
+//added
+
+        /*----------------NORTH----------------*/
+	public void setNorth(boolean pressed) { //pressed = true //think about flush()(probably not)
+		if (goNorth == false) {
+			goNorth = pressed;
+		}
+	}
+
+	public void releaseNorth() { //MUST BE CALLED ONLY ONCE
+		if(goNorth == true)
+			goNorth = false;
+	}
+
+	public boolean getNorth() {
+		return goNorth;
+	}
+
+        /*----------------EAST----------------*/
+	public void setEast(boolean pressed) { //pressed = true
+		if (goEast == false) {
+			goEast = pressed;
+		}
+	}
+
+	public void releaseEast() { //MUST BE CALLED ONLY ONCE
+		if(goEast == true)
+			goEast = false;
+	}
+
+	public boolean getEast() {
+		return goEast;
+	}
+
+        /*----------------SOUTH----------------*/
+	public void setSouth(boolean pressed) { //pressed = true
+		if (goSouth == false) {
+			goSouth = pressed;
+		}
+	}
+
+	public void releaseSouth() { //MUST BE CALLED ONLY ONCE
+		if(goSouth == true)
+			goSouth = false;
+	}
+
+	public boolean getSouth() {
+		return goSouth;
+	}
+
+        /*----------------WEST----------------*/
+	public void setWest(boolean pressed) { //pressed = true
+		if (goWest == false) {
+			goWest = pressed;
+		}
+	}
+
+	public void releaseWest() { //MUST BE CALLED ONLY ONCE
+		if(goWest == true)
+			goWest = false;
+	}
+
+	public boolean getWest() {
+		return goWest;
 	}
 }

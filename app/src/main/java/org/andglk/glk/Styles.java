@@ -1,12 +1,28 @@
+/* Comments by: JPDOB-Team
+*               University of Constance, 2016
+*
+* Copyright: The following version of 'Son of Hunky Punk' obeys the 
+*            GNU General Public License. Since it is clearly stated in  
+*            5. c), 'Son of Hunky Punk' obeys only the GNU GPL v3.
+*            All modifications are (to be) done according to 
+*            the GNU GPL v3, paragraph 5.
+*            
+*            All contributors as of GNU GPL are in a way stated.
+*
+*	Comments follow bellow between the lines.
+*/
+
 package org.andglk.glk;
 
 import android.content.Context;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
 
-/** This class handles all the styles a window can have. 
- * */
+/* This class handles all the styles a window can have. 
+ *
+ */
 public class Styles {
 	/** Create an empty styles object */
 	public Styles() {
