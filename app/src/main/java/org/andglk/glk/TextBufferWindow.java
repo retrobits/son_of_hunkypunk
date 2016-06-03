@@ -17,6 +17,49 @@
     along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/* Comments by: JPDOB-Team
+*               University of Constance, 2016
+*
+* Copyright: The following version of 'Son of Hunky Punk' obeys the
+*            GNU General Public License. Since it is clearly stated in
+*            5.  c),  'Son of Hunky Punk' obeys only the GNU GPL v3.
+*            All modifications are (to be) done according to the GNU
+*            GPL v3, paragraph 5.
+*
+*            All contributors as of GNU GPL are in a way stated.
+*
+*
+             Class TextBufferWindow contains public:
+                       class _SavedState:  Standard implementation of Parcelable, which is more
+ 			                   code but far better performance (10x) than the Serializable interface.
+                                           Individual comments are provided above the respective methods.
+                    private:
+                       class _Stream:      Writes the input to the provided buffer memory and then
+					   prints it in the View, applying the needed style in advance.
+
+                       class _ScrollView:  Called immediately after draw. Nothing special about it.
+
+                       class _CommandView: Here are proccessed all the inputted commands with the help of a
+					   TextWatcher. There is implemented only the onTextChanged method.
+					   Moreover, given the respective button flags and an EventDispatcher,
+				 	   the cumbersome (in that case) rocks and buffer-sets needed for the
+					   LineInputEvent (CIEs aren't better either) are  being bypassed.
+
+                       class _PromptView: Handles prompts from games (such as "Have you played IFs before?").
+					  TODO: There is an applied flag that is deprecated, replace it with
+						newer version.
+
+                       class _View:       Sets up the main In-Game-View and works basically as a game output-
+					  console(the in-game text of the IFs). All needed methods are overriden.
+					  Individual comments are provided above the respective methods.
+					  TODO: There is an applied flag that is deprecated, replace it with
+						newer version.
+                                      public class _MovementMethod:
+									Only onTouchEvent() is overriden. On touch
+									the view (right after draw) is scrolled
+									down and the keyboard is popped up.
+*/
+
 package org.andglk.glk;
 
 import java.io.IOException;
