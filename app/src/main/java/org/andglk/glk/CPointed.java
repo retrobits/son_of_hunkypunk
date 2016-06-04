@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 */
+<<<<<<< HEAD
 
 /* Comments by: JPDOB-Team
 *               University of Constance, 2016
@@ -37,6 +38,21 @@
 	
 */
 
+=======
+/* Comments by: JPDOB-Team
+*               University of Constance, 2016
+*
+* Copyright: The following version of 'Son of Hunky Punk' obeys the
+*            GNU General Public License. Since it is clearly stated in
+*            5. c), 'Son of Hunky Punk' obeys only the GNU GPL v3.
+*            All modifications are (to be) done according to
+*            the GNU GPL v3, paragraph 5.
+*
+*            All contributors as of GNU GPL are in a way stated.
+*
+*  Defines a 'CPointed' object that manages pointers and rocks.
+*/
+>>>>>>> 4443f02b5001f4c3b2be6266ca4acfbd8e065bbe
 package org.andglk.glk;
 
 
