@@ -42,10 +42,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
 import android.view.Display;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -79,6 +81,10 @@ public class GameDetails extends Activity implements OnClickListener {
 	private static final int LANGUAGE = 12;
 	private static final int LOOKED_UP = 13;
 	private static final int PATH = 14;
+	// For SWIPE
+	private static final int MIN_DISTANCE = 100;
+	private static final int SCROLL_PROTECTOR = 250;
+	private GestureDetector gestureDetector;
 
 	private ContentObserver mContentObserver = new ContentObserver(new Handler()) {
 		@Override
@@ -143,6 +149,7 @@ public class GameDetails extends Activity implements OnClickListener {
 			show(game);
 		else
 			install(game, scheme);
+		gestureDetector = new GestureDetector( new SwipeDetector() );
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -414,4 +421,40 @@ public class GameDetails extends Activity implements OnClickListener {
 			.setIcon(android.R.drawable.ic_dialog_alert)
 			.show();
 	}
+	//added for swipe
+	private class SwipeDetector extends GestureDetector.SimpleOnGestureListener {
+		@Override
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+			if( Math.abs( e1.getY() - e2.getY() ) > SCROLL_PROTECTOR )
+				return false;
+			if( e1.getX() - e2.getX() > MIN_DISTANCE) {
+				Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(5), GameDetails.this, GameDetails.class);
+				startActivity(i);
+				finish();
+				return true;
+			}
+			if( e2.getX() - e1.getX() > MIN_DISTANCE) {
+				Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(5), GameDetails.this, GameDetails.class);
+				startActivity(i);
+				finish();
+				return true;
+			}
+			return false;
+		}
+	}
+	@Override
+	public boolean dispatchTouchEvent( MotionEvent e ) {
+		// TouchEvent dispatcher.
+		if( gestureDetector != null ) {
+			if( gestureDetector.onTouchEvent(e))
+				return true;
+		}
+		return super.dispatchTouchEvent(e);
+	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent e) {
+		return gestureDetector.onTouchEvent(e);
+	}
 }
+
