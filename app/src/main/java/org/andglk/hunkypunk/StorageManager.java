@@ -302,4 +302,36 @@ public class StorageManager {
 			}
 		}.start();
 	}
+	//added for Swipe
+	//creates an array with pathes of all games
+	public File[] getFiles(File dir) {
+		return (dir.listFiles());
+	}
+    //should create an array with all id's 
+	public String[] getIfIdArray(File dir) {
+		String ifid = null;
+		File[] x = dir.listFiles();
+
+		String[] IfIdArray = new String[getFiles(dir).length];
+		for (int i = 0; i < (IfIdArray.length); i++) {
+			try {
+				ifid =Babel.examine(x[i]);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, ifid);
+			Cursor query = mContentResolver.query(uri, PROJECTION, Games.PATH , null, null);
+			if (query != null) {
+				if (query.moveToNext()) {
+					do {
+
+						IfIdArray[i] = query.getString(_ID);
+
+					} while (query.moveToNext());
+				}
+			}
+
+		}
+		return IfIdArray;
+	}
 }

@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 
 import org.andglk.glk.Utils;
 import org.andglk.hunkypunk.HunkyPunk.Games;
@@ -151,6 +152,9 @@ public class GamesList extends ListActivity implements OnClickListener {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
+		//check idArray
+		System.out.println(Arrays.toString(mScanner.getIfIdArray(Paths.ifDirectory())));
+		//
 		Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(id), this, GameDetails.class);
 		startActivity(i);
 	}
