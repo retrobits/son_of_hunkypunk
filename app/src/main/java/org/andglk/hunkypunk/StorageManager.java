@@ -48,6 +48,7 @@ public class StorageManager {
 
 	private static final String TAG = "hunkypunk.MediaScanner";
 	private static final String[] PROJECTION = { Games._ID, Games.PATH };
+	private static final String[] PROJECTION2 = {Games._ID, Games.PATH,Games.IFID};
 	private static final int _ID = 0;
 	private static final int PATH = 1;
 
@@ -307,31 +308,32 @@ public class StorageManager {
 	public File[] getFiles(File dir) {
 		return (dir.listFiles());
 	}
-    //should create an array with all id's 
-	public String[] getIfIdArray(File dir) {
-		String ifid = null;
-		File[] x = dir.listFiles();
+   //
+   public String[] getIfIdArray(File dir) {
+	   String path=null;
+	   File[] x = dir.listFiles();
 
-		String[] IfIdArray = new String[getFiles(dir).length];
-		for (int i = 0; i < (IfIdArray.length); i++) {
-			try {
-				ifid =Babel.examine(x[i]);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, ifid);
-			Cursor query = mContentResolver.query(uri, PROJECTION, Games.PATH , null, null);
-			if (query != null) {
-				if (query.moveToNext()) {
-					do {
+	   String[] IfIdArray = new String[getFiles(dir).length-1];
+	   for (int i = 0; i < (IfIdArray.length); i++) {
+		   try {
+			   path = Babel.examine(x[i]);
+		   } catch (IOException e) {
+			   e.printStackTrace();
+		   }
 
-						IfIdArray[i] = query.getString(_ID);
+		   Uri uri = Uri.withAppendedPath(Games.CONTENT_URI,path);
 
-					} while (query.moveToNext());
-				}
-			}
+		   Cursor query = mContentResolver.query(uri, PROJECTION2, null, null, null);
 
-		}
-		return IfIdArray;
-	}
+		   query.moveToFirst();
+		   if (query != null) {
+			   IfIdArray[i] = query.getString(2);
+			   System.out.println(x[i].getAbsolutePath());
+		   }
+		   query.close();
+
+	   }
+	   return IfIdArray;
+   }
+
 }

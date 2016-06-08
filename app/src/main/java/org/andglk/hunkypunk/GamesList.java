@@ -152,8 +152,8 @@ public class GamesList extends ListActivity implements OnClickListener {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		//check idArray
-		System.out.println(Arrays.toString(mScanner.getIfIdArray(Paths.ifDirectory())));
+		//
+		z=position;
 		//
 		Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(id), this, GameDetails.class);
 		startActivity(i);
@@ -244,5 +244,15 @@ public class GamesList extends ListActivity implements OnClickListener {
 		};
 		
 		downloadThread.start();
+	}
+
+	//for swipe
+	static int z;
+	public static int getZ() {
+		return z;
+	}
+
+	public static void setZ(int z) {
+		GamesList.z = z;
 	}
 }
