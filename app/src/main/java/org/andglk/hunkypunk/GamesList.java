@@ -112,7 +112,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 		mScanner.setHandler(mHandler);
 		mScanner.checkExisting();
 //
-		x=mScanner.getIfIdArray(Paths.ifDirectory());
+
 		//
 		Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursor,
@@ -156,7 +156,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		//
+		x=mScanner.getIfIdArray(Paths.ifDirectory());
 		z=position;
 		//
 		Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(id), this, GameDetails.class);
