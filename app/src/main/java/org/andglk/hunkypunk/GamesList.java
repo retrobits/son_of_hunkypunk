@@ -79,7 +79,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 
 	protected static final String TAG = "HunkyPunk";
 
-	private static String[] x;
+
 
 	private StorageManager mScanner;
 	private Handler mHandler = new Handler() {
@@ -251,7 +251,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 	}
 
 	//for swipe
-	static int z;
+	private static int z;
 	public static int getZ() {
 		return z;
 	}
@@ -259,5 +259,6 @@ public class GamesList extends ListActivity implements OnClickListener {
 	public static void setZ(int z) {
 		GamesList.z = z;
 	}
+	private static String[] x;
 	public static String[] getX() {return x;}
 }

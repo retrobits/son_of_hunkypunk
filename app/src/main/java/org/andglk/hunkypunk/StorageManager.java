@@ -313,11 +313,11 @@ public class StorageManager {
 		return (dir.listFiles());
 	}
 
-	public String[] gameArray(File dir) {
+	public String[] getIfIdArray(File dir) {
 		String path = null;
 		File[] x = dir.listFiles();
 		String[] gameArray = new String[getFiles(dir).length - 1];
-
+		String[] ifIdArray = new String[gameArray.length];
 		for (int i = 0; i < (gameArray.length); i++) {
 			try {
 				path = Babel.examine(x[i]);
@@ -340,17 +340,8 @@ public class StorageManager {
 
 		}
 		Arrays.sort(gameArray);
-		return gameArray;
-	}
-
-	public String[] getIfIdArray(File dir) {
-		String path = null;
-		File[] x = dir.listFiles();
-		String[] z = gameArray(dir);
-		String[] ifIdArray = new String[z.length];
-
 		for (int i = 0; i < (ifIdArray.length); i++) {
-			String gameTitle = z[i];
+			String gameTitle = gameArray[i];
 
 			for (int j = 0; j < (ifIdArray.length); j++) {
 				try {
@@ -359,13 +350,11 @@ public class StorageManager {
 					e.printStackTrace();
 				}
 				Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, path);
-
 				Cursor query = mContentResolver.query(uri, PROJECTION3, null, null, null);
 				query.moveToFirst();
 				if (query != null) {
 					if (query.getString(1).equals(gameTitle))
 						ifIdArray[i] = query.getString(0);
-
 				}
 				query.close();
 			}

@@ -134,7 +134,7 @@ public class GameDetails extends Activity implements OnClickListener {
 	};
 	private File mGameFile;
 	private View mRestartButton;
-    private String x[];
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -436,7 +436,6 @@ public class GameDetails extends Activity implements OnClickListener {
 					GamesList.setZ(GamesList.getZ()+1);}
 				else{GamesList.setZ(0);}
 				String ifid=GamesList.getX()[GamesList.getZ()];
-				System.out.println(ifid);
 				Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfIfid(ifid), GameDetails.this, GameDetails.class);
 				startActivity(i);
 				finish();
@@ -448,7 +447,6 @@ public class GameDetails extends Activity implements OnClickListener {
 				}
 				else{GamesList.setZ(GamesList.getX().length-1);}
 				String ifid=GamesList.getX()[GamesList.getZ()];
-				System.out.println(ifid);
 				Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfIfid(ifid), GameDetails.this, GameDetails.class);
 				startActivity(i);
 				finish();
