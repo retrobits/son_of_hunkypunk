@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.andglk.babel.Babel;
 import org.andglk.glk.Utils;
@@ -48,7 +49,10 @@ public class StorageManager {
 
 	private static final String TAG = "hunkypunk.MediaScanner";
 	private static final String[] PROJECTION = { Games._ID, Games.PATH };
-	private static final String[] PROJECTION2 = {Games._ID, Games.PATH,Games.IFID};
+	private static final String[] PROJECTION2 = {Games._ID, Games.PATH,Games.IFID, Games.TITLE};
+
+	private static final String[] PROJECTION3 = {Games.IFID, Games.TITLE, Games.PATH};
+
 	private static final int _ID = 0;
 	private static final int PATH = 1;
 
@@ -308,32 +312,66 @@ public class StorageManager {
 	public File[] getFiles(File dir) {
 		return (dir.listFiles());
 	}
-   //
-   public String[] getIfIdArray(File dir) {
-	   String path=null;
-	   File[] x = dir.listFiles();
 
-	   String[] IfIdArray = new String[getFiles(dir).length-1];
-	   for (int i = 0; i < (IfIdArray.length); i++) {
-		   try {
-			   path = Babel.examine(x[i]);
-		   } catch (IOException e) {
-			   e.printStackTrace();
-		   }
+	public String[] gameArray(File dir) {
+		String path = null;
+		File[] x = dir.listFiles();
+		String[] gameArray = new String[getFiles(dir).length - 1];
 
-		   Uri uri = Uri.withAppendedPath(Games.CONTENT_URI,path);
+		for (int i = 0; i < (gameArray.length); i++) {
+			try {
+				path = Babel.examine(x[i]);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 
-		   Cursor query = mContentResolver.query(uri, PROJECTION2, null, null, null);
+			Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, path);
 
-		   query.moveToFirst();
-		   if (query != null) {
-			   IfIdArray[i] = query.getString(2);
-			   System.out.println(x[i].getAbsolutePath());
-		   }
-		   query.close();
+			Cursor query = mContentResolver.query(uri, PROJECTION2, null, null, null);
 
-	   }
-	   return IfIdArray;
-   }
+			query.moveToFirst();
+			if (query != null) {
 
+				gameArray[i] = query.getString(3);
+
+			}
+			query.close();
+
+
+		}
+		Arrays.sort(gameArray);
+		return gameArray;
+	}
+
+	public String[] getIfIdArray(File dir) {
+		String path = null;
+		File[] x = dir.listFiles();
+		String[] z = gameArray(dir);
+		String[] ifIdArray = new String[z.length - 1];
+
+		for (int i = 0; i < (ifIdArray.length); i++) {
+			String gameTitle = z[i];
+
+			for (int j = 0; j < (ifIdArray.length); j++) {
+				try {
+					path = Babel.examine(x[j]);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, path);
+
+				Cursor query = mContentResolver.query(uri, PROJECTION3, null, null, null);
+				query.moveToFirst();
+				if (query != null) {
+					if (query.getString(1).equals(gameTitle))
+						ifIdArray[i] = query.getString(0);
+
+				}
+				query.close();
+			}
+
+
+		}
+		return ifIdArray;
+	}
 }
