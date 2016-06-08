@@ -347,7 +347,7 @@ public class StorageManager {
 		String path = null;
 		File[] x = dir.listFiles();
 		String[] z = gameArray(dir);
-		String[] ifIdArray = new String[z.length - 1];
+		String[] ifIdArray = new String[z.length];
 
 		for (int i = 0; i < (ifIdArray.length); i++) {
 			String gameTitle = z[i];
