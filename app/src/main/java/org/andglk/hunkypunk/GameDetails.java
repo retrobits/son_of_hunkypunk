@@ -134,14 +134,14 @@ public class GameDetails extends Activity implements OnClickListener {
 	};
 	private File mGameFile;
 	private View mRestartButton;
-
+    private String x[];
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
-		mScanner = StorageManager.getInstance(this);
+
 
 		Uri game = getIntent().getData();
 		String scheme = game.getScheme();
@@ -424,19 +424,18 @@ public class GameDetails extends Activity implements OnClickListener {
 			.show();
 	}
 	//added for swipe
-	StorageManager mScanner;
 	private class SwipeDetector extends GestureDetector.SimpleOnGestureListener {
 		@Override
 		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
 
-			String[] x=mScanner.getIfIdArray(Paths.ifDirectory());
+
 			if( Math.abs( e1.getY() - e2.getY() ) > SCROLL_PROTECTOR )
 				return false;
 			if( e1.getX() - e2.getX() > MIN_DISTANCE) {
-				if(GamesList.getZ()+1<x.length){
+				if(GamesList.getZ()+1<GamesList.getX().length){
 					GamesList.setZ(GamesList.getZ()+1);}
 				else{GamesList.setZ(0);}
-				String ifid=x[GamesList.getZ()];
+				String ifid=GamesList.getX()[GamesList.getZ()];
 				System.out.println(ifid);
 				Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfIfid(ifid), GameDetails.this, GameDetails.class);
 				startActivity(i);
@@ -447,8 +446,8 @@ public class GameDetails extends Activity implements OnClickListener {
 				if(GamesList.getZ()-1>0) {
 					GamesList.setZ(GamesList.getZ() - 1);
 				}
-				else{GamesList.setZ(x.length-1);}
-				String ifid=x[GamesList.getZ()];
+				else{GamesList.setZ(GamesList.getX().length-1);}
+				String ifid=GamesList.getX()[GamesList.getZ()];
 				System.out.println(ifid);
 				Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfIfid(ifid), GameDetails.this, GameDetails.class);
 				startActivity(i);
@@ -458,6 +457,7 @@ public class GameDetails extends Activity implements OnClickListener {
 			return false;
 		}
 	}
+
 	@Override
 	public boolean dispatchTouchEvent( MotionEvent e ) {
 		// TouchEvent dispatcher.

@@ -79,6 +79,8 @@ public class GamesList extends ListActivity implements OnClickListener {
 
 	protected static final String TAG = "HunkyPunk";
 
+	private static String[] x;
+
 	private StorageManager mScanner;
 	private Handler mHandler = new Handler() {
 		@Override
@@ -109,7 +111,9 @@ public class GamesList extends ListActivity implements OnClickListener {
 		mScanner = StorageManager.getInstance(this);
 		mScanner.setHandler(mHandler);
 		mScanner.checkExisting();
-
+//
+		x=mScanner.getIfIdArray(Paths.ifDirectory());
+		//
 		Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursor,
 				new String[] { Games.TITLE, Games.AUTHOR }, new int[] { android.R.id.text1, android.R.id.text2 });
@@ -255,4 +259,5 @@ public class GamesList extends ListActivity implements OnClickListener {
 	public static void setZ(int z) {
 		GamesList.z = z;
 	}
+	public static String[] getX() {return x;}
 }
