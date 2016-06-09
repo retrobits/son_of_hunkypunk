@@ -25,6 +25,8 @@ import java.util.ArrayList;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.EditTextPreference;
@@ -35,6 +37,8 @@ import android.preference.PreferenceScreen;
 
 import android.preference.SwitchPreference;
 import android.widget.Toast;
+import org.andglk.glk.Glk;
+
 
 public class PreferencesActivity
 	extends PreferenceActivity implements OnSharedPreferenceChangeListener {    
@@ -55,11 +59,15 @@ public class PreferencesActivity
 				public boolean onPreferenceChange(Preference pref, Object isOnObject) {
 					boolean isModeOn = (Boolean) isOnObject;
 					if (isModeOn) {
-						Toast.makeText(PreferencesActivity.this, "Its toggled on -> night",Toast.LENGTH_SHORT).show();
+						Toast.makeText(PreferencesActivity.this, "Night toggled on.",Toast.LENGTH_SHORT).show();
 						//Implementation
+						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
+						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
 					} else {
-						Toast.makeText(PreferencesActivity.this, "Its toggled off -> day",Toast.LENGTH_SHORT).show();
+						Toast.makeText(PreferencesActivity.this, "Night toggled off.",Toast.LENGTH_SHORT).show();
 						//Implementation
+						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
+						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
 					}
 					return true;
 				}

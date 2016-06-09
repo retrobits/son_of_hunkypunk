@@ -28,6 +28,7 @@ import org.andglk.hunkypunk.R;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Handler;
@@ -283,6 +284,8 @@ public class TextBufferWindow extends Window {
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
+			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			setTextColor(DefaultTextColor);
 			addTextChangedListener(mWatcher);
 		}
 
@@ -364,6 +367,8 @@ public class TextBufferWindow extends Window {
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
+			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			setTextColor(DefaultTextColor);
 		}		
 	}							  
 
@@ -573,6 +578,9 @@ public class TextBufferWindow extends Window {
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
+			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			setTextColor(DefaultTextColor);
+
 		}		
 
 
@@ -667,6 +675,8 @@ public class TextBufferWindow extends Window {
 
 	public static String DefaultFontPath = null;
 	public static int DefaultFontSize = 0;
+	public static int DefaultBackground = Color.WHITE;
+	public static int DefaultTextColor = Color.BLACK;
 	public String FontPath = null;
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
