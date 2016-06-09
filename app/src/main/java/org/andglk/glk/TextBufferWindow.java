@@ -675,8 +675,8 @@ public class TextBufferWindow extends Window {
 
 	public static String DefaultFontPath = null;
 	public static int DefaultFontSize = 0;
-	public static int DefaultBackground = Color.WHITE;
-	public static int DefaultTextColor = Color.BLACK;
+	public static int DefaultBackground = 0;//Color.WHITE;
+	public static int DefaultTextColor = 0;//Color.BLACK;
 	public String FontPath = null;
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
