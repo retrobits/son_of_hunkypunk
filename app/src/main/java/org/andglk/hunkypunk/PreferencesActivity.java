@@ -33,6 +33,9 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 
+import android.preference.SwitchPreference;
+import android.widget.Toast;
+
 public class PreferencesActivity
 	extends PreferenceActivity implements OnSharedPreferenceChangeListener {    
 
@@ -44,6 +47,24 @@ public class PreferencesActivity
 
 		// Load the preferences from an XML resource
 		addPreferencesFromResource(R.xml.preferences);
+
+		SwitchPreference modePref = (SwitchPreference) findPreference("day_night");
+		if (modePref != null) {
+			modePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+				@Override
+				public boolean onPreferenceChange(Preference pref, Object isOnObject) {
+					boolean isModeOn = (Boolean) isOnObject;
+					if (isModeOn) {
+						Toast.makeText(PreferencesActivity.this, "Its toggled on -> night",Toast.LENGTH_SHORT).show();
+						//Implementation
+					} else {
+						Toast.makeText(PreferencesActivity.this, "Its toggled off -> day",Toast.LENGTH_SHORT).show();
+						//Implementation
+					}
+					return true;
+				}
+			});
+		}
 	}
 
 	@Override
