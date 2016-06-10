@@ -279,13 +279,14 @@ public class TextBufferWindow extends Window {
 
 		public _CommandView(Context context) {
 			super(context, null, R.attr.textBufferWindowEditStyle);
-			
+
+			setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			setTextColor(DefaultTextColor);
 			addTextChangedListener(mWatcher);
 		}
 
@@ -362,13 +363,15 @@ public class TextBufferWindow extends Window {
 	private class _PromptView extends TextView {
 		public _PromptView(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
-			
+
+			setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			setTextColor(DefaultTextColor);
+
 		}		
 	}							  
 
@@ -574,12 +577,13 @@ public class TextBufferWindow extends Window {
 			
 			setMovementMethod(mMovementMethod = new _MovementMethod());
 
+			setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			setTextColor(DefaultTextColor);
 
 		}		
 
@@ -675,8 +679,8 @@ public class TextBufferWindow extends Window {
 
 	public static String DefaultFontPath = null;
 	public static int DefaultFontSize = 0;
-	public static int DefaultBackground = 0;//Color.WHITE;
-	public static int DefaultTextColor = 0;//Color.BLACK;
+	public static int DefaultBackground = Color.WHITE;
+	public static int DefaultTextColor = Color.BLACK;
 	public String FontPath = null;
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
