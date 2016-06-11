@@ -552,7 +552,7 @@ public class TextGridWindow extends Window {
 			public void run() {
 				init(glk);
 			}
-		});		
+		});
 	}
 
 	protected void init(Glk glk) {

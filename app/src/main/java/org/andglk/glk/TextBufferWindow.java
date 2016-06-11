@@ -356,6 +356,8 @@ public class TextBufferWindow extends Window {
 				setTextSize(FontSize);      
 				mPrompt.setTextSize(FontSize);
 			}
+			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			setTextColor(TextBufferWindow.this.DefaultTextColor);
 			return true;
 		}
 	}
@@ -673,6 +675,8 @@ public class TextBufferWindow extends Window {
 				FontSize = DefaultFontSize;
 				setTextSize(FontSize);          
 			}
+			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			setTextColor(TextBufferWindow.this.DefaultTextColor);
 			return true;
 		}
 	}
