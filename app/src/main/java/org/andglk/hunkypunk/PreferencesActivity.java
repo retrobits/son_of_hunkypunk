@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
@@ -33,15 +34,17 @@ import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
+import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 
 import android.preference.SwitchPreference;
 import android.widget.Toast;
 import org.andglk.glk.Glk;
+import org.andglk.glk.TextBufferWindow;
 
 
 public class PreferencesActivity
-	extends PreferenceActivity implements OnSharedPreferenceChangeListener {    
+	extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,25 +55,41 @@ public class PreferencesActivity
 		// Load the preferences from an XML resource
 		addPreferencesFromResource(R.xml.preferences);
 
+
 		SwitchPreference modePref = (SwitchPreference) findPreference("day_night");
 		if (modePref != null) {
 			modePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
 				@Override
 				public boolean onPreferenceChange(Preference pref, Object isOnObject) {
 					boolean isModeOn = (Boolean) isOnObject;
+					SharedPreferences sharedPrefs = getSharedPreferences("Night", Context.MODE_PRIVATE);
+					SharedPreferences.Editor editor = sharedPrefs.edit();
+
 					if (isModeOn) {
-						Toast.makeText(PreferencesActivity.this, "Night toggled on.",Toast.LENGTH_SHORT).show();
+						Toast.makeText(PreferencesActivity.this, "Night Mode toggled on.",Toast.LENGTH_SHORT).show();
 						//Implementation
 						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
 						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
+						/* Since styles are compiled in advance and not dynamically modifiable
+						 * new *night* input style is used and swapped with the default one
+						 */
+						org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;
+						//store the switch-state
+						editor.putBoolean("NightOn", true);
+						editor.commit();
 					} else {
-						Toast.makeText(PreferencesActivity.this, "Night toggled off.",Toast.LENGTH_SHORT).show();
+						Toast.makeText(PreferencesActivity.this, "Night Mode toggled off.",Toast.LENGTH_SHORT).show();
 						//Implementation
 						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
 						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
+						org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_INPUT;
+
+						editor.putBoolean("NightOn", false);
+						editor.commit();
 					}
 					return true;
 				}
+
 			});
 		}
 	}

@@ -24,7 +24,9 @@
 
 	<SwitchPreference
 		android:key="day_night"
-		android:title="@string/dayNight"/>
+		android:title="@string/dayNight"
+		android:defaultValue="false"
+		android:hint="NightOn"/>
 
 
 </PreferenceScreen>

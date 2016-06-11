@@ -33,18 +33,22 @@ import org.andglk.glk.TextBufferWindow;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.preference.SwitchPreference;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class Interpreter extends Activity {
     private static final String TAG = "hunkypunk.Interpreter";
@@ -99,6 +103,21 @@ public class Interpreter extends Activity {
         	loadBookmark();
 		}
     	glk.start();
+		/*
+			Sets the night mode privately if it was previously on, otherwise it is left so
+			Basically, acts like a restore and overwrites the colors accoring to the switch
+			value.
+		 */
+		SharedPreferences sharedPrefs = getSharedPreferences("Night", Context.MODE_PRIVATE);
+		if (sharedPrefs.getBoolean("NightOn", false) == true) {
+			org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
+			org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
+			org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;
+		} else {
+			org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
+			org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
+			org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_INPUT;
+		}
     }
 
 	public boolean onCreateOptionsMenu(Menu menu) {

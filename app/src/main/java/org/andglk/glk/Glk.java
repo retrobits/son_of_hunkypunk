@@ -60,7 +60,8 @@ public class Glk extends Thread {
 	public final static int STYLE_INPUT = 8;
 	public final static int STYLE_USER1 = 9;
 	public final static int STYLE_USER2 = 10;
-	public final static int STYLE_NUMSTYLES = 11;
+	public final static int STYLE_NIGHT = 11;
+	public final static int STYLE_NUMSTYLES = 12;
 	
 	public final static int STYLEHINT_INDENTATION = 0;
 	public final static int STYLEHINT_PARAINDENTATION = 1;

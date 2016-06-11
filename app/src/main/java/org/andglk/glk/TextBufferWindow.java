@@ -265,7 +265,7 @@ public class TextBufferWindow extends Window {
 							SpannableStringBuilder sb = new SpannableStringBuilder();
 							sb.append(getText().toString().replace("\n","")+"\n");
 
-							Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+							Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
 							if (sb.length() > 0)
 								sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
@@ -292,7 +292,7 @@ public class TextBufferWindow extends Window {
 
 		public void clear() {
 			setText("");
-			Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+			Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
 			getText().setSpan(sp, 0, 0, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 		}
 
@@ -685,6 +685,7 @@ public class TextBufferWindow extends Window {
 	public static int DefaultFontSize = 0;
 	public static int DefaultBackground = Color.WHITE;
 	public static int DefaultTextColor = Color.BLACK;
+	public static int DefaultInputStyle = Glk.STYLE_INPUT;
 	public String FontPath = null;
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
@@ -830,7 +831,7 @@ public class TextBufferWindow extends Window {
 	}
 	
 	public Object makeInputSpan() {
-		return stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+		return stylehints.getSpan(mContext, TextBufferWindow.DefaultInputStyle, false);
 	}
 
 	public void lineInputAccepted(Spannable s) {
