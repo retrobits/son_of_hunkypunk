@@ -36,12 +36,14 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Editable;
+import android.text.method.KeyListener;
 import android.text.method.MovementMethod;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.inputmethod.EditorInfo;
@@ -53,6 +55,7 @@ import android.widget.ScrollView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class TextBufferWindow extends Window {
@@ -216,13 +219,35 @@ public class TextBufferWindow extends Window {
 
 		public boolean mCharInputEnabled;
 		public boolean mLineInputEnabled;
+		protected View.OnKeyListener listener = new View.OnKeyListener() {
+			@Override
+			public boolean onKey(View view, int i, KeyEvent keyEvent) {
+				if(keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER && TextBufferWindow.this.ChangeTypeInColor) {
+					TextBufferWindow.this.ChangeTypeInColor = false;
+					dispatchKeyEvent(keyEvent);
+					return true;
+				}else{
+					return false;
+				}
+			}
+		};
+
+		private void updateInput(Editable s) {
+			if (TextBufferWindow.this.ChangeTypeInColor) {
+				SpannableString text = new SpannableString(s.toString());
+				Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
+				s.setSpan(sp, 0, text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}
+		}
+
 		private TextWatcher mWatcher = 
 			new TextWatcher() 
 			{
-				public void afterTextChanged(Editable s) { 
+				public void afterTextChanged(Editable s) {
 				}
 					
 				public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+						updateInput(getText());
 				}
 					
 				public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -288,6 +313,7 @@ public class TextBufferWindow extends Window {
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 			addTextChangedListener(mWatcher);
+			setOnKeyListener(listener);
 		}
 
 		public void clear() {
@@ -358,6 +384,9 @@ public class TextBufferWindow extends Window {
 			}
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 			setTextColor(TextBufferWindow.this.DefaultTextColor);
+			if (TextBufferWindow.this.ChangeTypeInColor) {
+				updateInput(getText());
+			}
 			return true;
 		}
 	}
@@ -374,7 +403,7 @@ public class TextBufferWindow extends Window {
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 
-		}		
+		}
 	}							  
 
 	private class _View extends TextView { 
@@ -683,9 +712,14 @@ public class TextBufferWindow extends Window {
 
 	public static String DefaultFontPath = null;
 	public static int DefaultFontSize = 0;
+
+	/*Night Mode Vars*/
 	public static int DefaultBackground = Color.WHITE;
 	public static int DefaultTextColor = Color.BLACK;
 	public static int DefaultInputStyle = Glk.STYLE_INPUT;
+	public static boolean ChangeTypeInColor = false;
+	/*Night Mode Vars*/
+
 	public String FontPath = null;
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
