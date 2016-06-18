@@ -29,6 +29,8 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
+import android.view.ViewTreeObserver;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -46,8 +48,10 @@ public class PreferencesActivity
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.preferences);
 
+        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+
         Preference apref = findPreference("setIFDir");
-        if (apref != null)
+        if (apref != null) {
             apref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
@@ -56,23 +60,41 @@ public class PreferencesActivity
                     return false;
                 }
             });
+        }
 
-        Preference dpref = findPreference("defaultif");
+        final Preference dpref = findPreference("defaultif");
         if (dpref != null) {
             dpref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     Paths.setIfDirectory(new File(Paths.cardDirectory().getPath() + "/Interactive Fiction")); //set Path as default
 
-                    /** pushes the default If Directory to SharedPreferneces */
+                    Toast.makeText(PreferencesActivity.this, "You have set the default directory.", Toast.LENGTH_SHORT).show();
+
+                    /* pushes the default If Directory to SharedPreferneces */
                     SharedPreferences sharedPrefs = getSharedPreferences("ifPath", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPrefs.edit();
                     editor.putString("ifPath", Paths.ifDirectory().getAbsolutePath());
                     editor.commit();
+                    dpref.setSummary(Paths.cardDirectory().getPath() + "/Interactive Fiction is set.");
                     return false;
                 }
             });
         }
+        /* Refreshes the summary of SetIF before the listView is shown. */
+        getListView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                onSharedPreferenceChanged(null, "setIFDir");
+                return true;
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -81,13 +103,13 @@ public class PreferencesActivity
         setSummaryAll(getPreferenceScreen());
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
         onSharedPreferenceChanged(null, "fontFolderPath");
-
+        onSharedPreferenceChanged(null, "setIFDir"); //onSharedPreferenceChanged(null, "defaultif"); //otherwise default summary is not visible
+        // however setDir is not persistent when only onClick set
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
     private void setSummaryAll(PreferenceScreen pScreen) {
@@ -161,6 +183,12 @@ public class PreferencesActivity
             if (ff.contains(save)) prefFn.setValue(save);
 
             setSummaryPref(prefFn);
+        } else if (key.equals("setIFDir")) {
+            Preference preference = findPreference(key);
+            preference.setSummary(Paths.ifDirectory().getAbsolutePath());
+        } else if (key.equals("defaultif")) {
+            Preference preference = findPreference(key);
+            preference.setSummary(Paths.cardDirectory().getPath() + "/Interactive Fiction");
         } else {
             setSummaryPref(pref);
         }

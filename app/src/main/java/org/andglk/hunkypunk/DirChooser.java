@@ -38,7 +38,7 @@ public class DirChooser extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         list = new ListView(getActivity());
         builder = new AlertDialog.Builder(getActivity());
-        Toast.makeText(getActivity(), "Please go in a folder and press OK", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(), "Please go into a folder and press OK", Toast.LENGTH_SHORT).show();
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -48,7 +48,7 @@ public class DirChooser extends DialogFragment {
                 if (chosenFile.isDirectory()) {
                     refresh(chosenFile);
                 } else {
-                    Toast.makeText(getActivity(), "Please Go in a folder and press OK", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Please go into a folder and press OK", Toast.LENGTH_SHORT).show();
                 }
             }
         });

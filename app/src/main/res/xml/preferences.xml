@@ -9,10 +9,11 @@
         android:title="Font size" />
     <Preference
         android:key="setIFDir"
-        android:title="@string/add"
-        android:defaultValue="bla"/>
+        android:summary="Your new IF-Directory"
+        android:title="@string/add" />
     <Preference
         android:key="defaultif"
+        android:summary="Your default IF-Directory"
         android:title="@string/ifdef" />
     <EditTextPreference
         android:defaultValue="/sdcard/Fonts"
