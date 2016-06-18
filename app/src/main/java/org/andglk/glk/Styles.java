@@ -54,13 +54,23 @@ public class Styles {
 		
 		return tpx;
 	}
-	
+
+	private static int determineStyle(int styl) {
+		if (styl == Glk.STYLE_HEADER && TextBufferWindow.ChangeTypeInColor)
+			styl = Glk.STYLE_NIGHT_HEADER;
+
+		if (styl == Glk.STYLE_SUBHEADER && TextBufferWindow.ChangeTypeInColor)
+			styl = Glk.STYLE_NIGHT_SUBHEADER;
+
+		return styl;
+	}
+
 	public class StyleSpan extends TextAppearanceSpan {
 		private final int _styl;
 		private final boolean _reverse;
 
 		public StyleSpan(Context context, int styl, boolean reverse) {
-			super(context, Window.getTextAppearanceId(styl));
+			super(context,Window.getTextAppearanceId(determineStyle(styl)));
 			_styl = styl;
 			_reverse = reverse;
 		}

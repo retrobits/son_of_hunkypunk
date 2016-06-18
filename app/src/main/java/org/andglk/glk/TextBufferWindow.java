@@ -36,16 +36,15 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Editable;
-import android.text.method.KeyListener;
 import android.text.method.MovementMethod;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -125,7 +124,7 @@ public class TextBufferWindow extends Window {
 		mView.readState(stream);
 	}
 	
-	private class _Stream extends Stream {
+	public class _Stream extends Stream {
 		private long mCurrentStyle = Glk.STYLE_NORMAL;
 		private boolean mReverseVideo = false;
 		private final StringBuilder mBuffer = new StringBuilder();
@@ -157,14 +156,15 @@ public class TextBufferWindow extends Window {
 			mReverseVideo = (reverse != 0);
 		}
 
-		private void applyStyle() {
+		public void applyStyle() {
 			if (mBuffer != null && mBuffer.length() == 0)
 				return;
 			
 			final SpannableString ss = new SpannableString(mBuffer);
-			if (ss.length() > 0)
-				ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo), 
-						   0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			if (ss.length() > 0) {
+				ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo),
+						0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}
 			mSsb.append(ss);
 			
 			mBuffer.setLength(0);
@@ -403,8 +403,18 @@ public class TextBufferWindow extends Window {
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 
+
+			getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+				@Override
+				public boolean onPreDraw () {
+					setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+					setTextColor(TextBufferWindow.this.DefaultTextColor);
+					return true;
+				}
+			});
+
 		}
-	}							  
+	}
 
 	private class _View extends TextView { 
 
@@ -576,8 +586,8 @@ public class TextBufferWindow extends Window {
 					final int spanReverse = stream.readInt();
 
 					if (spanStart != spanEnd)
-						ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), 
-								   spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+						ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0),
+								spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				}
 			
 				mTrailingCr = stream.readBoolean();
@@ -615,8 +625,7 @@ public class TextBufferWindow extends Window {
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-
-		}		
+		}
 
 
 		private CharSequence mLastLine = null;
@@ -706,6 +715,7 @@ public class TextBufferWindow extends Window {
 			}
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 			setTextColor(TextBufferWindow.this.DefaultTextColor);
+			//setTextIsSelectable(true); //JUST DONT
 			return true;
 		}
 	}
@@ -737,7 +747,6 @@ public class TextBufferWindow extends Window {
 		mGlk = glk;
 		mContext = glk.getContext();
 		mHandler = mGlk.getUiHandler();
-
 		Glk.getInstance().waitForUi(
 			new Runnable() {
 				@Override
@@ -808,7 +817,7 @@ public class TextBufferWindow extends Window {
 					mScrollView.addView(mLayout);
 					mStream = new _Stream();
 				}
-			});		
+			});
 	}
 
 	// hack to fix fatal exception from Android framework thrown by spellchecker.
@@ -986,11 +995,11 @@ public class TextBufferWindow extends Window {
 	boolean styleDistinguish(int style1, int style2) {
 		if (style1 == style2)
 			return false;
-		
+
 		int res1, res2;
 		res1 = getTextAppearanceId(style1);
 		res2 = getTextAppearanceId(style2);
-		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor, 
+		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor,
 							   android.R.attr.typeface, android.R.attr.textStyle };
 		TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
 		TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);

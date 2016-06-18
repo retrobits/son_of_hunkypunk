@@ -113,10 +113,12 @@ public class Interpreter extends Activity {
 			org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
 			org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
 			org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;
+			org.andglk.glk.TextBufferWindow.ChangeTypeInColor = true;
 		} else {
 			org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
 			org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
 			org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_INPUT;
+			org.andglk.glk.TextBufferWindow.ChangeTypeInColor = false;
 		}
     }
 
