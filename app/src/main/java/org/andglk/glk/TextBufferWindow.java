@@ -26,6 +26,7 @@ import java.io.ObjectOutputStream;
 import org.andglk.glk.Styles.StyleSpan;
 import org.andglk.hunkypunk.R;
 
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Paint;
@@ -35,6 +36,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Editable;
+import android.text.Layout;
 import android.text.method.MovementMethod;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -43,6 +45,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.GestureDetector;
 import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -52,6 +55,7 @@ import android.widget.ScrollView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class TextBufferWindow extends Window {
@@ -367,7 +371,7 @@ public class TextBufferWindow extends Window {
 		}		
 	}							  
 
-	private class _View extends TextView { 
+	private class _View extends EditText {
 
 		public class _MovementMethod implements MovementMethod {
 
@@ -377,7 +381,7 @@ public class TextBufferWindow extends Window {
 
 			@Override
 			public boolean canSelectArbitrarily() {
-				return false;
+				return true;
 			}
 
 			@Override
@@ -573,8 +577,52 @@ public class TextBufferWindow extends Window {
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
-		}		
 
+
+			setOnLongClickListener(new OnLongClickListener(){
+				@Override
+				public boolean onLongClick(View v) {
+					setOnTouchListener(new OnTouchListener(){
+
+						@Override
+						public boolean onTouch(View v, MotionEvent event)
+						{
+							if (event.getAction() == MotionEvent.ACTION_DOWN) {
+								float x = event.getX() + getScrollX();
+								int offset = getOffset(event);
+								if(offset != Integer.MIN_VALUE)
+									if(x > getLayout().getLineMax(0)) {
+										setSelection(offset); // touch was at end of text
+										String selectedText = getText().toString()
+												.substring(getSelectionStart(), getSelectionEnd());
+										Toast.makeText(mContext, selectedText, Toast.LENGTH_LONG).show();
+										putInClipMemory(selectedText);
+									} else {
+										setSelection(offset - 1);
+										String selectedText = getText().toString()
+												.substring(getSelectionStart(), getSelectionEnd());
+										Toast.makeText(mContext, selectedText, Toast.LENGTH_LONG).show();
+										putInClipMemory(selectedText);
+									}
+							}
+							return true;
+						}});
+					return false;
+				}
+			});
+		}
+
+		private void putInClipMemory(String str) {
+			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
+				//TODO: check if getAppContext returns app instance
+				android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+				clipboard.setText(str);
+			} else {
+				android.content.ClipboardManager clipboard = (android.content.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+				android.content.ClipData clip = android.content.ClipData.newPlainText("Text copied.", str);
+				clipboard.setPrimaryClip(clip);
+			}
+		}
 
 		private CharSequence mLastLine = null;
 		private boolean mTrailingCr = false;
@@ -659,9 +707,45 @@ public class TextBufferWindow extends Window {
 		public boolean onPreDraw() {
 			if (FontSize != DefaultFontSize) {
 				FontSize = DefaultFontSize;
-				setTextSize(FontSize);          
+				setTextSize(FontSize);
 			}
+
+
+			//setTextIsSelectable(true);
+			//setFocusable(true);
+			//setFocusableInTouchMode(true);
+			//setClickable(true);
+			//setLongClickable(true);
+
+				//public boolean onTouch(View v, MotionEvent event) {
+					//String stringYouExtracted = getText().toString();
+					//int startIndex = getSelectionStart();
+					//int endIndex = getSelectionEnd();
+					//stringYouExtracted = stringYouExtracted.substring(startIndex, endIndex);
+					//Toast.makeText(mContext, stringYouExtracted, Toast.LENGTH_LONG).show();
+					/*if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
+						//TODO: check if getAppContext returns app instance
+						android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+						clipboard.setText(stringYouExtracted);
+					} else {
+						android.content.ClipboardManager clipboard = (android.content.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+						android.content.ClipData clip = android.content.ClipData.newPlainText("Copied Text.", stringYouExtracted);
+						clipboard.setPrimaryClip(clip);
+					}*/
+					//setCursorVisible(true);
+
 			return true;
+		}
+
+		private int getOffset(MotionEvent event) {
+			Layout layout = getLayout();
+			if (layout == null)
+				return Integer.MIN_VALUE;
+			float x = event.getX() + getScrollX();
+			float y = event.getY() + getScrollY();
+			int line = layout.getLineForVertical((int) y);
+			int offset = layout.getOffsetForHorizontal(line, x);
+			return offset;
 		}
 	}
 
@@ -754,6 +838,7 @@ public class TextBufferWindow extends Window {
 
 					mScrollView.addView(mLayout);
 					mStream = new _Stream();
+
 				}
 			});		
 	}
