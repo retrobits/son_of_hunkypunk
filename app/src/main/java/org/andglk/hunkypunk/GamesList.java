@@ -65,8 +65,6 @@ public class GamesList extends ListActivity implements OnClickListener {
             Games.PATH
     };
 
-    private static final String[] extension = new String[]{".z1", ".z2", ".z3", ".z4", ".z5", ".z6", ".z7", ".z8", ".zblorb", ".zlb", ".t2", ".t3", ".gam"};
-
     protected static final String[] BEGINNER_GAMES = {
             "http://www.ifarchive.org/if-archive/games/zcode/905.z5",
             "http://www.ifarchive.org/if-archive/games/zcode/Advent.z5",
