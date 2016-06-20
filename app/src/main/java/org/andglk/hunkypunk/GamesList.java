@@ -97,7 +97,6 @@ public class GamesList extends ListActivity implements OnClickListener {
     private Thread downloadThread;
 
     protected boolean downloadCancelled;
-    private long ifIDs[]; //array for the right order of the ifIDs (non-alphabetical oder)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,12 +120,6 @@ public class GamesList extends ListActivity implements OnClickListener {
         findViewById(R.id.go_to_ifdb).setOnClickListener(this);
         findViewById(R.id.download_preselected).setOnClickListener(this);
 
-        /** matching id of each IF to the position in ListView*/
-        ifIDs = new long[getListAdapter().getCount()];
-        for (int j = 0; j < getListAdapter().getCount(); j++) {
-            ifIDs[j] = getListView().getItemIdAtPosition(j);
-            System.out.println(ifIDs[j]);
-        }
 
         startScan();
     }
@@ -163,6 +156,14 @@ public class GamesList extends ListActivity implements OnClickListener {
         /** the id is not equal to the position, cause of the list is alphabetical sorted.
          * We create an array, where the positions match the ids */
 
+        long ifIDs[] = new long[getListAdapter().getCount()];//array for the right order of the ifIDs (non-alphabetical order)
+
+        /** matching id of each IF to the position in ListView*/
+        for (int j = 0; j < getListAdapter().getCount(); j++) {
+            ifIDs[j] = getListView().getItemIdAtPosition(j);
+            System.out.println(ifIDs[j]);
+        }
+
         Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(id), this, GameDetails.class);
         i.putExtra("position", position); //commit the position of the clicked item
         i.putExtra("ifIDs", ifIDs); //commiting the array, where the positions matches the ids
@@ -171,7 +172,6 @@ public class GamesList extends ListActivity implements OnClickListener {
 
     private void startScan() {
         setProgressBarIndeterminateVisibility(true);
-
         mScanner.startScan();
     }
 
@@ -252,7 +252,6 @@ public class GamesList extends ListActivity implements OnClickListener {
                 progressDialog.dismiss();
             }
         };
-
         downloadThread.start();
     }
 }
