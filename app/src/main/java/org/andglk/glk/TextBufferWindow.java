@@ -579,9 +579,9 @@ public class TextBufferWindow extends Window {
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 
 
-			setOnLongClickListener(new OnLongClickListener(){
-				@Override
-				public boolean onLongClick(View v) {
+			//setOnLongClickListener(new OnLongClickListener(){
+				//@Override
+				//public boolean onLongClick(View v) {
 					setOnTouchListener(new OnTouchListener(){
 
 						@Override
@@ -592,29 +592,57 @@ public class TextBufferWindow extends Window {
 								int offset = getOffset(event);
 								if(offset != Integer.MIN_VALUE)
 									if(x > getLayout().getLineMax(0)) {
-										setSelection(offset); // touch was at end of text
-										String selectedText = getText().toString()
-												.substring(getSelectionStart(), getSelectionEnd());
-										Toast.makeText(mContext, selectedText, Toast.LENGTH_LONG).show();
+										String selectedText = stringHelper(offset);
+										Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
 										putInClipMemory(selectedText);
 									} else {
-										setSelection(offset - 1);
-										String selectedText = getText().toString()
-												.substring(getSelectionStart(), getSelectionEnd());
+										String selectedText = stringHelper(offset - 1);
 										Toast.makeText(mContext, selectedText, Toast.LENGTH_LONG).show();
 										putInClipMemory(selectedText);
 									}
 							}
 							return true;
-						}});
-					return false;
+						}
+					});
+					//return false;
+				//}
+			//});
+		}
+
+		private String stringHelper(int offset) {
+			setSelection(offset); // touch was at end of text
+			String substringStart = getText().toString().substring(getSelectionStart());
+			int maxEnd = getText().toString().length() - 1;
+			int nextSpaceIndex = maxEnd;
+			for (int i = 0; i < substringStart.length() - 1; i++) {
+				if (Character.isSpaceChar(substringStart.toCharArray()[i]) || Character.isWhitespace(substringStart.toCharArray()[i])) {
+					nextSpaceIndex = i;
+					break;
 				}
-			});
+			}
+			int selectionEnd;
+			if (nextSpaceIndex < maxEnd)
+				selectionEnd = getSelectionStart() + nextSpaceIndex;
+			else
+				selectionEnd = maxEnd;
+
+			String beforeStart = getText().toString().substring(0, getSelectionStart());
+			int selectionStart = 0;
+			for(int i = beforeStart.length() - 1; i >= 0; i--) {
+				if (Character.isSpaceChar(beforeStart.toCharArray()[i]) || Character.isWhitespace(beforeStart.toCharArray()[i])) {
+					selectionStart = i;
+					break;
+				}
+			}
+			String selectedText = getText().toString()
+					.substring(selectionStart, selectionEnd).replaceAll("[^\\p{L}\\p{N}]+", "");
+
+			return selectedText;
 		}
 
 		private void putInClipMemory(String str) {
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
-				//TODO: check if getAppContext returns app instance
+				//TODO: check if getAppContext returns instance of app
 				android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
 				clipboard.setText(str);
 			} else {
