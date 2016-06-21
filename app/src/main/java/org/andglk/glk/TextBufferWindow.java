@@ -409,12 +409,31 @@ public class TextBufferWindow extends Window {
 
 			@Override
 			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
-				if (event.getAction()==MotionEvent.ACTION_UP) {
+				if (event.getAction() == MotionEvent.ACTION_UP) {
 					TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
 					TextBufferWindow.this.mActiveCommand.showKeyboard();
 					return true;
-				}
-				else 
+				} else if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					float x = event.getX() + getScrollX();
+					int offset = getOffset(event);
+					if(offset != Integer.MIN_VALUE) {
+						if(x > getLayout().getLineMax(0)) {
+							String selectedText = stringHelper(offset);
+							if (selectedText.length() > 0) {
+								Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+								putInClipMemory(selectedText);
+							}
+						} else {
+							String selectedText = stringHelper(offset - 1);
+							if (selectedText.length() > 0) {
+								Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+								putInClipMemory(selectedText);
+							}
+						}
+					}
+					return true;
+
+				} else
 					return false;
 			}
 
@@ -582,28 +601,11 @@ public class TextBufferWindow extends Window {
 			//setOnLongClickListener(new OnLongClickListener(){
 				//@Override
 				//public boolean onLongClick(View v) {
-					setOnTouchListener(new OnTouchListener(){
+					//setOnTouchListener(new OnTouchListener(){
 
-						@Override
-						public boolean onTouch(View v, MotionEvent event)
-						{
-							if (event.getAction() == MotionEvent.ACTION_DOWN) {
-								float x = event.getX() + getScrollX();
-								int offset = getOffset(event);
-								if(offset != Integer.MIN_VALUE)
-									if(x > getLayout().getLineMax(0)) {
-										String selectedText = stringHelper(offset);
-										Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
-										putInClipMemory(selectedText);
-									} else {
-										String selectedText = stringHelper(offset - 1);
-										Toast.makeText(mContext, selectedText, Toast.LENGTH_LONG).show();
-										putInClipMemory(selectedText);
-									}
-							}
-							return true;
-						}
-					});
+					//	@Override
+					//	public boolean onTouch(View v, MotionEvent event)
+					//	{}});
 					//return false;
 				//}
 			//});
@@ -737,30 +739,6 @@ public class TextBufferWindow extends Window {
 				FontSize = DefaultFontSize;
 				setTextSize(FontSize);
 			}
-
-
-			//setTextIsSelectable(true);
-			//setFocusable(true);
-			//setFocusableInTouchMode(true);
-			//setClickable(true);
-			//setLongClickable(true);
-
-				//public boolean onTouch(View v, MotionEvent event) {
-					//String stringYouExtracted = getText().toString();
-					//int startIndex = getSelectionStart();
-					//int endIndex = getSelectionEnd();
-					//stringYouExtracted = stringYouExtracted.substring(startIndex, endIndex);
-					//Toast.makeText(mContext, stringYouExtracted, Toast.LENGTH_LONG).show();
-					/*if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
-						//TODO: check if getAppContext returns app instance
-						android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
-						clipboard.setText(stringYouExtracted);
-					} else {
-						android.content.ClipboardManager clipboard = (android.content.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
-						android.content.ClipData clip = android.content.ClipData.newPlainText("Copied Text.", stringYouExtracted);
-						clipboard.setPrimaryClip(clip);
-					}*/
-					//setCursorVisible(true);
 
 			return true;
 		}
