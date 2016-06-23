@@ -36,6 +36,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.Layout;
 import android.text.method.MovementMethod;
 import android.text.Spannable;
@@ -596,19 +597,15 @@ public class TextBufferWindow extends Window {
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
+			setReadOnly(this, true);
+		}
 
-
-			//setOnLongClickListener(new OnLongClickListener(){
-				//@Override
-				//public boolean onLongClick(View v) {
-					//setOnTouchListener(new OnTouchListener(){
-
-					//	@Override
-					//	public boolean onTouch(View v, MotionEvent event)
-					//	{}});
-					//return false;
-				//}
-			//});
+		private void setReadOnly(final TextView view, final boolean readOnly) {
+			view.setFocusable(!readOnly);
+			view.setFocusableInTouchMode(!readOnly);
+			view.setClickable(!readOnly);
+			view.setLongClickable(!readOnly);
+			view.setCursorVisible(!readOnly);
 		}
 
 		private String stringHelper(int offset) {
