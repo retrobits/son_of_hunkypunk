@@ -62,6 +62,12 @@ public class Styles {
 		if (styl == Glk.STYLE_SUBHEADER && TextBufferWindow.ChangeTypeInColor)
 			styl = Glk.STYLE_NIGHT_SUBHEADER;
 
+		if (styl == Glk.STYLE_INPUT && TextBufferWindow.ChangeTypeInColor)
+			styl = Glk.STYLE_NIGHT;
+
+		if (styl == Glk.STYLE_NIGHT && !TextBufferWindow.ChangeTypeInColor)
+			styl = Glk.STYLE_INPUT;
+
 		return styl;
 	}
 
