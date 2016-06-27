@@ -22,21 +22,24 @@ package org.andglk.glk;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 
 import org.andglk.glk.Styles.StyleSpan;
 import org.andglk.hunkypunk.R;
 
+
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
+import android.support.v7.widget.CardView;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.Layout;
 import android.text.method.MovementMethod;
 import android.text.Spannable;
@@ -45,13 +48,16 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.GestureDetector;
+import android.util.TypedValue;;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -370,7 +376,18 @@ public class TextBufferWindow extends Window {
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 		}		
-	}							  
+	}
+
+	private class _ListView extends HorizontalScrollView {
+		public _ListView(Context context) {
+			super(context, null, R.attr.textBufferWindowStyle);
+
+			//setBackgroundResource(0);
+			//setTextSize(DefaultFontSize);
+			//setTypeface(TextBufferWindow.this.getDefaultTypeface());
+
+		}
+	}
 
 	private class _View extends EditText {
 
@@ -761,6 +778,7 @@ public class TextBufferWindow extends Window {
 	private _CommandView mCommand1 = null;
 	private _CommandView mCommand2 = null;
 	private _PromptView mPrompt = null;
+	private _ListView mLView = null;
 	private LinearLayout mLayout = null;
 	private CharSequence mCommandText = null;
 	private Object mLineInputSpan;
@@ -799,8 +817,13 @@ public class TextBufferWindow extends Window {
 						LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
 					LinearLayout.LayoutParams paramsCommand = new
 						LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
+					LinearLayout.LayoutParams paramsLView = new
+							LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
+					LinearLayout.LayoutParams paramsLLayout = new
+							LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
 					paramsPrompt.setMargins(0, -margin, 0, 0);
 					paramsCommand.setMargins(0, -margin, 0, 0);
+
 
 					mLayout = new LinearLayout(mContext);
 					mLayout.setOrientation(LinearLayout.VERTICAL);
@@ -809,6 +832,11 @@ public class TextBufferWindow extends Window {
 					LinearLayout hl = new LinearLayout(mContext);
 					hl.setPadding(0, 0, 0, 0);
 					hl.setOrientation(LinearLayout.HORIZONTAL);
+
+					LinearLayout hll = new LinearLayout(mContext);
+					hll.setPadding(0, 0, 0, 0);
+					hll.setOrientation(LinearLayout.HORIZONTAL);
+
 				   
 					mCommand1 = new _CommandView(mContext);
 					mCommand1.setPadding(pad, 0, pad, pad);
@@ -831,13 +859,27 @@ public class TextBufferWindow extends Window {
 					hl.addView(mPrompt, paramsPrompt);
 					hl.addView(mCommand1, paramsCommand);
 					hl.addView(mCommand2, paramsCommand);
-					
+
+
+
+					mLView = new _ListView(mContext);
+					mLView.setPadding(0, 0, 0, 0);//better than (pad,0,pad,pad)
+					LayoutInflater mHorizontalInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+					mHorizontalInflater = LayoutInflater.from(mContext);
+					View v = mHorizontalInflater.inflate(R.layout.horizontal_card_view, null);
+					mLView.addView(v);
+
+					hll.addView(mLView, paramsLView);
+
+
+
 					mView = new _View(mContext);
 					mView.setPadding(pad, pad, pad, 0);
 					mView.setFocusable(false);
 
 					mLayout.addView(mView,paramsDefault);
 					mLayout.addView(hl,paramsHLayout);
+					mLayout.addView(hll, paramsLLayout);
 
 					mScrollView.addView(mLayout);
 					mStream = new _Stream();
