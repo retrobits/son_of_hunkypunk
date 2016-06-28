@@ -377,6 +377,7 @@ public class TextBufferWindow extends Window {
 	private class _HorListView extends HorizontalScrollView {
 		public _HorListView(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
+			setTag("_HorListViewTAG");
 		}
 	}
 

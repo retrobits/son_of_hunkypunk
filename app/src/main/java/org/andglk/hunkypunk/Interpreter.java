@@ -46,6 +46,8 @@ import android.support.v7.widget.CardView;
 import android.text.Editable;
 import android.text.Selection;
 import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -56,6 +58,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,6 +68,7 @@ public class Interpreter extends Activity {
 	private Glk glk;
 	private File mDataDir;
 	private EditText mCommandView = null;
+	private HorizontalScrollView mHLView = null;
 
 	/**
 	 * Called when the activity is first created.
@@ -116,6 +120,16 @@ public class Interpreter extends Activity {
 			loadBookmark();
 		}
 		glk.start();
+		//NullPtr since activity is started before TBW where its loaded
+		/*mHLView = (HorizontalScrollView) findViewByTag(glk.getView(),"_HorListViewTAG");
+		if (mHLView != null) {
+			if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("enableList", true))
+				mHLView.setVisibility(View.VISIBLE);
+			else
+				mHLView.setVisibility(View.INVISIBLE);
+		} else {
+			Toast.makeText(glk.getContext(), "The Shortcuts-List wasn't able to load. Its view is null.", Toast.LENGTH_LONG).show();
+		}*/
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -355,16 +369,20 @@ public class Interpreter extends Activity {
 				animate(v);
 
 				String text = tempView.getText().toString();
-				String temp = mCommandView.getText().toString();
+				SpannableStringBuilder temp = new SpannableStringBuilder();
+				temp = temp.append(mCommandView.getText().toString());
 				mCommandView.setText(text);
 				//no need to set selector and style, since text is already sent
 				dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
 
 				mCommandView = (EditText) findViewByTag(glk.getView(), "_ActiveCommandViewTAG");
 				if (mCommandView != null) {
+					temp.setSpan(new Styles().getSpan(glk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+							,0,temp.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 					mCommandView.setText(temp);
 					Toast.makeText(glk.getContext(),String.valueOf(temp.length()), Toast.LENGTH_SHORT).show();//testing
 					Selection.setSelection(toEditable(mCommandView), temp.length());
+					//for some reason it remains at head
 				}
 				semaphore = false;
 			}
@@ -381,7 +399,10 @@ public class Interpreter extends Activity {
 		if (mCommandView != null) {
 			animate(v);
 
-			String text = tempView.getText().toString();
+			SpannableStringBuilder text = new SpannableStringBuilder();
+			text = text.append(tempView.getText().toString());
+			text.setSpan(new Styles().getSpan(glk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+					,0,text.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 			mCommandView.setText(text);
 			Selection.setSelection(toEditable(mCommandView), text.length());
 		} else {

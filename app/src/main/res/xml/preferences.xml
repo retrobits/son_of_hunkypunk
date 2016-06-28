@@ -21,4 +21,8 @@
 	  android:defaultValue="Droid Serif"
 	  android:entries="@array/fontNameArray"
 	  android:entryValues="@array/fontNameArray" />
+	<SwitchPreference
+	        android:id="@+id/enable_list"
+	        android:key="enableList"
+	        android:title="Enable Shortcuts List" />
 </PreferenceScreen>
