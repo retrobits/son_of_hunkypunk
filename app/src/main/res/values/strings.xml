@@ -41,7 +41,7 @@
     <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string>
 
 
-    <string name="ifdef">Default If folder path</string>
+    <string name="ifdef">Set default If folder path</string>
     <string name="add">If folder path</string>
     <string name="about">About</string>
     <string name="edit">Edit</string>
