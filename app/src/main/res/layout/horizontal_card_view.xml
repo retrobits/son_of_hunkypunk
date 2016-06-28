@@ -1,0 +1,134 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:prefix="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:weightSum="3">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginBottom="0dp"
+        android:tag="0"
+        prefix:cardCornerRadius="5dp"
+        prefix:cardBackgroundColor="@color/shortcutsColor">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="15dp"
+            android:background="@color/shortcutsColor"
+            android:text="take "
+            android:clickable="true"
+            android:onClick="shortcutCommand"/>
+
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginBottom="0dp"
+        android:tag="1"
+        prefix:cardCornerRadius="5dp"
+        prefix:cardBackgroundColor="@color/shortcutsColor">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="15dp"
+            android:background="@color/shortcutsColor"
+            android:text="look"
+            android:clickable="true"
+            android:onClick="shortcutCommandEnter"/>
+
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+	    android:layout_marginBottom="0dp"
+        android:tag="2"
+        prefix:cardCornerRadius="5dp"
+        prefix:cardBackgroundColor="@color/shortcutsColor">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="15dp"
+            android:background="@color/shortcutsColor"
+            android:text="Inventory"
+            android:clickable="true"
+            android:onClick="shortcutCommandEnter"/>
+
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+	    android:layout_marginBottom="0dp"
+        android:tag="3"
+        prefix:cardCornerRadius="5dp"
+        prefix:cardBackgroundColor="@color/shortcutsColor">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="15dp"
+            android:background="@color/shortcutsColor"
+            android:text="ask about "
+            android:clickable="true"
+            android:onClick="shortcutCommand"/>
+
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+	    android:layout_marginBottom="0dp"
+        android:tag="4"
+        prefix:cardCornerRadius="5dp"
+        prefix:cardBackgroundColor="@color/shortcutsColor">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="15dp"
+            android:background="@color/shortcutsColor"
+            android:text="UNDO"
+            android:clickable="true"
+            android:onClick="shortcutCommandEnter"/>
+
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginBottom="0dp"
+        android:tag="5"
+        prefix:cardCornerRadius="5dp"
+        prefix:cardBackgroundColor="@color/shortcutsColor">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="15dp"
+            android:background="@color/shortcutsColor"
+            android:text="think about "
+            android:clickable="true"
+            android:onClick="shortcutCommand"/>
+
+    </android.support.v7.widget.CardView>
+
+</LinearLayout>

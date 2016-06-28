@@ -465,33 +465,6 @@ public class TextBufferWindow extends Window {
 						break;
 				}
 				return true;
-
-				/*if (event.getAction() == MotionEvent.ACTION_UP) {
-					TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
-					TextBufferWindow.this.mActiveCommand.showKeyboard();
-					return true;
-				} else if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					float x = event.getX() + getScrollX();
-					int offset = getOffset(event);
-					if(offset != Integer.MIN_VALUE) {
-						if(x > getLayout().getLineMax(0)) {
-							String selectedText = stringHelper(offset);
-							if (selectedText.length() > 0) {
-								Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
-								putInClipMemory(selectedText);
-							}
-						} else {
-							String selectedText = stringHelper(offset - 1);
-							if (selectedText.length() > 0) {
-								Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
-								putInClipMemory(selectedText);
-							}
-						}
-					}
-					return true;
-
-				} else
-					return false;*/
 			}
 
 			@Override
