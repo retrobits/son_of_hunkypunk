@@ -22,7 +22,6 @@ package org.andglk.glk;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 
 import org.andglk.glk.Styles.StyleSpan;
 import org.andglk.hunkypunk.R;
@@ -31,7 +30,6 @@ import org.andglk.hunkypunk.R;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Handler;
@@ -49,13 +47,11 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
@@ -378,14 +374,9 @@ public class TextBufferWindow extends Window {
 		}		
 	}
 
-	private class _ListView extends HorizontalScrollView {
-		public _ListView(Context context) {
+	private class _HorListView extends HorizontalScrollView {
+		public _HorListView(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
-
-			//setBackgroundResource(0);
-			//setTextSize(DefaultFontSize);
-			//setTypeface(TextBufferWindow.this.getDefaultTypeface());
-
 		}
 	}
 
@@ -393,13 +384,18 @@ public class TextBufferWindow extends Window {
 
 		public class _MovementMethod implements MovementMethod {
 
+			private float mDownX;
+			private float mDownY;
+			private final float SCROLL_THRESHOLD = 10;
+			private boolean isOnClick;
+
 			public boolean onGenericMotionEvent(TextView widget, Spannable text, MotionEvent event) {
 				return false;
 			}
 
 			@Override
 			public boolean canSelectArbitrarily() {
-				return true;
+				return false;
 			}
 
 			@Override
@@ -427,7 +423,50 @@ public class TextBufferWindow extends Window {
 
 			@Override
 			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_UP) {
+				switch (event.getAction() & MotionEvent.ACTION_MASK) {
+					case MotionEvent.ACTION_DOWN:
+						mDownX = event.getX();
+						mDownY = event.getY();
+						isOnClick = true;
+						break;
+					case MotionEvent.ACTION_CANCEL:
+					case MotionEvent.ACTION_UP:
+						if (isOnClick) {
+							//TODO onClick code
+							float x = event.getX() + getScrollX();
+							int offset = getOffset(event);
+							if(offset != Integer.MIN_VALUE) {
+								if (x > getLayout().getLineMax(0)) {
+									String selectedText = stringHelper(offset);
+									if (selectedText.length() > 0) {
+										Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+										putInClipMemory(selectedText);
+									}
+								} else {
+									String selectedText = stringHelper(offset - 1);
+									if (selectedText.length() > 0) {
+										Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+										putInClipMemory(selectedText);
+									}
+								}
+							}
+							//Go to input line
+							TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
+							TextBufferWindow.this.mActiveCommand.showKeyboard();
+						}
+						break;
+					case MotionEvent.ACTION_MOVE:
+						if (isOnClick && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
+								|| Math.abs(mDownY - event.getY()) > SCROLL_THRESHOLD)) {
+							isOnClick = false;
+						}
+						break;
+					default:
+						break;
+				}
+				return true;
+
+				/*if (event.getAction() == MotionEvent.ACTION_UP) {
 					TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
 					TextBufferWindow.this.mActiveCommand.showKeyboard();
 					return true;
@@ -452,7 +491,7 @@ public class TextBufferWindow extends Window {
 					return true;
 
 				} else
-					return false;
+					return false;*/
 			}
 
 			@Override
@@ -773,12 +812,15 @@ public class TextBufferWindow extends Window {
 	public static int DefaultFontSize = 0;
 	public String FontPath = null;
 	public int FontSize = 0;
+
+	public static int DefaultInputStyle = Glk.STYLE_INPUT;
+
 	private _ScrollView mScrollView = null;
 	private _CommandView mActiveCommand = null;
 	private _CommandView mCommand1 = null;
 	private _CommandView mCommand2 = null;
 	private _PromptView mPrompt = null;
-	private _ListView mLView = null;
+	private _HorListView mHLView = null;
 	private LinearLayout mLayout = null;
 	private CharSequence mCommandText = null;
 	private Object mLineInputSpan;
@@ -862,14 +904,14 @@ public class TextBufferWindow extends Window {
 
 
 
-					mLView = new _ListView(mContext);
-					mLView.setPadding(0, 0, 0, 0);//better than (pad,0,pad,pad)
+					mHLView = new _HorListView(mContext);
+					mHLView.setPadding(0, 0, 0, 0);//better than (pad,0,pad,pad)
 					LayoutInflater mHorizontalInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 					mHorizontalInflater = LayoutInflater.from(mContext);
 					View v = mHorizontalInflater.inflate(R.layout.horizontal_card_view, null);
-					mLView.addView(v);
+					mHLView.addView(v);
 
-					hll.addView(mLView, paramsLView);
+					hll.addView(mHLView, paramsLView);
 
 
 
@@ -898,16 +940,20 @@ public class TextBufferWindow extends Window {
 	public void ToggleCommandView() {
 		if (mActiveCommand == mCommand1) {
 			mCommand1.setVisibility(View.GONE);
+			mCommand1.setTag("Inactive");
 
 			mCommand2.clear();
 			mCommand2.setVisibility(View.VISIBLE);
+			mCommand2.setTag("_ActiveCommandViewTAG");
 			mActiveCommand = mCommand2;
 		}
 		else {
 			mCommand2.setVisibility(View.GONE);
+			mCommand2.setTag("Inactive");
 
 			mCommand1.clear();
 			mCommand1.setVisibility(View.VISIBLE);
+			mCommand1.setTag("_ActiveCommandViewTAG");
 			mActiveCommand = mCommand1;
 		}
 	}

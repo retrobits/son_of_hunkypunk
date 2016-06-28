@@ -86,4 +86,6 @@
 	<style name="user2">
 		<item name="android:textColor">#060</item>
 	</style>
+
+	<color name="shortcutsColor">#52A6B8</color>
 </resources>

@@ -28,6 +28,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import org.andglk.glk.Glk;
+import org.andglk.glk.Styles;
 import org.andglk.glk.Window;
 import org.andglk.glk.TextBufferWindow;
 
@@ -41,42 +42,58 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.support.v7.widget.CardView;
+import android.text.Editable;
+import android.text.Selection;
+import android.text.Spannable;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class Interpreter extends Activity {
-    private static final String TAG = "hunkypunk.Interpreter";
+	private static final String TAG = "hunkypunk.Interpreter";
+	private static int NUM_CARDVIEWS = 6;
 	private Glk glk;
 	private File mDataDir;
+	private EditText mCommandView = null;
 
-	/** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-    	System.loadLibrary("andglk-loader");
+	/**
+	 * Called when the activity is first created.
+	 */
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		System.loadLibrary("andglk-loader");
 
-    	setTheme(R.style.theme);
+		setTheme(R.style.theme);
 		setFont();
 
-        Intent i = getIntent();
-        Uri uri = i.getData();
-        String terp = i.getStringExtra("terp");
-        String ifid = i.getStringExtra("ifid");
-        mDataDir = HunkyPunk.getGameDataDir(uri, ifid);
-        File saveDir = new File(mDataDir, "savegames");
-        saveDir.mkdir();
+		Intent i = getIntent();
+		Uri uri = i.getData();
+		String terp = i.getStringExtra("terp");
+		String ifid = i.getStringExtra("ifid");
+		mDataDir = HunkyPunk.getGameDataDir(uri, ifid);
+		File saveDir = new File(mDataDir, "savegames");
+		saveDir.mkdir();
 
 		glk = new Glk(this);
 
-        setContentView(glk.getView());
+		setContentView(glk.getView());
 		glk.setAutoSave(getBookmark(), 0);
-        glk.setSaveDir(saveDir);
-        glk.setTranscriptDir(Paths.transcriptDirectory()); // there goes separation, and so cheaply...
+		glk.setSaveDir(saveDir);
+		glk.setTranscriptDir(Paths.transcriptDirectory()); // there goes separation, and so cheaply...
 
 		ArrayList<String> args = new ArrayList<String>();
-		args.add(getFilesDir()+"/../lib/lib"+terp+".so");
-		if(terp.compareTo("tads")==0 && getBookmark().exists()) {
+		args.add(getFilesDir() + "/../lib/lib" + terp + ".so");
+		if (terp.compareTo("tads") == 0 && getBookmark().exists()) {
 			args.add("-r");
 			args.add(getBookmark().getAbsolutePath());
 		}
@@ -85,21 +102,21 @@ public class Interpreter extends Activity {
 		String arga[] = new String[args.size()];
 		glk.setArguments(args.toArray(arga));
 
-        super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
 
 		// dead code, doesn't work
 		// TODO: remove all the Parcelable/SavedState objects and onRestoreInstanceState code in Windows 
 		//if (savedInstanceState != null)
-        //	restore(savedInstanceState.getParcelableArrayList("windowStates"));
-        //else 
+		//	restore(savedInstanceState.getParcelableArrayList("windowStates"));
+		//else
 
 		if (i.getBooleanExtra("loadBookmark", false) || savedInstanceState != null) {
 			/* either the user's intent is to restore from bookmark,
 			   or the OS has killed our app and is now restoring state */
-        	loadBookmark();
+			loadBookmark();
 		}
-    	glk.start();
-    }
+		glk.start();
+	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
@@ -112,56 +129,56 @@ public class Interpreter extends Activity {
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		Intent intent;
 		switch (item.getNumericShortcut()) {
-		case '1':
-			intent = new Intent(this, PreferencesActivity.class);
-			startActivity(intent);
-			break;
-		case '2':
-			AlertDialog builder;
-			try {
-				builder = AboutDialogBuilder.show(this);
-			} catch (NameNotFoundException e) {
-				e.printStackTrace();
-			}
-			break;
+			case '1':
+				intent = new Intent(this, PreferencesActivity.class);
+				startActivity(intent);
+				break;
+			case '2':
+				AlertDialog builder;
+				try {
+					builder = AboutDialogBuilder.show(this);
+				} catch (NameNotFoundException e) {
+					e.printStackTrace();
+				}
+				break;
 		}
 		return super.onMenuItemSelected(featureId, item);
 	}
 
-    private void loadBookmark() {
-    	final File f = getBookmark(); 
-    	if (!f.exists())
-    		return;
+	private void loadBookmark() {
+		final File f = getBookmark();
+		if (!f.exists())
+			return;
 
-    	final File ws = getWindowStates();
-    	if (ws.exists()) try {
-    		final FileInputStream fis = new FileInputStream(ws);
-    		if (fis != null) {
-    			final ObjectInputStream ois = new ObjectInputStream(fis);
-		    	Glk.getInstance().onSelect(new Runnable() {
-		    		@Override
-		    		public void run() {
-		    	    	Glk.getInstance().waitForUi(new Runnable() {
-		    	    		public void run() {
-				    	    	Window w = null;
-				    	    	try {
-				    	    		while ((w = Window.iterate(w)) != null) {
-				    	    			w.readState(ois);
+		final File ws = getWindowStates();
+		if (ws.exists()) try {
+			final FileInputStream fis = new FileInputStream(ws);
+			if (fis != null) {
+				final ObjectInputStream ois = new ObjectInputStream(fis);
+				Glk.getInstance().onSelect(new Runnable() {
+					@Override
+					public void run() {
+						Glk.getInstance().waitForUi(new Runnable() {
+							public void run() {
+								Window w = null;
+								try {
+									while ((w = Window.iterate(w)) != null) {
+										w.readState(ois);
 										w.flush();
 									}
 									ois.close();
-					    	    	fis.close();
+									fis.close();
 								} catch (IOException e) {
 									Log.w(TAG, "error while reading window states", e);
 								}
-		    	    		}
-		    	    	});
-		    		}
-		    	});
+							}
+						});
+					}
+				});
 			}
-    	} catch (IOException e) {
+		} catch (IOException e) {
 			Log.e(TAG, "error while opening window state stream", e);
-    	}
+		}
 	}
 
 	/* dead code, doesn't work
@@ -191,32 +208,33 @@ public class Interpreter extends Activity {
     	});
     }
 	*/
-	
-	@Override
-    public void onConfigurationChanged(Configuration newConfig) {
-    	super.onConfigurationChanged(newConfig);
-    	glk.onConfigurationChanged(newConfig);
-    }
 
-    @Override
-    protected void onResume() {
-    	super.onResume();
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		glk.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
 
 		if (setFont()) glk.getView().invalidate();
 	}
 
 	private boolean setFont() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-		
+
 		//TODO: changing font is broken (text overflows the view)
-		
+
 		//String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
 		//String fontFile = prefs.getString("fontFileName", "Droid Serif");
 		//String fontPath = new File(fontFolder, fontFile).getAbsolutePath();
 		int fontSize = 16;
-		try{
+		try {
 			fontSize = Integer.parseInt(prefs.getString("fontSize", Integer.toString(fontSize)));
-		}catch(Exception e){}
+		} catch (Exception e) {
+		}
 
 		if (TextBufferWindow.DefaultFontSize != fontSize) {
 			//(TextBufferWindow.DefaultFontPath == null 
@@ -228,10 +246,10 @@ public class Interpreter extends Activity {
 		}
 		return false;
 	}
-    
-    @Override
-    protected void onPause() {
-    	super.onPause();
+
+	@Override
+	protected void onPause() {
+		super.onPause();
 		if (glk.isAlive()) {
 			glk.postAutoSaveEvent(getBookmark().getAbsolutePath());
 
@@ -248,9 +266,9 @@ public class Interpreter extends Activity {
 				Log.e(TAG, "error while writing windowstates", e);
 			}
 		}
-    }
-    
-    private File getWindowStates() {
+	}
+
+	private File getWindowStates() {
 		return new File(mDataDir, "windowStates");
 	}
 
@@ -259,24 +277,116 @@ public class Interpreter extends Activity {
 	}
 
 	@Override
-    protected void onDestroy() {
+	protected void onDestroy() {
 		super.onDestroy();
 		glk.postExitEvent();
-    }
-    
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-    	super.onSaveInstanceState(outState);
+	}
 
-    	if (!glk.isAlive())
-    		return;
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
 
-    	ArrayList<Parcelable> states = new ArrayList<Parcelable>();
-    	
-    	Window w = null;
-    	while ((w = Window.iterate(w)) != null)
-    		states.add(w.saveInstanceState());
-    	
-    	outState.putParcelableArrayList("windowStates", states);
-    }
+		if (!glk.isAlive())
+			return;
+
+		ArrayList<Parcelable> states = new ArrayList<Parcelable>();
+
+		Window w = null;
+		while ((w = Window.iterate(w)) != null)
+			states.add(w.saveInstanceState());
+
+		outState.putParcelableArrayList("windowStates", states);
+	}
+
+
+	/**
+	 *  A method for recursively finding a view given a tag. If there
+	 *  is no view with such tag, then the parameter is not set and
+	 *  keeps its previous value unchanged.
+	 *
+	 *
+	 * @param vg  parent ViewGroup from which the iteration starts
+	 * @param tag Tag Object to identify the needed View
+     */
+
+	public View findViewByTag(ViewGroup vg, Object tag) {
+
+		View result = null;
+
+		if (vg == null)
+			return null;
+
+		for (int i = 0; i < vg.getChildCount(); i++) {
+			//because some are not set and we don't like NullPtrs
+			if (vg.getChildAt(i).getTag() != null) {
+				if (vg.getChildAt(i).getTag().toString().equals(tag))
+					result = vg.getChildAt(i);
+			}
+		}
+		for (int i = 0; i < vg.getChildCount(); i++) {
+			if (vg.getChildAt(i) instanceof ViewGroup) {
+				result = findViewByTag((ViewGroup) vg.getChildAt(i), tag);
+				if (result != null) break;
+			}
+		}
+		return result;
+	}
+
+	private void animate(View v) {
+		Animation animation1 = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.press);
+		v.startAnimation(animation1);
+	}
+
+	private Editable toEditable(EditText et) {
+		Editable etext = et.getText();
+		etext.setSpan(new Styles().getSpan(glk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+				,0,et.getText().length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+		return etext;
+	}
+
+	/** Directly inputs text onto Glk.select through TextWatcher */
+	private TextView tempView = null;
+	public void shortcutCommandEnter(View v) {
+		mCommandView = (EditText) findViewByTag(glk.getView(), "_ActiveCommandViewTAG");
+		tempView = (TextView) v;
+		if (mCommandView != null) {
+			boolean semaphore = true;
+			while (semaphore) {
+				animate(v);
+
+				String text = tempView.getText().toString();
+				String temp = mCommandView.getText().toString();
+				mCommandView.setText(text);
+				//no need to set selector and style, since text is already sent
+				dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+
+				mCommandView = (EditText) findViewByTag(glk.getView(), "_ActiveCommandViewTAG");
+				if (mCommandView != null) {
+					mCommandView.setText(temp);
+					Toast.makeText(glk.getContext(),String.valueOf(temp.length()), Toast.LENGTH_SHORT).show();//testing
+					Selection.setSelection(toEditable(mCommandView), temp.length());
+				}
+				semaphore = false;
+			}
+		} else {
+			//Of course not (reachable)
+			Toast.makeText(glk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	/** Sets the text in the CommandView, enabling the user to proceed typing the rest */
+	public void shortcutCommand(View v) {
+		mCommandView = (EditText) findViewByTag(glk.getView(), "_ActiveCommandViewTAG");
+		tempView = (TextView) v;
+		if (mCommandView != null) {
+			animate(v);
+
+			String text = tempView.getText().toString();
+			mCommandView.setText(text);
+			Selection.setSelection(toEditable(mCommandView), text.length());
+		} else {
+			//Of course not (reachable)
+			Toast.makeText(glk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
+		}
+	}
 }
