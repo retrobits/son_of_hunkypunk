@@ -440,7 +440,7 @@ public class GameDetails extends Activity implements OnClickListener {
                 i.putExtra("position", position);
                 i.putExtra("ifIDs", ifIDs);
                 startActivity(i);
-                overridePendingTransition(R.anim.left_right,R.anim.center);
+                overridePendingTransition(R.anim.right_left,R.anim.center);
                 finish();
                 return true;
             }
@@ -451,7 +451,7 @@ public class GameDetails extends Activity implements OnClickListener {
                 i.putExtra("position", position);
                 i.putExtra("ifIDs", ifIDs);
                 startActivity(i);
-                overridePendingTransition(R.anim.right_left,R.anim.center);
+                overridePendingTransition(R.anim.left_right,R.anim.center);
                 finish();
                 return true;
             }
