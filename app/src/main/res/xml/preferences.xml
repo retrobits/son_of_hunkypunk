@@ -1,28 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-  <ListPreference
-	  android:title="Font size"
-	  android:key="fontSize"
-	  android:summary="font size"
-	  android:defaultValue="16"
-	  android:entries="@array/fontSizeArray"
-	  android:entryValues="@array/fontSizeArray" />
-  <EditTextPreference
-      android:enabled="false"
-	  android:title="Font folder path"
-	  android:key="fontFolderPath" 
-	  android:summary="folder to store custom TTF font files"
-	  android:defaultValue="/sdcard/Fonts" />
-  <ListPreference
-      android:enabled="false"
-	  android:title="Font file name"
-	  android:key="fontFileName"
-	  android:summary="Custom TTF font file"
-	  android:defaultValue="Droid Serif"
-	  android:entries="@array/fontNameArray"
-	  android:entryValues="@array/fontNameArray" />
-	<SwitchPreference
-	        android:id="@+id/enable_list"
-	        android:key="enableList"
-	        android:title="Enable Shortcuts List" />
+    <PreferenceCategory android:title="Fonts">
+        <ListPreference
+            android:defaultValue="16"
+            android:entries="@array/fontSizeArray"
+            android:entryValues="@array/fontSizeArray"
+            android:key="fontSize"
+            android:summary="font size"
+            android:title="Font size" />
+        <EditTextPreference
+            android:defaultValue="/sdcard/Fonts"
+            android:enabled="false"
+            android:key="fontFolderPath"
+            android:summary="folder to store custom TTF font files"
+            android:title="Font folder path" />
+        <ListPreference
+            android:defaultValue="Droid Serif"
+            android:enabled="false"
+            android:entries="@array/fontNameArray"
+            android:entryValues="@array/fontNameArray"
+            android:key="fontFileName"
+            android:summary="Custom TTF font file"
+            android:title="Font file name" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Words">
+        <PreferenceScreen
+            android:key="manageshortcuts"
+            android:title="@string/manageshortcuts">
+            <PreferenceCategory android:title="Settings">
+                <SwitchPreference
+                    android:id="@+id/enable_list"
+                    android:key="enablelist"
+                    android:title="Enable Shortcuts List" />
+                <Preference
+                    android:key="addshortcut"
+                    android:title="@string/addshortcut" />
+            </PreferenceCategory>
+            <PreferenceCategory
+                android:key="shortcuts"
+                android:title="Shortcuts"></PreferenceCategory>
+        </PreferenceScreen>
+    </PreferenceCategory>
 </PreferenceScreen>

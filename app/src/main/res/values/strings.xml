@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
 	Copyright © 2009-2010 Rafał Rzepecki <divided.mind@gmail.com>
 	
 	This file is part of Hunky Punk.
@@ -33,7 +32,7 @@
     <string name="new_data">New data file</string>
     <string name="name">Name</string>
     <string name="game_quit">The game has quit. You can examine the output.\nUse the BACK button to exit.</string>
-    
+
     <string name="examining_file">Examining file %s...</string>
     <string name="install_success">Successfully installed a new story.</string>
     <string name="install_failure">Could not read the story file.</string>
@@ -45,10 +44,12 @@
     <string name="delete">Delete</string>
     <string name="open">Open</string>
     <string name="preferences">Preferences</string>
+    <string name="manageshortcuts">Manage Shortcuts</string>
+    <string name="addshortcut">Add new shortcut</string>
     <string name="remove">Remove</string>
     <string name="restart">Restart</string>
     <string name="game_details">Story details</string>
-    <string name="by_author">by %s</string> 
+    <string name="by_author">by %s</string>
     <string name="first_published_s">First published: %s</string>
     <string name="genre_s">Genre: %s</string>
     <string name="group_s">Group: %s</string>
@@ -71,8 +72,8 @@
 		Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
 		Tads files (ending in .t2, t3, or .gam) are currently supported.
    	</string>
-   	<string name="go_to_ifdb">Go to IFDb</string>
-   	<string name="download_preselected">Download preselected</string> 
-   	<string name="please_wait">Please wait</string>
-   	<string name="downloading_stories">Downloading stories...</string>
+    <string name="go_to_ifdb">Go to IFDb</string>
+    <string name="download_preselected">Download preselected</string>
+    <string name="please_wait">Please wait</string>
+    <string name="downloading_stories">Downloading stories...</string>
 </resources>
