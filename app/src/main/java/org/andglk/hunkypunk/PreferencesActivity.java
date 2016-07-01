@@ -22,6 +22,7 @@ package org.andglk.hunkypunk;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Map;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -37,7 +38,6 @@ import android.preference.PreferenceScreen;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
 public class PreferencesActivity
@@ -52,6 +52,17 @@ public class PreferencesActivity
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.preferences);
 
+
+        SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+        PreferenceCategory cat = (PreferenceCategory) findPreference("shortcuts");
+        Preference pref;
+        for (int i = 0; i < sharedPreferences.getAll().size(); i++) {
+            pref = new Preference(getApplicationContext());
+            pref.setKey(i + "");
+            pref.setTitle(sharedPreferences.getString(i + "", "-1"));
+            cat.addPreference(pref);
+        }
+
     }
 
     @Override
@@ -62,7 +73,7 @@ public class PreferencesActivity
 
 
     @Override
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, final Preference preference) {
         if (preference.getKey().equals("addshortcut")) {
             View promptsView = LayoutInflater.from(this).inflate(R.layout.shortcut_preferences_prompt, null);
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -77,10 +88,44 @@ public class PreferencesActivity
                     String text = input.getText().toString();
                     Preference pref = new Preference(getApplicationContext());
                     pref.setTitle(text);
-                    pref.setKey(text);
+                    pref.setKey(getSharedPreferences("shortcuts",MODE_PRIVATE).getAll().size()+"");
 
                     PreferenceCategory cat = (PreferenceCategory) findPreference("shortcuts");
                     cat.addPreference(pref);
+                    addShortcutToSharedPreferences(text);
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            builder.setNeutralButton("Help", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            AlertDialog alert = builder.create();
+            alert.show();
+
+        } else if (preference.getKey().matches("\\d")) {
+            View promptsView = LayoutInflater.from(this).inflate(R.layout.shortcut_preferences_prompt, null);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setView(promptsView);
+            builder.setTitle("Type a new shortcut");
+
+            final EditText input = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String text = input.getText().toString();
+                    preference.setTitle(text);
+                    editShortcutPreference(preference.getKey()+"",text);
                 }
             });
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -101,6 +146,32 @@ public class PreferencesActivity
             alert.show();
         }
         return super.onPreferenceTreeClick(preferenceScreen, preference);
+    }
+
+    public void addShortcutToSharedPreferences(String text) {
+        SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        System.out.println("--------------" + sharedPreferences.getAll().size());
+        editor.putString(sharedPreferences.getAll().size() + "", text);
+        editor.commit();
+        Map<String, ?> map = sharedPreferences.getAll();
+
+        for (Map.Entry<String, ?> entry : map.entrySet()) {
+            System.out.println(entry.getKey() + " " + entry.getValue());
+        }
+    }
+
+    public void editShortcutPreference(String key, String text) {
+        SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(key, text);
+        editor.commit();
+
+        Map<String, ?> map = sharedPreferences.getAll();
+
+        for (Map.Entry<String, ?> entry : map.entrySet()) {
+            System.out.println(entry.getKey() + " " + entry.getValue());
+        }
     }
 
     @Override
