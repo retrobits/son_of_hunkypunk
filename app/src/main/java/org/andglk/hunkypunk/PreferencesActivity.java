@@ -22,7 +22,6 @@ package org.andglk.hunkypunk;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
-import java.util.Map;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -46,12 +45,7 @@ public class PreferencesActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        //getPreferenceManager().setSharedPreferencesName("hunkypunk");
-
-        // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.preferences);
-
 
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         PreferenceCategory cat = (PreferenceCategory) findPreference("shortcuts");
@@ -67,7 +61,6 @@ public class PreferencesActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        System.out.println(item.getTitle());
         return super.onOptionsItemSelected(item);
     }
 
@@ -88,7 +81,7 @@ public class PreferencesActivity
                     String text = input.getText().toString();
                     Preference pref = new Preference(getApplicationContext());
                     pref.setTitle(text);
-                    pref.setKey(getSharedPreferences("shortcuts",MODE_PRIVATE).getAll().size()+"");
+                    pref.setKey(getSharedPreferences("shortcuts", MODE_PRIVATE).getAll().size() + "");
 
                     PreferenceCategory cat = (PreferenceCategory) findPreference("shortcuts");
                     cat.addPreference(pref);
@@ -125,7 +118,7 @@ public class PreferencesActivity
                 public void onClick(DialogInterface dialog, int which) {
                     String text = input.getText().toString();
                     preference.setTitle(text);
-                    editShortcutPreference(preference.getKey()+"",text);
+                    editShortcutPreference(preference.getKey() + "", text);
                 }
             });
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -151,14 +144,8 @@ public class PreferencesActivity
     public void addShortcutToSharedPreferences(String text) {
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        System.out.println("--------------" + sharedPreferences.getAll().size());
         editor.putString(sharedPreferences.getAll().size() + "", text);
         editor.commit();
-        Map<String, ?> map = sharedPreferences.getAll();
-
-        for (Map.Entry<String, ?> entry : map.entrySet()) {
-            System.out.println(entry.getKey() + " " + entry.getValue());
-        }
     }
 
     public void editShortcutPreference(String key, String text) {
@@ -166,12 +153,6 @@ public class PreferencesActivity
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(key, text);
         editor.commit();
-
-        Map<String, ?> map = sharedPreferences.getAll();
-
-        for (Map.Entry<String, ?> entry : map.entrySet()) {
-            System.out.println(entry.getKey() + " " + entry.getValue());
-        }
     }
 
     @Override

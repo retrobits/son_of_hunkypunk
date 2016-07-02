@@ -64,11 +64,8 @@ import android.widget.Toast;
 
 public class Interpreter extends Activity {
 	private static final String TAG = "hunkypunk.Interpreter";
-	private static int NUM_CARDVIEWS = 6;
 	private Glk glk;
 	private File mDataDir;
-	private EditText mCommandView = null;
-	private HorizontalScrollView mHLView = null;
 
 	/**
 	 * Called when the activity is first created.
@@ -120,16 +117,6 @@ public class Interpreter extends Activity {
 			loadBookmark();
 		}
 		glk.start();
-		//NullPtr since activity is started before TBW where its loaded
-		/*mHLView = (HorizontalScrollView) findViewByTag(glk.getView(),"_HorListViewTAG");
-		if (mHLView != null) {
-			if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("enableList", true))
-				mHLView.setVisibility(View.VISIBLE);
-			else
-				mHLView.setVisibility(View.INVISIBLE);
-		} else {
-			Toast.makeText(glk.getContext(), "The Shortcuts-List wasn't able to load. Its view is null.", Toast.LENGTH_LONG).show();
-		}*/
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -323,91 +310,5 @@ public class Interpreter extends Activity {
 	 * @param tag Tag Object to identify the needed View
      */
 
-	public View findViewByTag(ViewGroup vg, Object tag) {
 
-		View result = null;
-
-		if (vg == null)
-			return null;
-
-		for (int i = 0; i < vg.getChildCount(); i++) {
-			//because some are not set and we don't like NullPtrs
-			if (vg.getChildAt(i).getTag() != null) {
-				if (vg.getChildAt(i).getTag().toString().equals(tag))
-					result = vg.getChildAt(i);
-			}
-		}
-		for (int i = 0; i < vg.getChildCount(); i++) {
-			if (vg.getChildAt(i) instanceof ViewGroup) {
-				result = findViewByTag((ViewGroup) vg.getChildAt(i), tag);
-				if (result != null) break;
-			}
-		}
-		return result;
-	}
-
-	private void animate(View v) {
-		Animation animation1 = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.press);
-		v.startAnimation(animation1);
-	}
-
-	private Editable toEditable(EditText et) {
-		Editable etext = et.getText();
-		etext.setSpan(new Styles().getSpan(glk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-				,0,et.getText().length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-		return etext;
-	}
-
-	/** Directly inputs text onto Glk.select through TextWatcher */
-	private TextView tempView = null;
-	public void shortcutCommandEnter(View v) {
-		mCommandView = (EditText) findViewByTag(glk.getView(), "_ActiveCommandViewTAG");
-		tempView = (TextView) v;
-		if (mCommandView != null) {
-			boolean semaphore = true;
-			while (semaphore) {
-				animate(v);
-
-				String text = tempView.getText().toString();
-				SpannableStringBuilder temp = new SpannableStringBuilder();
-				temp = temp.append(mCommandView.getText().toString());
-				mCommandView.setText(text);
-				//no need to set selector and style, since text is already sent
-				dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-
-				mCommandView = (EditText) findViewByTag(glk.getView(), "_ActiveCommandViewTAG");
-				if (mCommandView != null) {
-					temp.setSpan(new Styles().getSpan(glk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-							,0,temp.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-					mCommandView.setText(temp);
-					Toast.makeText(glk.getContext(),String.valueOf(temp.length()), Toast.LENGTH_SHORT).show();//testing
-					Selection.setSelection(toEditable(mCommandView), temp.length());
-					//for some reason it remains at head
-				}
-				semaphore = false;
-			}
-		} else {
-			//Of course not (reachable)
-			Toast.makeText(glk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
-		}
-	}
-
-	/** Sets the text in the CommandView, enabling the user to proceed typing the rest */
-	public void shortcutCommand(View v) {
-		mCommandView = (EditText) findViewByTag(glk.getView(), "_ActiveCommandViewTAG");
-		tempView = (TextView) v;
-		if (mCommandView != null) {
-			animate(v);
-
-			SpannableStringBuilder text = new SpannableStringBuilder();
-			text = text.append(tempView.getText().toString());
-			text.setSpan(new Styles().getSpan(glk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-					,0,text.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-			mCommandView.setText(text);
-			Selection.setSelection(toEditable(mCommandView), text.length());
-		} else {
-			//Of course not (reachable)
-			Toast.makeText(glk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
-		}
-	}
 }
