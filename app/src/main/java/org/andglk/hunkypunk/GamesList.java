@@ -36,6 +36,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.net.Uri;
@@ -54,191 +55,201 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 public class GamesList extends ListActivity implements OnClickListener {
-	private static final String[] PROJECTION = {
-		Games._ID,
-		Games.IFID,
-		Games.TITLE,
-		Games.AUTHOR,
-		Games.PATH
-	};
+    private static final String[] PROJECTION = {
+            Games._ID,
+            Games.IFID,
+            Games.TITLE,
+            Games.AUTHOR,
+            Games.PATH
+    };
 
-	protected static final String[] BEGINNER_GAMES = {
-		"http://www.ifarchive.org/if-archive/games/zcode/905.z5",
-		"http://www.ifarchive.org/if-archive/games/zcode/Advent.z5",
-		"http://www.ifarchive.org/if-archive/games/zcode/awaken.z5",
-		"http://www.ifarchive.org/if-archive/games/zcode/dreamhold.z8",
-		"http://www.ifarchive.org/if-archive/games/zcode/LostPig.z8",
-		"http://www.ifarchive.org/if-archive/games/zcode/shade.z5",
-		"http://www.ifarchive.org/if-archive/games/tads/indigo.t3",
-		"http://www.ifarchive.org/if-archive/games/competition98/tads/plant/plant.gam",
-		"http://www.ifarchive.org/if-archive/games/zcode/Bronze.zblorb",
-		"http://www.ifarchive.org/if-archive/games/zcode/theatre.z5",
-		"http://hunkypunk.googlecode.com/files/uu1.gam"
-	};
+    protected static final String[] BEGINNER_GAMES = {
+            "http://www.ifarchive.org/if-archive/games/zcode/905.z5",
+            "http://www.ifarchive.org/if-archive/games/zcode/Advent.z5",
+            "http://www.ifarchive.org/if-archive/games/zcode/awaken.z5",
+            "http://www.ifarchive.org/if-archive/games/zcode/dreamhold.z8",
+            "http://www.ifarchive.org/if-archive/games/zcode/LostPig.z8",
+            "http://www.ifarchive.org/if-archive/games/zcode/shade.z5",
+            "http://www.ifarchive.org/if-archive/games/tads/indigo.t3",
+            "http://www.ifarchive.org/if-archive/games/competition98/tads/plant/plant.gam",
+            "http://www.ifarchive.org/if-archive/games/zcode/Bronze.zblorb",
+            "http://www.ifarchive.org/if-archive/games/zcode/theatre.z5",
+            "http://hunkypunk.googlecode.com/files/uu1.gam"
+    };
 
-	protected static final String TAG = "HunkyPunk";
+    protected static final String TAG = "HunkyPunk";
 
-	private StorageManager mScanner;
-	private Handler mHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case StorageManager.DONE:
-				setProgressBarIndeterminateVisibility(false);
-				startLookup();
-				break;
-			}
-		}
-	};
+    private StorageManager mScanner;
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case StorageManager.DONE:
+                    setProgressBarIndeterminateVisibility(false);
+                    startLookup();
+                    break;
+            }
+        }
+    };
 
-	private ProgressDialog progressDialog;
+    private ProgressDialog progressDialog;
 
-	private Thread downloadThread;
+    private Thread downloadThread;
 
-	protected boolean downloadCancelled;
+    protected boolean downloadCancelled;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		
-		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
-		
-		mScanner = StorageManager.getInstance(this);
-		mScanner.setHandler(mHandler);
-		mScanner.checkExisting();
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
-		Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
-		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursor,
-				new String[] { Games.TITLE, Games.AUTHOR }, new int[] { android.R.id.text1, android.R.id.text2 });
-		
-		setListAdapter(adapter);
-		
-		setContentView(R.layout.games_list);
-		findViewById(R.id.go_to_ifdb).setOnClickListener(this);
-		findViewById(R.id.download_preselected).setOnClickListener(this);
+        setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 
-		startScan();
-	}
+        mScanner = StorageManager.getInstance(this);
+        mScanner.setHandler(mHandler);
+        mScanner.checkExisting();
 
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		MenuInflater inflater = new MenuInflater(getApplication());
-		inflater.inflate(R.layout.menu_main, menu);
-		return true;
-	}
+        Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursor,
+                new String[]{Games.TITLE, Games.AUTHOR}, new int[]{android.R.id.text1, android.R.id.text2});
 
-	@Override
-	public boolean onMenuItemSelected(int featureId, MenuItem item) {
-		Intent intent;
-		switch (item.getNumericShortcut()) {
-		case '1':
-			intent = new Intent(this, PreferencesActivity.class);
-			startActivity(intent);
-			break;
-		case '2':
-			AlertDialog builder;
-			try {
-				builder = AboutDialogBuilder.show(this);
-			} catch (NameNotFoundException e) {
-				e.printStackTrace();
-			}
-			break;
-		}
-		return super.onMenuItemSelected(featureId, item);
-	}
-	
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-		Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(id), this, GameDetails.class);
-		startActivity(i);
-	}
+        setListAdapter(adapter);
 
-	private void startScan() {
-		setProgressBarIndeterminateVisibility(true);
-		
-		mScanner.startScan();
-	}
+        setContentView(R.layout.games_list);
+        findViewById(R.id.go_to_ifdb).setOnClickListener(this);
+        findViewById(R.id.download_preselected).setOnClickListener(this);
 
-	private void startLookup() {
-		IFDb ifdb = IFDb.getInstance(getContentResolver());
-		ifdb.startLookup(new Handler() {
-			@Override
-			public void handleMessage(Message msg) {
-				Toast.makeText(GamesList.this, R.string.ifdb_connection_error, Toast.LENGTH_LONG).show();
-			}
-		});
-	}
+        SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+        if (sharedPreferences.getBoolean("firstStart", true)) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            String[] defaults = new String[]{"look", "examine", "take", "inventory", "ask", "drop", "tell", "again", "open", "close", "give", "show"};
+            for (int i = 0; i < defaults.length; i++)
+                editor.putString(i + "", defaults[i]);
+            editor.putBoolean("firstStart", false);
+            editor.commit();
+        }
 
-	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
-		case R.id.go_to_ifdb:
-			startActivity(new Intent(Intent.ACTION_DEFAULT, Uri.parse("http://ifdb.tads.org")));
-			break;
-		case R.id.download_preselected:
-			downloadPreselected();
-			break;
-		}
-	}
+        startScan();
+    }
 
-	private void downloadPreselected() {
-		downloadCancelled = false;
-		
-		progressDialog = new ProgressDialog(this);
-		progressDialog.setTitle(R.string.please_wait); 
-		progressDialog.setMessage(getString(R.string.downloading_stories));
-		progressDialog.setCancelable(true);
-		progressDialog.setOnCancelListener(
-				new OnCancelListener() {
-					@Override
-					public void onCancel(DialogInterface dialog) {
-						synchronized (downloadThread) {
-							downloadCancelled = true;
-						}
-						downloadThread.interrupt();
-					}
-				}
-			);
-		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		progressDialog.setMax(BEGINNER_GAMES.length);
-		progressDialog.show();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = new MenuInflater(getApplication());
+        inflater.inflate(R.layout.menu_main, menu);
+        return true;
+    }
 
-		downloadThread = new Thread() {
-			@Override
-			public void run() {
-				int i = 0;
-				for (String s : BEGINNER_GAMES) {
-					synchronized(this) {
-						if (downloadCancelled)
-							return;
-					}
-					try {
-						final URL u = new URL(s);
-						final String fileName = Uri.parse(s).getLastPathSegment();
-						Utils.copyStream(u.openStream(), new FileOutputStream(new File(Paths.ifDirectory(), fileName)));
-					} catch (MalformedURLException e) {
-						Log.e(TAG, "malformed URL when fetching " + s, e);
-					} catch (FileNotFoundException e) {
-						Log.e(TAG, "file not found when fetching " + s, e);
-					} catch (IOException e) {
-						Log.e(TAG, "I/O error when fetching " + s, e);
-					}
-					progressDialog.setProgress(++i);
-				}
-				
-				try {
-					mScanner.scan(Paths.ifDirectory());
-					IFDb.getInstance(getContentResolver()).lookupGames();
-				} catch (IOException e) {
-					Log.e(TAG, "I/O error when fetching metadata", e);
-				}
-				
-				progressDialog.dismiss();
-			}
-		};
-		
-		downloadThread.start();
-	}
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        Intent intent;
+        switch (item.getNumericShortcut()) {
+            case '1':
+                intent = new Intent(this, PreferencesActivity.class);
+                startActivity(intent);
+                break;
+            case '2':
+                AlertDialog builder;
+                try {
+                    builder = AboutDialogBuilder.show(this);
+                } catch (NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+                break;
+        }
+        return super.onMenuItemSelected(featureId, item);
+    }
+
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(id), this, GameDetails.class);
+        startActivity(i);
+    }
+
+    private void startScan() {
+        setProgressBarIndeterminateVisibility(true);
+
+        mScanner.startScan();
+    }
+
+    private void startLookup() {
+        IFDb ifdb = IFDb.getInstance(getContentResolver());
+        ifdb.startLookup(new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                Toast.makeText(GamesList.this, R.string.ifdb_connection_error, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.go_to_ifdb:
+                startActivity(new Intent(Intent.ACTION_DEFAULT, Uri.parse("http://ifdb.tads.org")));
+                break;
+            case R.id.download_preselected:
+                downloadPreselected();
+                break;
+        }
+    }
+
+    private void downloadPreselected() {
+        downloadCancelled = false;
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle(R.string.please_wait);
+        progressDialog.setMessage(getString(R.string.downloading_stories));
+        progressDialog.setCancelable(true);
+        progressDialog.setOnCancelListener(
+                new OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        synchronized (downloadThread) {
+                            downloadCancelled = true;
+                        }
+                        downloadThread.interrupt();
+                    }
+                }
+        );
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setMax(BEGINNER_GAMES.length);
+        progressDialog.show();
+
+        downloadThread = new Thread() {
+            @Override
+            public void run() {
+                int i = 0;
+                for (String s : BEGINNER_GAMES) {
+                    synchronized (this) {
+                        if (downloadCancelled)
+                            return;
+                    }
+                    try {
+                        final URL u = new URL(s);
+                        final String fileName = Uri.parse(s).getLastPathSegment();
+                        Utils.copyStream(u.openStream(), new FileOutputStream(new File(Paths.ifDirectory(), fileName)));
+                    } catch (MalformedURLException e) {
+                        Log.e(TAG, "malformed URL when fetching " + s, e);
+                    } catch (FileNotFoundException e) {
+                        Log.e(TAG, "file not found when fetching " + s, e);
+                    } catch (IOException e) {
+                        Log.e(TAG, "I/O error when fetching " + s, e);
+                    }
+                    progressDialog.setProgress(++i);
+                }
+
+                try {
+                    mScanner.scan(Paths.ifDirectory());
+                    IFDb.getInstance(getContentResolver()).lookupGames();
+                } catch (IOException e) {
+                    Log.e(TAG, "I/O error when fetching metadata", e);
+                }
+
+                progressDialog.dismiss();
+            }
+        };
+
+        downloadThread.start();
+    }
 }

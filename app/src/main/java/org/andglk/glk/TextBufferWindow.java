@@ -893,19 +893,20 @@ public class TextBufferWindow extends Window {
                         mHLView.setPadding(0, 0, 0, 0);//better than (pad,0,pad,pad)
                         final ViewGroup viewGroup = new LinearLayout(mContext);
                         SharedPreferences sharedPreferences = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
-                        for (int i = 0; i < sharedPreferences.getAll().size(); i++) {
+                        for (int i = 0; i < sharedPreferences.getAll().size() - 1; i++) {
                             String text = sharedPreferences.getString(i + "", "n.v.");
                             if (!text.equals("n.v")) {
                                 CardView cardView = new CardView(mContext);
-                                cardView.setMinimumHeight(80);
-                                cardView.setMinimumWidth(100);
+                                cardView.setMinimumHeight(140);
+                                cardView.setMinimumWidth(150);
                                 cardView.setRadius(10);
                                 cardView.setCardBackgroundColor(R.color.shortcutsColor);
                                 final TextView textView = new TextView(mContext);
                                 textView.setText(text);
-                                textView.setPadding(10, 10, 10, 10);
-                                textView.setGravity(Gravity.CENTER);
+                                textView.setPadding(20, 30, 20, 0);
+                                textView.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
                                 cardView.addView(textView);
+                                cardView.setPadding(20, 20, 20, 20);
                                 cardView.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {

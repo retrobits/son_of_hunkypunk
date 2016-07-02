@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="preferences"
+    android:title="@string/preferences">
     <PreferenceCategory android:title="Fonts">
         <ListPreference
             android:defaultValue="16"
@@ -23,15 +25,18 @@
             android:summary="Custom TTF font file"
             android:title="Font file name" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Words">
+    <PreferenceCategory android:title="Type to copy words">
+        <SwitchPreference
+            android:id="@+id/enable_list"
+            android:key="enablelist"
+            android:title="Enable Shortcuts List" />
         <PreferenceScreen
             android:key="manageshortcuts"
             android:title="@string/manageshortcuts">
             <PreferenceCategory android:title="Settings">
-                <SwitchPreference
-                    android:id="@+id/enable_list"
-                    android:key="enablelist"
-                    android:title="Enable Shortcuts List" />
+                <Preference
+                    android:key="restoredefaultshortcuts"
+                    android:title="@string/restoredefaultshortcuts" />
                 <Preference
                     android:key="addshortcut"
                     android:title="@string/addshortcut" />
