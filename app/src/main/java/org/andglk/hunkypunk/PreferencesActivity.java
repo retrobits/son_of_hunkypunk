@@ -63,6 +63,7 @@ public class PreferencesActivity
         }
 
         final Preference dpref = findPreference("defaultif");
+        dpref.setSummary(Paths.cardDirectory().getPath() + "/Interactive Fiction");
         if (dpref != null) {
             dpref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
@@ -76,7 +77,7 @@ public class PreferencesActivity
                     SharedPreferences.Editor editor = sharedPrefs.edit();
                     editor.putString("ifPath", Paths.ifDirectory().getAbsolutePath());
                     editor.commit();
-                    dpref.setSummary(Paths.cardDirectory().getPath() + "/Interactive Fiction is set.");
+
                     return false;
                 }
             });
