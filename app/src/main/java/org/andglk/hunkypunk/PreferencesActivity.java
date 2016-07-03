@@ -78,7 +78,6 @@ public class PreferencesActivity
 						// since it is used only when in the same View instance to change color
 						// of momentarily inputted text (on the go)
 						//NOT RESTORED since only needed at runtime
-						org.andglk.glk.TextBufferWindow.ChangeTypeInColor = true;
 						//store the switch-state
 						editor.putBoolean("NightOn", true);
 						editor.commit();
@@ -88,7 +87,6 @@ public class PreferencesActivity
 						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
 						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
 						org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_INPUT;
-						org.andglk.glk.TextBufferWindow.ChangeTypeInColor = true;
 
 						editor.putBoolean("NightOn", false);
 						editor.commit();

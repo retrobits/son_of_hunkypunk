@@ -383,6 +383,8 @@ public abstract class Window extends CPointed {
 				return R.style.night_header;
 		case Glk.STYLE_NIGHT_SUBHEADER:
 				return R.style.night_subheader;
+		case Glk.STYLE_NIGHT_FORMAT:
+				return R.style.night_format;
 		default:
 			//Log.w("Glk/Window", "unknown style: " + Integer.toString(style));
 			return R.style.normal;

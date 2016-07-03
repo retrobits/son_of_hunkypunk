@@ -36,6 +36,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Editable;
+import android.text.Selection;
 import android.text.method.MovementMethod;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -124,7 +125,7 @@ public class TextBufferWindow extends Window {
 		mView.readState(stream);
 	}
 	
-	public class _Stream extends Stream {
+	private class _Stream extends Stream {
 		private long mCurrentStyle = Glk.STYLE_NORMAL;
 		private boolean mReverseVideo = false;
 		private final StringBuilder mBuffer = new StringBuilder();
@@ -156,7 +157,7 @@ public class TextBufferWindow extends Window {
 			mReverseVideo = (reverse != 0);
 		}
 
-		public void applyStyle() {
+		private void applyStyle() {
 			if (mBuffer != null && mBuffer.length() == 0)
 				return;
 			
@@ -219,27 +220,6 @@ public class TextBufferWindow extends Window {
 
 		public boolean mCharInputEnabled;
 		public boolean mLineInputEnabled;
-		protected View.OnKeyListener listener = new View.OnKeyListener() {
-			@Override
-			public boolean onKey(View view, int i, KeyEvent keyEvent) {
-				if(keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER && TextBufferWindow.this.ChangeTypeInColor) {
-					TextBufferWindow.this.ChangeTypeInColor = false;
-					dispatchKeyEvent(keyEvent);
-					return true;
-				}else{
-					return false;
-				}
-			}
-		};
-
-		private void updateInput(Editable s) {
-			if (TextBufferWindow.this.ChangeTypeInColor) {
-				SpannableString text = new SpannableString(s.toString());
-				Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
-				s.setSpan(sp, 0, text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			}
-		}
-
 		private TextWatcher mWatcher = 
 			new TextWatcher() 
 			{
@@ -247,7 +227,6 @@ public class TextBufferWindow extends Window {
 				}
 					
 				public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-						updateInput(getText());
 				}
 					
 				public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -305,7 +284,7 @@ public class TextBufferWindow extends Window {
 		public _CommandView(Context context) {
 			super(context, null, R.attr.textBufferWindowEditStyle);
 
-			setTextColor(TextBufferWindow.this.DefaultTextColor);
+			//setTextColor(TextBufferWindow.this.DefaultTextColor);
 
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
@@ -313,7 +292,17 @@ public class TextBufferWindow extends Window {
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 			addTextChangedListener(mWatcher);
-			setOnKeyListener(listener);
+			setTextStyle(this);
+		}
+
+		/** Dont put into the onPreDraw, it crashes the app and destroys game progress */
+		private void setTextStyle(EditText etext) {
+			SpannableStringBuilder temp = new SpannableStringBuilder();
+			temp = temp.append(etext.getText().toString());
+			temp.setSpan(_stylehints.getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+					, 0, temp.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+			etext.setText(temp);
+			Selection.setSelection(etext.getText(), etext.getText().length());
 		}
 
 		public void clear() {
@@ -383,10 +372,8 @@ public class TextBufferWindow extends Window {
 				mPrompt.setTextSize(FontSize);
 			}
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			setTextColor(TextBufferWindow.this.DefaultTextColor);
-			if (TextBufferWindow.this.ChangeTypeInColor) {
-				updateInput(getText());
-			}
+			//setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			return true;
 		}
 	}
@@ -727,7 +714,7 @@ public class TextBufferWindow extends Window {
 	public static int DefaultBackground = Color.WHITE;
 	public static int DefaultTextColor = Color.BLACK;
 	public static int DefaultInputStyle = Glk.STYLE_INPUT;
-	public static boolean ChangeTypeInColor = false;
+	//public static boolean ChangeTypeInColor = false;
 	/*Night Mode Vars*/
 
 	public String FontPath = null;
@@ -738,6 +725,7 @@ public class TextBufferWindow extends Window {
 	private _CommandView mCommand2 = null;
 	private _PromptView mPrompt = null;
 	private LinearLayout mLayout = null;
+	private LinearLayout hl = null;
 	private CharSequence mCommandText = null;
 	private Object mLineInputSpan;
 
@@ -780,10 +768,12 @@ public class TextBufferWindow extends Window {
 					mLayout = new LinearLayout(mContext);
 					mLayout.setOrientation(LinearLayout.VERTICAL);
 					mLayout.setPadding(0, 0, 0, 0);
+					mLayout.setBackgroundColor(DefaultBackground);
 
-					LinearLayout hl = new LinearLayout(mContext);
+					hl = new LinearLayout(mContext);
 					hl.setPadding(0, 0, 0, 0);
 					hl.setOrientation(LinearLayout.HORIZONTAL);
+					hl.setBackgroundColor(DefaultBackground);
 				   
 					mCommand1 = new _CommandView(mContext);
 					mCommand1.setPadding(pad, 0, pad, pad);
@@ -814,8 +804,20 @@ public class TextBufferWindow extends Window {
 					mLayout.addView(mView,paramsDefault);
 					mLayout.addView(hl,paramsHLayout);
 
+					mScrollView.setBackgroundColor(DefaultBackground);
 					mScrollView.addView(mLayout);
 					mStream = new _Stream();
+
+					mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+						@Override
+						public boolean onPreDraw () {
+							mScrollView.setBackgroundColor(DefaultBackground);
+							mLayout.setBackgroundColor(DefaultBackground);
+							hl.setBackgroundColor(DefaultBackground);
+
+							return true;
+						}
+					});
 				}
 			});
 	}

@@ -104,4 +104,8 @@
 		<item name="android:textColor">#ffffff</item>
 	</style>
 
+	<style name="night_format" parent="@style/TextGridWindow.TextAppearance">
+		<item name="android:textColor">#e5fff6</item>
+	</style>
+
 </resources>

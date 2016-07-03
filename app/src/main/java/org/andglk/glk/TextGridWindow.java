@@ -155,7 +155,7 @@ public class TextGridWindow extends Window {
 	}
 
 	public boolean mChanged;
-	
+
 	protected class View extends android.view.View {
 		private final int _fontSize;
 		private final Paint mPaint;
@@ -197,7 +197,7 @@ public class TextGridWindow extends Window {
 			mPaint.setSubpixelText(true);
 
 			mBackPaint = new Paint();
-			mBackPaint.setColor(0xffffffff);
+			mBackPaint.setColor(TextBufferWindow.DefaultBackground);
 			mBackPaint.setStyle(Style.FILL);
 
 			mWidth = mHeight = 0;
