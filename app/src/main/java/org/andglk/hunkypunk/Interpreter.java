@@ -60,7 +60,10 @@ public class Interpreter extends Activity {
     public void onCreate(Bundle savedInstanceState) {
     	System.loadLibrary("andglk-loader");
 
-    	setTheme(R.style.theme);
+		if (getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false))
+			setTheme(R.style.theme2);
+		else
+    		setTheme(R.style.theme1);
 		setFont();
 
         Intent i = getIntent();
@@ -109,7 +112,7 @@ public class Interpreter extends Activity {
 			value.
 		 */
 		SharedPreferences sharedPrefs = getSharedPreferences("Night", Context.MODE_PRIVATE);
-		if (sharedPrefs.getBoolean("NightOn", false) == true) {
+		if (sharedPrefs.getBoolean("NightOn", false)) {
 			org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
 			org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
 			org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;

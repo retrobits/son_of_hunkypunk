@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
+
 
 /** This class handles all the styles a window can have. 
  * */
@@ -194,13 +196,13 @@ public class Styles {
 		if (reverse || Integer.valueOf(1).equals(hints[Glk.STYLEHINT_REVERSECOLOR])) {
 			// swap background and foreground colors
 			int color = ds.getColor();
-			if (TextBufferWindow.DefaultTextColor == Color.WHITE) {//it's day
+			if (TextBufferWindow.DefaultTextColor == Color.WHITE) {//it's night
 				ds.setColor(TextBufferWindow.DefaultTextColor);
 				ds.bgColor = Color.BLACK;
-				reverse = true;
+				//reverse = true;
 			} else {
-			ds.setColor(ds.bgColor);
-			ds.bgColor = color;
+					ds.setColor(ds.bgColor);
+					ds.bgColor = color;
 			}
 		}
 	}

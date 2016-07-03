@@ -36,6 +36,7 @@ import android.os.Parcelable;
 import android.text.TextPaint;
 import android.util.FloatMath;
 import android.view.KeyEvent;
+import android.view.ViewTreeObserver;
 
 public class TextGridWindow extends Window {
 	 public static class TextGridParcelable implements Parcelable {
@@ -201,6 +202,15 @@ public class TextGridWindow extends Window {
 			mBackPaint.setStyle(Style.FILL);
 
 			mWidth = mHeight = 0;
+
+			mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+				@Override
+				public boolean onPreDraw () {
+					mPaint.setColor(mDefaultColor);
+					mBackPaint.setColor(TextBufferWindow.DefaultBackground);
+					return true;
+				}
+			});
 		}
 
 		public void setStyle(int styl) {

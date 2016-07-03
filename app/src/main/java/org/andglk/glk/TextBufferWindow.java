@@ -157,7 +157,7 @@ public class TextBufferWindow extends Window {
 			mReverseVideo = (reverse != 0);
 		}
 
-		private void applyStyle() {
+		public void applyStyle() {
 			if (mBuffer != null && mBuffer.length() == 0)
 				return;
 			
@@ -702,6 +702,7 @@ public class TextBufferWindow extends Window {
 			}
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 			setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			//setTextIsSelectable(true); //JUST DONT
 			return true;
 		}
@@ -714,7 +715,6 @@ public class TextBufferWindow extends Window {
 	public static int DefaultBackground = Color.WHITE;
 	public static int DefaultTextColor = Color.BLACK;
 	public static int DefaultInputStyle = Glk.STYLE_INPUT;
-	//public static boolean ChangeTypeInColor = false;
 	/*Night Mode Vars*/
 
 	public String FontPath = null;
