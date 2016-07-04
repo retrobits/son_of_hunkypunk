@@ -349,13 +349,6 @@ public class TextBufferWindow extends Window {
 			setFocusable(false);
 		}
 
-
-		/*Concept as a night variant*/
-		private void buildNightKeyboard(Context context) {
-			//KeyboardView nKeyboard = new KeyboardView(context, null);
-
-		}
-
 		private void showKeyboard(){
 			(new Handler()).postDelayed(
 				new Runnable() {
