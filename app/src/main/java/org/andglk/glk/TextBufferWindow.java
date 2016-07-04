@@ -31,6 +31,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.inputmethodservice.KeyboardView;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -293,6 +294,7 @@ public class TextBufferWindow extends Window {
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 			addTextChangedListener(mWatcher);
 			setTextStyle(this);
+
 		}
 
 		/** Dont put into the onPreDraw, it crashes the app and destroys game progress */
@@ -303,6 +305,14 @@ public class TextBufferWindow extends Window {
 					, 0, temp.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 			etext.setText(temp);
 			Selection.setSelection(etext.getText(), etext.getText().length());
+		}
+
+		private void updateInput(Editable s) {
+			if (mContext.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
+				SpannableString text = new SpannableString(s.toString());
+				Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
+				s.setSpan(sp, 0, text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}
 		}
 
 		public void clear() {
@@ -339,6 +349,13 @@ public class TextBufferWindow extends Window {
 			setFocusable(false);
 		}
 
+
+		/*Concept as a night variant*/
+		private void buildNightKeyboard(Context context) {
+			//KeyboardView nKeyboard = new KeyboardView(context, null);
+
+		}
+
 		private void showKeyboard(){
 			(new Handler()).postDelayed(
 				new Runnable() {
@@ -372,7 +389,7 @@ public class TextBufferWindow extends Window {
 				mPrompt.setTextSize(FontSize);
 			}
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			//setTextColor(TextBufferWindow.this.DefaultTextColor);
+			updateInput(getText());
 
 			return true;
 		}
