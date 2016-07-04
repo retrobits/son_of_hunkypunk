@@ -298,17 +298,4 @@ public class Interpreter extends Activity {
 
 		outState.putParcelableArrayList("windowStates", states);
 	}
-
-
-	/**
-	 *  A method for recursively finding a view given a tag. If there
-	 *  is no view with such tag, then the parameter is not set and
-	 *  keeps its previous value unchanged.
-	 *
-	 *
-	 * @param vg  parent ViewGroup from which the iteration starts
-	 * @param tag Tag Object to identify the needed View
-     */
-
-
 }

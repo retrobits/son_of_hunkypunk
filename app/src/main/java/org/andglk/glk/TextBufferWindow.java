@@ -394,6 +394,7 @@ public class TextBufferWindow extends Window {
             private float mDownY;
             private final float SCROLL_THRESHOLD = 10;
             private boolean isOnClick;
+            private long downTime;
 
             public boolean onGenericMotionEvent(TextView widget, Spannable text, MotionEvent event) {
                 return false;
@@ -428,38 +429,51 @@ public class TextBufferWindow extends Window {
             }
 
             @Override
-            public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
+            public boolean onTouchEvent(final TextView widget, Spannable text, MotionEvent event) {
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
                         mDownX = event.getX();
                         mDownY = event.getY();
                         isOnClick = true;
+                        downTime = event.getEventTime();
                         break;
                     case MotionEvent.ACTION_CANCEL:
                     case MotionEvent.ACTION_UP:
-                        if (isOnClick) {
-                            //TODO onClick code
-                            float x = event.getX() + getScrollX();
-                            int offset = getOffset(event);
-                            if (offset != Integer.MIN_VALUE) {
-                                if (x > getLayout().getLineMax(0)) {
-                                    String selectedText = stringHelper(offset);
-                                    if (selectedText.length() > 0) {
-                                        Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
-                                        putInClipMemory(selectedText);
+                        long time = event.getEventTime() - downTime;
+                                if (isOnClick && time > 300) {
+                                    float x = mDownX + getScrollX();
+                                    int offset = getOffset(event);
+                                    if (offset != Integer.MIN_VALUE) {
+                                        if (x > getLayout().getLineMax(0)) {
+                                            String selectedText = stringHelper(offset);
+                                            if (selectedText.length() > 0) {
+                                                Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+                                                //putInClipMemory(selectedText);
+                                                SpannableStringBuilder copyText = new SpannableStringBuilder();
+                                                copyText = copyText.append(selectedText);
+                                                copyText.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                                                        , 0, copyText.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                                                TextBufferWindow.this.mActiveCommand.setText(copyText);
+                                                TextBufferWindow.this.mActiveCommand.setSelection(copyText.length());
+                                            }
+                                        } else {
+                                            String selectedText = stringHelper(offset - 1);
+                                            if (selectedText.length() > 0) {
+                                                Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+                                                //putInClipMemory(selectedText);
+                                                SpannableStringBuilder copyText = new SpannableStringBuilder();
+                                                copyText = copyText.append(selectedText);
+                                                copyText.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                                                        , 0, copyText.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                                                TextBufferWindow.this.mActiveCommand.setText(copyText);
+                                                TextBufferWindow.this.mActiveCommand.setSelection(copyText.length());
+                                            }
+                                        }
                                     }
-                                } else {
-                                    String selectedText = stringHelper(offset - 1);
-                                    if (selectedText.length() > 0) {
-                                        Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
-                                        putInClipMemory(selectedText);
-                                    }
+                                    //Go to input line
+                                    TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
+                                    TextBufferWindow.this.mActiveCommand.showKeyboard();
                                 }
-                            }
-                            //Go to input line
-                            TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
-                            TextBufferWindow.this.mActiveCommand.showKeyboard();
-                        }
                         break;
                     case MotionEvent.ACTION_MOVE:
                         if (isOnClick && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
@@ -635,6 +649,7 @@ public class TextBufferWindow extends Window {
             //setTextSize(DefaultFontSize);
             setTypeface(TextBufferWindow.this.getDefaultTypeface());
             setReadOnly(this, true);
+
         }
 
         private void setReadOnly(final TextView view, final boolean readOnly) {
@@ -675,10 +690,10 @@ public class TextBufferWindow extends Window {
 
             return selectedText;
         }
-
-        private void putInClipMemory(String str) {
+        //not used, send directly to CommandView
+        /*private void putInClipMemory(String str) {
             if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
-                //TODO: check if getAppContext returns instance of app
+                //TO DO: check if getAppContext returns instance of app
                 android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
                 clipboard.setText(str);
             } else {
@@ -686,7 +701,7 @@ public class TextBufferWindow extends Window {
                 android.content.ClipData clip = android.content.ClipData.newPlainText("Text copied.", str);
                 clipboard.setPrimaryClip(clip);
             }
-        }
+        }*/
 
         private CharSequence mLastLine = null;
         private boolean mTrailingCr = false;
@@ -932,6 +947,16 @@ public class TextBufferWindow extends Window {
                     }
                 });
     }
+
+    /**
+     *  A method for recursively finding a view given a tag. If there
+     *  is no view with such tag, then the parameter is not set and
+     *  keeps its previous value unchanged.
+     *
+     *
+     * @param vg  parent ViewGroup from which the iteration starts
+     * @param tag Tag Object to identify the needed View
+     */
 
     public View findViewByTag(ViewGroup vg, Object tag) {
 
