@@ -22,6 +22,7 @@ package org.andglk.glk;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Set;
 
 import org.andglk.glk.Styles.StyleSpan;
 import org.andglk.hunkypunk.R;
@@ -440,40 +441,61 @@ public class TextBufferWindow extends Window {
                     case MotionEvent.ACTION_CANCEL:
                     case MotionEvent.ACTION_UP:
                         long time = event.getEventTime() - downTime;
-                                if (isOnClick && time > 300) {
-                                    float x = mDownX + getScrollX();
-                                    int offset = getOffset(event);
-                                    if (offset != Integer.MIN_VALUE) {
-                                        if (x > getLayout().getLineMax(0)) {
-                                            String selectedText = stringHelper(offset);
-                                            if (selectedText.length() > 0) {
-                                                Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
-                                                //putInClipMemory(selectedText);
-                                                SpannableStringBuilder copyText = new SpannableStringBuilder();
-                                                copyText = copyText.append(selectedText);
-                                                copyText.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-                                                        , 0, copyText.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                                                TextBufferWindow.this.mActiveCommand.setText(copyText);
-                                                TextBufferWindow.this.mActiveCommand.setSelection(copyText.length());
-                                            }
-                                        } else {
-                                            String selectedText = stringHelper(offset - 1);
-                                            if (selectedText.length() > 0) {
-                                                Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
-                                                //putInClipMemory(selectedText);
-                                                SpannableStringBuilder copyText = new SpannableStringBuilder();
-                                                copyText = copyText.append(selectedText);
-                                                copyText.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-                                                        , 0, copyText.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                                                TextBufferWindow.this.mActiveCommand.setText(copyText);
-                                                TextBufferWindow.this.mActiveCommand.setSelection(copyText.length());
-                                            }
+                        if (isOnClick && time > 100) {
+                            float x = mDownX + getScrollX();
+                            int offset = getOffset(event);
+                            if (offset != Integer.MIN_VALUE) {
+                                if (x > getLayout().getLineMax(0)) {
+                                    String selectedText = stringHelper(offset);
+                                    if (selectedText.length() > 0) {
+                                        Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+
+                                        mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                                        SpannableStringBuilder output = new SpannableStringBuilder();
+                                        String userInput = mCommandView.getText().toString();
+
+                                        if (userInput.contains("<%>")) {
+                                            userInput = userInput.replaceFirst("<%>", selectedText);
+                                            output.append(userInput);
+                                        } else if (!userInput.equals("")) {
+                                            output.append(userInput + " ");
+                                            output.append(selectedText);
                                         }
+                                        output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                                                , 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+
+                                        //TextBufferWindow.this.mActiveCommand.setText(output);
+                                        // mActiveCommand.setSelection(copyText.length());
+                                        if (!userInput.contains("<%>") && output.subSequence(output.length() - 1, output.length()).toString().equals("$")) {
+                                            mCommandView.setText(output.subSequence(0, output.length() - 1));
+                                            mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                                        } else
+                                            mCommandView.setText(output);
+
+                                        TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
+                                        TextBufferWindow.this.mActiveCommand.showKeyboard();
+                                        TextBufferWindow.this.mActiveCommand.selectAll();
                                     }
-                                    //Go to input line
-                                    TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
-                                    TextBufferWindow.this.mActiveCommand.showKeyboard();
+                                } else {
+                                    Toast.makeText(mContext, "hui", Toast.LENGTH_LONG);
+                                    /*String selectedText = stringHelper(offset - 1);
+                                    if (selectedText.length() > 0) {
+                                        Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+                                        //putInClipMemory(selectedText);
+                                        SpannableStringBuilder copyText = new SpannableStringBuilder();
+                                        copyText = copyText.append(selectedText);
+                                        copyText.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                                                , 0, copyText.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                                        TextBufferWindow.this.mActiveCommand.setText(copyText);
+                                        TextBufferWindow.this.mActiveCommand.setSelection(copyText.length());
+                                    }*/
                                 }
+                            }
+                            //Go to input line
+
+
+                        }
                         break;
                     case MotionEvent.ACTION_MOVE:
                         if (isOnClick && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
@@ -484,6 +506,7 @@ public class TextBufferWindow extends Window {
                     default:
                         break;
                 }
+
                 return true;
             }
 
@@ -907,17 +930,19 @@ public class TextBufferWindow extends Window {
                         mHLView = new _HorListView(mContext);
                         mHLView.setPadding(0, 0, 0, 0);//better than (pad,0,pad,pad)
                         final ViewGroup viewGroup = new LinearLayout(mContext);
-                        SharedPreferences sharedPreferences = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
-                        for (int i = 0; i < sharedPreferences.getAll().size() - 1; i++) {
-                            String text = sharedPreferences.getString(i + "", "n.v.");
-                            if (!text.equals("n.v")) {
+                        final SharedPreferences sharedPreferences = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
+                        Set<String> keys = sharedPreferences.getAll().keySet();
+                        for (final String s : keys) {
+                            if (!s.matches("#.*")) {
                                 CardView cardView = new CardView(mContext);
                                 cardView.setMinimumHeight(140);
                                 cardView.setMinimumWidth(150);
                                 cardView.setRadius(10);
                                 cardView.setCardBackgroundColor(R.color.shortcutsColor);
                                 final TextView textView = new TextView(mContext);
-                                textView.setText(text);
+                                textView.setText(s);
+                                final String command = sharedPreferences.getString(s, "");
+                                textView.setTag(command);
                                 textView.setPadding(20, 30, 20, 0);
                                 textView.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
                                 cardView.addView(textView);
@@ -925,12 +950,16 @@ public class TextBufferWindow extends Window {
                                 cardView.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        shortcutCommand(textView);
+                                        if (command.endsWith("$") && !command.contains("<%>"))
+                                            shortcutCommandEnter(textView);
+                                        else
+                                            shortcutCommand(textView);
                                     }
                                 });
                                 viewGroup.addView(cardView);
                             }
                         }
+
                         mHLView.addView(viewGroup);
                         hll.addView(mHLView, paramsLView);
 
@@ -949,10 +978,9 @@ public class TextBufferWindow extends Window {
     }
 
     /**
-     *  A method for recursively finding a view given a tag. If there
-     *  is no view with such tag, then the parameter is not set and
-     *  keeps its previous value unchanged.
-     *
+     * A method for recursively finding a view given a tag. If there
+     * is no view with such tag, then the parameter is not set and
+     * keeps its previous value unchanged.
      *
      * @param vg  parent ViewGroup from which the iteration starts
      * @param tag Tag Object to identify the needed View
@@ -1005,22 +1033,21 @@ public class TextBufferWindow extends Window {
             boolean semaphore = true;
             while (semaphore) {
                 animate(v);
+                SpannableStringBuilder userInput = new SpannableStringBuilder(mCommandView.getText().toString());
+                String userCommand = tempView.getTag().toString();
+                userCommand = userCommand.substring(0, userCommand.length() - 1);
+                if (!userCommand.equals(""))
+                    mCommandView.setText(userInput + " " + userCommand);
+                else
+                    mCommandView.setText(userCommand);
 
-                String text = tempView.getText().toString();
-                SpannableStringBuilder temp = new SpannableStringBuilder();
-                temp = temp.append(mCommandView.getText().toString());
-                mCommandView.setText(text);
-                //no need to set selector and style, since text is already sent
-                //dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+
+                mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
 
                 mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
-                if (mCommandView != null) {
-                    temp.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-                            , 0, temp.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    mCommandView.setText(temp);
-                    Toast.makeText(mGlk.getContext(), String.valueOf(temp.length()), Toast.LENGTH_SHORT).show();//testing
-                    Selection.setSelection(toEditable(mCommandView), temp.length());
-                    //for some reason it remains at head
+                if (mCommandView != null && userCommand.equals("Inventory")) {
+                    userInput.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false), 0, userInput.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    mCommandView.setText(userInput);
                 }
                 semaphore = false;
             }
@@ -1038,13 +1065,16 @@ public class TextBufferWindow extends Window {
         tempView = (TextView) v;
         if (mCommandView != null) {
             animate(v);
+            String userInput = mCommandView.getText().toString();
+            String shortcutCommand = tempView.getTag().toString();
 
-            SpannableStringBuilder text = new SpannableStringBuilder();
-            text = text.append(tempView.getText().toString());
-            text.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-                    , 0, text.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            mCommandView.setText(text);
-            Selection.setSelection(toEditable(mCommandView), text.length());
+            //shortcutCommand.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+            //      , 0, shortcutCommand.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            if (!userInput.equals(""))
+                mCommandView.setText(userInput + " " + shortcutCommand);
+            else
+                mCommandView.setText(shortcutCommand);
+            Selection.setSelection(toEditable(mCommandView), shortcutCommand.length());
         } else {
             //Of course not (reachable)
             Toast.makeText(mGlk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();

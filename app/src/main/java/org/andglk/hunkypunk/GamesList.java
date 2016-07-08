@@ -125,8 +125,8 @@ public class GamesList extends ListActivity implements OnClickListener {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             String[] defaults = new String[]{"look", "examine", "take", "inventory", "ask", "drop", "tell", "again", "open", "close", "give", "show"};
             for (int i = 0; i < defaults.length; i++)
-                editor.putString(i + "", defaults[i]);
-            editor.putBoolean("firstStart", false);
+                editor.putString(defaults[i], defaults[i]);
+            editor.putBoolean("#firstStart", false);
             editor.commit();
         }
 

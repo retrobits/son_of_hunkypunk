@@ -35,10 +35,10 @@
             android:title="@string/manageshortcuts">
             <PreferenceCategory android:title="Settings">
                 <Preference
-                    android:key="restoredefaultshortcuts"
+                    android:key="#restoredefaultshortcuts"
                     android:title="@string/restoredefaultshortcuts" />
                 <Preference
-                    android:key="addshortcut"
+                    android:key="#addshortcut"
                     android:title="@string/addshortcut" />
             </PreferenceCategory>
             <PreferenceCategory

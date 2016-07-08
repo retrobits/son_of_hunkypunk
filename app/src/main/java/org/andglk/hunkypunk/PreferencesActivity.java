@@ -21,12 +21,17 @@ package org.andglk.hunkypunk;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.SyncStatusObserver;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.EditTextPreference;
@@ -37,6 +42,7 @@ import android.preference.PreferenceScreen;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 public class PreferencesActivity
@@ -50,11 +56,20 @@ public class PreferencesActivity
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         PreferenceCategory cat = (PreferenceCategory) findPreference("shortcuts");
         Preference pref;
-        for (int i = 0; i < sharedPreferences.getAll().size() - 1; i++) {
-            pref = new Preference(getApplicationContext());
-            pref.setKey(i + "");
-            pref.setTitle(sharedPreferences.getString(i + "", "-1"));
-            cat.addPreference(pref);
+        Set<String> keySet = sharedPreferences.getAll().keySet();
+        ArrayList<Map.Entry<String, ?>> prefList = new ArrayList<Map.Entry<String, ?>>();
+        for (Map.Entry<String, ?> map : sharedPreferences.getAll().entrySet()) {
+            prefList.add(map);
+
+        }
+        for (String s : keySet) {
+            if (!s.matches("#.*")) {
+                pref = new Preference(getApplicationContext());
+                pref.setKey(s);
+                pref.setTitle(s);
+                pref.setSummary(sharedPreferences.getString(s, ""));
+                cat.addPreference(pref);
+            }
         }
     }
 
@@ -65,25 +80,32 @@ public class PreferencesActivity
 
     @Override
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, final Preference preference) {
-        if (preference.getKey().equals("addshortcut")) {
-            View promptsView = LayoutInflater.from(this).inflate(R.layout.shortcut_preferences_prompt, null);
+        if (preference.getKey().equals("#addshortcut")) {
+            final View promptsView = LayoutInflater.from(this).inflate(R.layout.shortcut_preferences_prompt, null);
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setView(promptsView);
             builder.setTitle("Type new shortcut");
 
-            final EditText input = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
+            final EditText inputTitle = (EditText) promptsView.findViewById(R.id.editTitleDialogUserInput);
+            final EditText inputCommand = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
 
             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    String text = input.getText().toString();
+                    String title = inputTitle.getText().toString();
+                    String command = inputCommand.getText().toString();
+
+                    if (((CheckBox) promptsView.findViewById(R.id.autoenter)).isChecked())
+                        command += "$";
+
                     Preference pref = new Preference(getApplicationContext());
-                    pref.setTitle(text);
-                    pref.setKey(getSharedPreferences("shortcuts", MODE_PRIVATE).getAll().size() + "");
+                    pref.setTitle(title);
+                    pref.setKey(title);
+                    pref.setSummary(command);
 
                     PreferenceCategory cat = (PreferenceCategory) findPreference("shortcuts");
                     cat.addPreference(pref);
-                    addShortcutToSharedPreferences(text);
+                    addShortcutToSharedPreferences(title, command);
                 }
             });
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -103,24 +125,44 @@ public class PreferencesActivity
             AlertDialog alert = builder.create();
             alert.show();
 
-        } else if (preference.getKey().matches("restoredefaultshortcuts")) {
+        } else if (preference.getKey().matches("#restoredefaultshortcuts")) {
             restoreDefaultShortcuts();
-        } else if (preference.getKey().matches("\\d")) {
-            View promptsView = LayoutInflater.from(this).inflate(R.layout.shortcut_preferences_prompt, null);
+        } else if (!preference.getKey().matches("#.*") && preferenceScreen.getKey().equals("manageshortcuts")) {
+            final View promptsView = LayoutInflater.from(this).inflate(R.layout.shortcut_preferences_prompt, null);
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setView(promptsView);
             builder.setTitle("Edit shortcut");
 
-            final EditText input = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
-            input.setText(preference.getTitle());
-            input.setSelection(0, input.getText().length());
+            SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+
+            final String title = preference.getTitle().toString();
+            final String command = sharedPreferences.getString(title, "");
+
+            final EditText inputTitle = (EditText) promptsView.findViewById(R.id.editTitleDialogUserInput);
+            final EditText inputCommand = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
+
+            CheckBox checkBox = (CheckBox) promptsView.findViewById(R.id.autoenter);
+            if (command.endsWith("$"))
+                checkBox.setChecked(true);
+
+            inputTitle.setText(title);
+            inputTitle.setSelection(0, inputTitle.getText().length());
+            inputCommand.setText(command);
 
             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    String text = input.getText().toString();
-                    preference.setTitle(text);
-                    editShortcutPreference(preference.getKey() + "", text);
+                    String nTitle = inputTitle.getText().toString();
+                    String ncommand = inputCommand.getText().toString();
+                    if (((CheckBox) promptsView.findViewById(R.id.autoenter)).isChecked()) {
+                        if (!ncommand.endsWith("$"))
+                            ncommand += "$";
+                    } else if (ncommand.endsWith("$"))
+                        ncommand = ncommand.substring(0, ncommand.length() - 1);
+                    preference.setTitle(nTitle);
+                    preference.setKey(nTitle);
+                    preference.setSummary(ncommand);
+                    editShortcutPreference(title, nTitle, ncommand);
                 }
             });
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -147,9 +189,11 @@ public class PreferencesActivity
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         PreferenceCategory cat = (PreferenceCategory) findPreference("shortcuts");
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        for (int i = 0; i < sharedPreferences.getAll().size(); i++) {
-            editor.remove(i + "");
-        }
+
+        for (String s : sharedPreferences.getAll().keySet())
+            if (!s.matches("#.*"))
+                editor.remove(s);
+
         editor.commit();
         cat.removeAll();
 
@@ -157,24 +201,27 @@ public class PreferencesActivity
         String[] defaults = new String[]{"look", "examine", "take", "inventory", "ask", "drop", "tell", "again", "open", "close", "give", "show"};
         for (int i = 0; i < defaults.length; i++) {
             pref = new Preference(getApplicationContext());
-            pref.setKey(i + "");
+            pref.setKey(defaults[i]);
             pref.setTitle(defaults[i]);
+            pref.setSummary(defaults[i]);
             cat.addPreference(pref);
-            addShortcutToSharedPreferences(defaults[i]);
+            addShortcutToSharedPreferences(defaults[i], defaults[i]);
         }
     }
 
-    public void addShortcutToSharedPreferences(String text) {
+    public void addShortcutToSharedPreferences(String title, String command) {
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(sharedPreferences.getAll().size() + "", text);
+        editor.putString(title, command);
         editor.commit();
     }
 
-    public void editShortcutPreference(String key, String text) {
+    public void editShortcutPreference(String oldTitle, String newTitle, String command) {
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(key, text);
+        editor.remove(oldTitle);
+        editor.putString(newTitle, command);
+
         editor.commit();
     }
 
