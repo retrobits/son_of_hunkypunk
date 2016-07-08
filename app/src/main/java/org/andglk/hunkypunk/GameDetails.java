@@ -31,6 +31,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -143,6 +144,9 @@ public class GameDetails extends Activity implements OnClickListener {
 			show(game);
 		else
 			install(game, scheme);
+
+		//To relax the Interpreter activity; First time load of SharedPreferences
+		getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false);
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {

@@ -203,14 +203,17 @@ public class TextGridWindow extends Window {
 
 			mWidth = mHeight = 0;
 
-			mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+
+			/*DONT DELETE*/
+			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			/*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
 				@Override
 				public boolean onPreDraw () {
 					mPaint.setColor(mDefaultColor);
 					mBackPaint.setColor(TextBufferWindow.DefaultBackground);
 					return true;
 				}
-			});
+			});*/
 		}
 
 		public void setStyle(int styl) {

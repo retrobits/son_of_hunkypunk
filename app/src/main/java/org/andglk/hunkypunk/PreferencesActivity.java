@@ -66,7 +66,7 @@ public class PreferencesActivity
 					SharedPreferences.Editor editor = sharedPrefs.edit();
 
 					if (isModeOn) {
-						Toast.makeText(PreferencesActivity.this, "Night Mode toggled on.",Toast.LENGTH_SHORT).show();
+						//Toast.makeText(PreferencesActivity.this, "Night Mode toggled on.",Toast.LENGTH_SHORT).show();
 						//Implementation
 						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
 						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
@@ -74,15 +74,11 @@ public class PreferencesActivity
 						 * new *night* input style is used and swapped with the default one
 						 */
 						org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;
-						//needed for the TextWatcher and different from sp's NightOn
-						// since it is used only when in the same View instance to change color
-						// of momentarily inputted text (on the go)
-						//NOT RESTORED since only needed at runtime
 						//store the switch-state
 						editor.putBoolean("NightOn", true);
 						editor.commit();
 					} else {
-						Toast.makeText(PreferencesActivity.this, "Night Mode toggled off.",Toast.LENGTH_SHORT).show();
+						//Toast.makeText(PreferencesActivity.this, "Night Mode toggled off.",Toast.LENGTH_SHORT).show();
 						//Implementation
 						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
 						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;

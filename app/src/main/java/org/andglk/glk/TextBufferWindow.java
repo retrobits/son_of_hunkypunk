@@ -311,7 +311,7 @@ public class TextBufferWindow extends Window {
 			if (mContext.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
 				SpannableString text = new SpannableString(s.toString());
 				Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
-				s.setSpan(sp, 0, text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				s.setSpan(sp, 0, text.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 			}
 		}
 
@@ -381,8 +381,11 @@ public class TextBufferWindow extends Window {
 				setTextSize(FontSize);      
 				mPrompt.setTextSize(FontSize);
 			}
-			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			updateInput(getText());
+
+			/*DONT DELETE*/
+			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			//setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			//updateInput(getText());
 
 			return true;
 		}
@@ -400,15 +403,16 @@ public class TextBufferWindow extends Window {
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 
-
-			getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+			/*DONT DELETE*/
+			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			/*getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
 				@Override
 				public boolean onPreDraw () {
 					setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 					setTextColor(TextBufferWindow.this.DefaultTextColor);
 					return true;
 				}
-			});
+			});*/
 
 		}
 	}
@@ -710,10 +714,12 @@ public class TextBufferWindow extends Window {
 				FontSize = DefaultFontSize;
 				setTextSize(FontSize);          
 			}
-			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			setTextColor(TextBufferWindow.this.DefaultTextColor);
 
-			//setTextIsSelectable(true); //JUST DONT
+			/*DONT DELETE*/
+			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			//setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			//setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			return true;
 		}
 	}
@@ -818,7 +824,10 @@ public class TextBufferWindow extends Window {
 					mScrollView.addView(mLayout);
 					mStream = new _Stream();
 
-					mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+
+					/*DONT DELETE*/
+					/*Not used for now but left for compatibility as part of issue #41 - onPreDrawNight*/
+					/*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
 						@Override
 						public boolean onPreDraw () {
 							mScrollView.setBackgroundColor(DefaultBackground);
@@ -827,7 +836,7 @@ public class TextBufferWindow extends Window {
 
 							return true;
 						}
-					});
+					});*/
 				}
 			});
 	}

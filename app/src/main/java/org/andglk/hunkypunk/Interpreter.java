@@ -137,6 +137,7 @@ public class Interpreter extends Activity {
 		case '1':
 			intent = new Intent(this, PreferencesActivity.class);
 			startActivity(intent);
+			finish();
 			break;
 		case '2':
 			AlertDialog builder;
