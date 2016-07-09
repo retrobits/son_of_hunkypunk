@@ -55,7 +55,6 @@ public class PreferencesActivity
 		// Load the preferences from an XML resource
 		addPreferencesFromResource(R.xml.preferences);
 
-
 		SwitchPreference modePref = (SwitchPreference) findPreference("day_night");
 		if (modePref != null) {
 			modePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -99,7 +98,7 @@ public class PreferencesActivity
 		super.onResume();
 		setSummaryAll(getPreferenceScreen());
 		getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-		onSharedPreferenceChanged(null,"fontFolderPath");
+		onSharedPreferenceChanged(null,"fontFileName");
 	}
 
 	@Override protected void onPause() {
@@ -146,17 +145,39 @@ public class PreferencesActivity
 										  sharedPreferences, String key) { 		
 		Preference pref = findPreference(key); 
 		
-		if (key.compareTo("fontFolderPath")==0) {
+		if (key.compareTo("fontFileName")==0) {
 
-			EditTextPreference prefFol = (EditTextPreference)pref;
-			ListPreference prefFn = (ListPreference)findPreference("fontFileName");
+			//EditTextPreference prefFol = (EditTextPreference)pref;
+			ListPreference prefFn = (ListPreference)pref;//findPreference("fontFileName");
 			
 			ArrayList<String> ff = new ArrayList<String>();
+			ff.add("256 BYTES");
+			ff.add("Adventure");
+			ff.add("Coda Regular");
+			ff.add("CODE Bold");
+			ff.add("CODE Light");
+			ff.add("Crimson Roman");
+			ff.add("Daniel");
+			ff.add("Data Control");
+			ff.add("Droid Mono");
 			ff.add("Droid Sans");
 			ff.add("Droid Serif");
-			ff.add("Droid Mono");
+			ff.add("Jurassic Park");
+			ff.add("Keep Calm");
+			ff.add("Marlboro");
+			ff.add("MKOCR");
+			ff.add("Old Game Fatty");
+			ff.add("Pokemon Hollow");
+			ff.add("Pokemon Solid");
+			ff.add("Roboto Regular");
+			ff.add("Roboto Thin");
+			ff.add("Star Jedi");
+			ff.add("TeX Regular");
+			ff.add("Traveling Typewriter");
 
-			File ffol = new File(prefFol.getText());
+
+
+			/*File ffol = new File(prefFol.getText());
 			if (ffol.exists()) {
 				final File[] fileList = new File(prefFol.getText()).listFiles(
 					new FilenameFilter() {
@@ -173,11 +194,11 @@ public class PreferencesActivity
 				for(int i=0;i<fileList.length;i++) {
 					ff.add(fileList[i].getName());
 				}
-			}
+			}*/
 			String[] aff = (String[])ff.toArray(new String[ff.size()]);
 
 			String save = prefFn.getValue();
-			prefFn.setValue("");
+			//prefFn.setValue(""); //WHY?? >> Reason for StackOverflow
 			prefFn.setEntries(aff);
 			prefFn.setEntryValues(aff);
 			if (ff.contains(save)) prefFn.setValue(save);

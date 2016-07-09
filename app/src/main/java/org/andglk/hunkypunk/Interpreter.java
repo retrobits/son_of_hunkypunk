@@ -228,24 +228,43 @@ public class Interpreter extends Activity {
 		if (setFont()) glk.getView().invalidate();
 	}
 
+	/* Changing font fixed with a workaround solution. Apparently,
+ 	 * all that was needed was setting the returned value to the
+	 * default value in TextBufferWindow and performing the other changes there.
+	 * Path option is eliminated. Later, would be thought of letting the user
+	 * upload downloaded fonts, but for now the available fonts are fixed. More
+	 * fonts are to be added.
+	 */
+
 	private boolean setFont() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		
-		//TODO: changing font is broken (text overflows the view)
+		//TODO: changing font is broken (text overflows the view) |:fixed:|
 		
 		//String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
 		//String fontFile = prefs.getString("fontFileName", "Droid Serif");
-		//String fontPath = new File(fontFolder, fontFile).getAbsolutePath();
+		//String fontPath;
+		//File fonts = new File(fontFolder, fontFile);
+
+
 		int fontSize = 16;
 		try{
 			fontSize = Integer.parseInt(prefs.getString("fontSize", Integer.toString(fontSize)));
 		}catch(Exception e){}
 
-		if (TextBufferWindow.DefaultFontSize != fontSize) {
-			//(TextBufferWindow.DefaultFontPath == null 
-			//|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0 
+		String fontName = prefs.getString("fontFileName", "Droid Serif"); //returns the Svalue in "fontfileName"-preference and otherwise "DSerif"
+		//debugging msg
+		//if (TextBufferWindow.DefaultFontName == null)
+     	//			Toast.makeText(getApplicationContext(), "Font " + fontName + " set.",Toast.LENGTH_LONG).show();
 
-			//TextBufferWindow.DefaultFontPath = fontPath;
+		TextBufferWindow.DefaultFontName = fontName;
+
+		if (TextBufferWindow.DefaultFontSize != fontSize) {
+		/*dead code*/
+		//	TextBufferWindow.DefaultFontName == null) {
+		//	|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0) {
+
+			//TextBufferWindow.DefaultFontName = fontName; //TODO: try again here in the IF
 			TextBufferWindow.DefaultFontSize = fontSize;
 			return true;
 		}

@@ -158,15 +158,14 @@ public class TextBufferWindow extends Window {
 			mReverseVideo = (reverse != 0);
 		}
 
-		public void applyStyle() {
+		private void applyStyle() {
 			if (mBuffer != null && mBuffer.length() == 0)
 				return;
 			
 			final SpannableString ss = new SpannableString(mBuffer);
-			if (ss.length() > 0) {
+			if (ss.length() > 0)
 				ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo),
-						0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			}
+						   0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			mSsb.append(ss);
 			
 			mBuffer.setLength(0);
@@ -724,7 +723,7 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
-	public static String DefaultFontPath = null;
+	public static String DefaultFontName = null;
 	public static int DefaultFontSize = 0;
 
 	/*Night Mode Vars*/
@@ -745,6 +744,8 @@ public class TextBufferWindow extends Window {
 	private CharSequence mCommandText = null;
 	private Object mLineInputSpan;
 
+	/*Every window has a rock. This is a value you provide when the window is created; you can use it however you want.*/
+	/*If you don't know what to use the rocks for, provide 0 and forget about it.*/
 	public TextBufferWindow(Glk glk, int rock) {
 		super(rock);
 
@@ -870,19 +871,121 @@ public class TextBufferWindow extends Window {
 		if (_typeface == null) {
 			Typeface tf = null; 
 			
-			//TODO: this is broken & disabled for now
-
-			// if (DefaultFontPath.endsWith("ttf") 
-			// 	|| DefaultFontPath.endsWith("otf"))
-			// 	try {
-			// 		tf = Typeface.createFromFile(DefaultFontPath);
-			// 	} catch (Exception ex) {}
-			// else if (DefaultFontPath.endsWith("Droid Sans")) 
-			// 	tf = Typeface.SANS_SERIF;
-			// else if (DefaultFontPath.endsWith("Droid Mono")) 
-			// 	tf = Typeface.MONOSPACE;
-
-			if (tf == null) tf = Typeface.SERIF;
+			//TODO: this is broken & disabled for now |:fixed:|
+			 switch(DefaultFontName) {
+				 case"Droid Serif":
+					 //	|| DefaultFontName.endsWith("otf"))
+					 tf = Typeface.SERIF;
+					 break;
+				 case "Droid Sans":
+					 tf = Typeface.SANS_SERIF;
+					 break;
+				 case "Droid Mono" :
+					 tf = Typeface.MONOSPACE;
+					 break;
+				 case "Daniel":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Daniel.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "256 BYTES":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/256BYTES.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Adventure":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Adventure.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Coda Regular":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Coda-Regular.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "CODE Bold":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Bold.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "CODE Light":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Light.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Crimson Roman":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Crimson-Roman.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Data Control":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/data-unifon.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Jurassic Park":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Jurassic Park.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Keep Calm":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/KeepCalm.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Marlboro":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Marlboro.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "MKOCR":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/MKOCR.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Old Game Fatty":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/OldGameFatty.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Pokemon Hollow":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Hollow.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Pokemon Solid":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Solid.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Roboto Regular":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Regular.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Roboto Thin":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Thin.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Star Jedi":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Starjedi.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "TeX Regular":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/tex-regular.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Traveling Typewriter":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/TravelingTypewriter.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 default:
+					 tf = Typeface.SERIF;
+			 }
 
 			_typeface = tf;
 		}
