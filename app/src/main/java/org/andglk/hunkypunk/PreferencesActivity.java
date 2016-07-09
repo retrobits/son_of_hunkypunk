@@ -29,6 +29,7 @@ import java.util.Set;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.SyncStatusObserver;
@@ -133,7 +134,7 @@ public class PreferencesActivity
             builder.setView(promptsView);
             builder.setTitle("Edit shortcut");
 
-            SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+            final SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
 
             final String title = preference.getTitle().toString();
             final String command = sharedPreferences.getString(title, "");
@@ -147,21 +148,27 @@ public class PreferencesActivity
 
             inputTitle.setText(title);
             inputTitle.setSelection(0, inputTitle.getText().length());
-            inputCommand.setText(command);
+            if (command.endsWith("$"))
+                inputCommand.setText(command.substring(0, command.length() - 1));
+            else
+                inputCommand.setText(command);
 
             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     String nTitle = inputTitle.getText().toString();
-                    String ncommand = inputCommand.getText().toString();
+                    String ncommand = sharedPreferences.getString(nTitle, "");
                     if (((CheckBox) promptsView.findViewById(R.id.autoenter)).isChecked()) {
                         if (!ncommand.endsWith("$"))
                             ncommand += "$";
-                    } else if (ncommand.endsWith("$"))
+                        preference.setSummary(ncommand.substring(0, ncommand.length() - 1));
+                    } else if (ncommand.endsWith("$")) {
                         ncommand = ncommand.substring(0, ncommand.length() - 1);
+                        preference.setSummary(ncommand);
+                    }
                     preference.setTitle(nTitle);
                     preference.setKey(nTitle);
-                    preference.setSummary(ncommand);
+
                     editShortcutPreference(title, nTitle, ncommand);
                 }
             });
