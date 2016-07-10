@@ -6,8 +6,8 @@ dependencies {
     //Interestingly, below 23.0.0 the method 'RecyclerView.isAttachedToWindow()' is not recognized.
     //Luckily, v.up. >= 23.0.0 && v.up. < 23.2 work
     //compile 'com.android.support:recyclerview-v7:23.1.1'
-
     compile 'com.android.support:cardview-v7:23.1.1'
+    compile project(':library')
 }
 
 android {

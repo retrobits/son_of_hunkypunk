@@ -30,20 +30,20 @@
             android:id="@+id/enable_list"
             android:key="enablelist"
             android:title="Enable Shortcuts List" />
-        <PreferenceScreen
+        <Preference
             android:key="manageshortcuts"
-            android:title="@string/manageshortcuts">
-            <PreferenceCategory android:title="Settings">
-                <Preference
-                    android:key="#restoredefaultshortcuts"
-                    android:title="@string/restoredefaultshortcuts" />
-                <Preference
-                    android:key="#addshortcut"
-                    android:title="@string/addshortcut" />
-            </PreferenceCategory>
-            <PreferenceCategory
-                android:key="shortcuts"
-                android:title="Shortcuts"></PreferenceCategory>
-        </PreferenceScreen>
+            android:title="@string/manageshortcuts" />
+        <!--<PreferenceCategory android:title="Settings">
+            <Preference
+                android:key="#restoredefaultshortcuts"
+                android:title="@string/restoredefaultshortcuts" />
+            <Preference
+                android:key="#addshortcut"
+                android:title="@string/addshortcut" />
+        </PreferenceCategory>
+        <PreferenceCategory
+            android:key="shortcuts"
+            android:title="Shortcuts"></PreferenceCategory>-->
+
     </PreferenceCategory>
 </PreferenceScreen>

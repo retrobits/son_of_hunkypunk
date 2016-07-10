@@ -121,13 +121,17 @@ public class GamesList extends ListActivity implements OnClickListener {
         findViewById(R.id.download_preselected).setOnClickListener(this);
 
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+        SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
         if (sharedPreferences.getBoolean("firstStart", true)) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
+            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+            SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
+
             String[] defaults = new String[]{"look", "examine", "take", "inventory", "ask", "drop", "tell", "again", "open", "close", "give", "show"};
             for (int i = 0; i < defaults.length; i++)
-                editor.putString(defaults[i], defaults[i]);
-            editor.putBoolean("#firstStart", false);
-            editor.commit();
+                shortcutEditor.putString(defaults[i], defaults[i]);
+            shortcutEditor.commit();
+            prefEditor.putBoolean("#firstStart", false);
+            prefEditor.commit();
         }
 
         startScan();

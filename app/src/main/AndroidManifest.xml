@@ -198,6 +198,15 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="org.andglk.hunkypunk.ShortcutPreferencesActivity"
+            android:label="@string/preferences">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
     </application>
     <uses-sdk android:minSdkVersion="14" />
 </manifest>

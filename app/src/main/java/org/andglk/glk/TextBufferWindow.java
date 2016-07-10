@@ -431,6 +431,7 @@ public class TextBufferWindow extends Window {
 
             @Override
             public boolean onTouchEvent(final TextView widget, Spannable text, MotionEvent event) {
+                boolean autoEnterFlag = false;
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
                         mDownX = event.getX();
@@ -455,6 +456,10 @@ public class TextBufferWindow extends Window {
                                         String userInput = mCommandView.getText().toString();
 
                                         if (userInput.contains("<%>")) {
+                                            if (userInput.endsWith("$")) {
+                                                autoEnterFlag = true;
+                                                userInput = userInput.substring(0, userInput.length() - 1);
+                                            }
                                             userInput = userInput.replaceFirst("<%>", selectedText);
                                             output.append(userInput);
                                         } else if (!userInput.equals("")) {
@@ -467,8 +472,9 @@ public class TextBufferWindow extends Window {
 
                                         //TextBufferWindow.this.mActiveCommand.setText(output);
                                         // mActiveCommand.setSelection(copyText.length());
-                                        if (!userInput.contains("<%>") && output.subSequence(output.length() - 1, output.length()).toString().equals("$")) {
-                                            mCommandView.setText(output.subSequence(0, output.length() - 1));
+                                        if (!userInput.contains("<%>") && autoEnterFlag) {
+                                            autoEnterFlag=false;
+                                            mCommandView.setText(output);
                                             mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                                         } else
                                             mCommandView.setText(output);
@@ -930,34 +936,32 @@ public class TextBufferWindow extends Window {
                         mHLView = new _HorListView(mContext);
                         mHLView.setPadding(0, 0, 0, 0);//better than (pad,0,pad,pad)
                         final ViewGroup viewGroup = new LinearLayout(mContext);
-                        final SharedPreferences sharedPreferences = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
+                        final SharedPreferences sharedPreferences = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
                         Set<String> keys = sharedPreferences.getAll().keySet();
                         for (final String s : keys) {
-                            if (!s.matches("#.*")) {
-                                CardView cardView = new CardView(mContext);
-                                cardView.setMinimumHeight(140);
-                                cardView.setMinimumWidth(150);
-                                cardView.setRadius(10);
-                                cardView.setCardBackgroundColor(R.color.shortcutsColor);
-                                final TextView textView = new TextView(mContext);
-                                textView.setText(s);
-                                final String command = sharedPreferences.getString(s, "");
-                                textView.setTag(command);
-                                textView.setPadding(20, 30, 20, 0);
-                                textView.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
-                                cardView.addView(textView);
-                                cardView.setPadding(20, 20, 20, 20);
-                                cardView.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        if (command.endsWith("$") && !command.contains("<%>"))
-                                            shortcutCommandEnter(textView);
-                                        else
-                                            shortcutCommand(textView);
-                                    }
-                                });
-                                viewGroup.addView(cardView);
-                            }
+                            CardView cardView = new CardView(mContext);
+                            cardView.setMinimumHeight(140);
+                            cardView.setMinimumWidth(150);
+                            cardView.setRadius(10);
+                            cardView.setCardBackgroundColor(R.color.shortcutsColor);
+                            final TextView textView = new TextView(mContext);
+                            textView.setText(s);
+                            final String command = sharedPreferences.getString(s, "");
+                            textView.setTag(command);
+                            textView.setPadding(20, 30, 20, 0);
+                            textView.setGravity(Gravity.CENTER_HORIZONTAL & Gravity.CENTER_VERTICAL);
+                            cardView.addView(textView);
+                            cardView.setPadding(20, 20, 20, 20);
+                            cardView.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    if (command.endsWith("$") && !command.contains("<%>"))
+                                        shortcutCommandEnter(textView);
+                                    else
+                                        shortcutCommand(textView);
+                                }
+                            });
+                            viewGroup.addView(cardView);
                         }
 
                         mHLView.addView(viewGroup);
