@@ -473,7 +473,7 @@ public class TextBufferWindow extends Window {
                                         //TextBufferWindow.this.mActiveCommand.setText(output);
                                         // mActiveCommand.setSelection(copyText.length());
                                         if (!userInput.contains("<%>") && autoEnterFlag) {
-                                            autoEnterFlag=false;
+                                            autoEnterFlag = false;
                                             mCommandView.setText(output);
                                             mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                                         } else
@@ -679,6 +679,9 @@ public class TextBufferWindow extends Window {
             setTypeface(TextBufferWindow.this.getDefaultTypeface());
             setReadOnly(this, true);
 
+            /* Typeface not to be set here, since if other than text's results in TextOverflow */
+            /* Typeface set in org.andglk.glk.Styles.updatePaint() */
+
         }
 
         private void setReadOnly(final TextView view, final boolean readOnly) {
@@ -695,7 +698,7 @@ public class TextBufferWindow extends Window {
             int maxEnd = getText().toString().length() - 1;
             int nextSpaceIndex = maxEnd;
             for (int i = 0; i < substringStart.length() - 1; i++) {
-                if (Character.isSpaceChar(substringStart.toCharArray()[i]) || Character.isWhitespace(substringStart.toCharArray()[i])) {
+                if (Character.isWhitespace(substringStart.toCharArray()[i])) {
                     nextSpaceIndex = i;
                     break;
                 }
@@ -706,31 +709,69 @@ public class TextBufferWindow extends Window {
             else
                 selectionEnd = maxEnd;
 
+
             String beforeStart = getText().toString().substring(0, getSelectionStart());
             int selectionStart = 0;
-            for (int i = beforeStart.length() - 1; i >= 0; i--) {
-                if (Character.isSpaceChar(beforeStart.toCharArray()[i]) || Character.isWhitespace(beforeStart.toCharArray()[i])) {
-                    selectionStart = i;
-                    break;
+
+            char[] beforeStartArray = beforeStart.toCharArray();
+                selectionStartLoop:
+                {
+                    for (int i = beforeStartArray.length - 1; i >= 0; i--) {
+                        if (beforeStartArray[i] == Character.LINE_SEPARATOR) {
+                            int j = i;
+                            boolean inLoop = false;
+                            while (!Character.isWhitespace(beforeStartArray[j]) && j >= 0) {
+                                j--;
+                                inLoop = true;
+                            }
+                            if (inLoop) {
+                                selectionStart = j;
+                                break selectionStartLoop;
+                            }
+                        } else if(beforeStartArray[i] == ' ' || beforeStartArray[i] == '\t') {
+                            selectionStart = i;
+                            break selectionStartLoop;
+                        }
+                    }
                 }
-            }
+
+            //Toast.makeText(mContext,getText().toString()
+              //      .substring(selectionStart, selectionEnd),Toast.LENGTH_SHORT).show();
             String selectedText = getText().toString()
                     .substring(selectionStart, selectionEnd).replaceAll("[^\\p{L}\\p{N}]+", "");
 
             return selectedText;
         }
-        //not used, send directly to CommandView
-        /*private void putInClipMemory(String str) {
-            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
-                //TO DO: check if getAppContext returns instance of app
-                android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                clipboard.setText(str);
-            } else {
-                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
-                android.content.ClipData clip = android.content.ClipData.newPlainText("Text copied.", str);
-                clipboard.setPrimaryClip(clip);
-            }
-        }*/
+
+
+        private int getOffset(MotionEvent event) {
+            Layout layout = getLayout();
+            if (layout == null)
+                return Integer.MIN_VALUE;
+            float x = event.getX() + getScrollX();
+            float y = event.getY() + getScrollY();
+            int line = layout.getLineForVertical((int) y);
+            int offset = layout.getOffsetForHorizontal(line, x);
+            Toast.makeText(mContext, String.valueOf(offset), Toast.LENGTH_SHORT).show();
+            return offset;
+        }
+
+
+            /**
+            *
+            *
+            * private void putInClipMemory(String str) {
+            *   if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
+            *   //TO DO: check if getAppContext returns instance of app
+            *       android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            *       clipboard.setText(str);
+            *   } else {
+            *       android.content.ClipboardManager clipboard = (android.content.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            *       android.content.ClipData clip = android.content.ClipData.newPlainText("Text copied.", str);
+            *       clipboard.setPrimaryClip(clip);
+            *   }
+            *}
+            */
 
         private CharSequence mLastLine = null;
         private boolean mTrailingCr = false;
@@ -822,17 +863,6 @@ public class TextBufferWindow extends Window {
             }
 
             return true;
-        }
-
-        private int getOffset(MotionEvent event) {
-            Layout layout = getLayout();
-            if (layout == null)
-                return Integer.MIN_VALUE;
-            float x = event.getX() + getScrollX();
-            float y = event.getY() + getScrollY();
-            int line = layout.getLineForVertical((int) y);
-            int offset = layout.getOffsetForHorizontal(line, x);
-            return offset;
         }
     }
 
@@ -934,7 +964,7 @@ public class TextBufferWindow extends Window {
 
 
                         mHLView = new _HorListView(mContext);
-                        mHLView.setPadding(0, 0, 0, 0);//better than (pad,0,pad,pad)
+                        mHLView.setPadding(0, 0, 0, 0);
                         final ViewGroup viewGroup = new LinearLayout(mContext);
                         final SharedPreferences sharedPreferences = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
                         Set<String> keys = sharedPreferences.getAll().keySet();
