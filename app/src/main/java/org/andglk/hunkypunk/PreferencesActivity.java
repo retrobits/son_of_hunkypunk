@@ -162,7 +162,6 @@ public class PreferencesActivity
 			ff.add("Droid Mono");
 			ff.add("Droid Sans");
 			ff.add("Droid Serif");
-			ff.add("Jurassic Park");
 			ff.add("Keep Calm");
 			ff.add("Marlboro");
 			ff.add("MKOCR");
@@ -171,7 +170,6 @@ public class PreferencesActivity
 			ff.add("Pokemon Solid");
 			ff.add("Roboto Regular");
 			ff.add("Roboto Thin");
-			ff.add("Star Jedi");
 			ff.add("TeX Regular");
 			ff.add("Traveling Typewriter");
 
@@ -198,7 +196,7 @@ public class PreferencesActivity
 			String[] aff = (String[])ff.toArray(new String[ff.size()]);
 
 			String save = prefFn.getValue();
-			//prefFn.setValue(""); //WHY?? >> Reason for StackOverflow
+			//prefFn.setValue(""); //WHY set?? >> it gives StackOverflow
 			prefFn.setEntries(aff);
 			prefFn.setEntryValues(aff);
 			if (ff.contains(save)) prefFn.setValue(save);

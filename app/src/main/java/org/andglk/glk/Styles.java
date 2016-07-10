@@ -129,10 +129,19 @@ public class Styles {
 		Integer[] hints = _styles[styl];
 		// Set typeface first, because it's used by WEIGHT and OBLIQUE cases
 		if (hints[Glk.STYLEHINT_PROPORTIONAL] != null) {
-			if (Integer.valueOf(0).equals(hints[Glk.STYLEHINT_PROPORTIONAL])) {
+			/*if (Integer.valueOf(0).equals(hints[Glk.STYLEHINT_PROPORTIONAL])) {
 				ds.setTypeface(Typeface.MONOSPACE);
 			} else {
 				ds.setTypeface(Typeface.SERIF);
+			}*/
+			if (TextBufferWindow.mTypeface != null) {
+				ds.setTypeface(TextBufferWindow.mTypeface);
+			}else {
+				if (Integer.valueOf(0).equals(hints[Glk.STYLEHINT_PROPORTIONAL])) {
+					ds.setTypeface(Typeface.MONOSPACE);
+				} else {
+					ds.setTypeface(Typeface.SERIF);
+				}
 			}
 		}
 

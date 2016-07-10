@@ -866,12 +866,13 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
-	private Typeface _typeface = null;
+	public static Typeface mTypeface = Typeface.SERIF;
 	public Typeface getDefaultTypeface() {
-		if (_typeface == null) {
+		//if (mTypeface == null) {
 			Typeface tf = null; 
 			
 			//TODO: this is broken & disabled for now |:fixed:|
+		    //see documentation
 			 switch(DefaultFontName) {
 				 case"Droid Serif":
 					 //	|| DefaultFontName.endsWith("otf"))
@@ -921,11 +922,6 @@ public class TextBufferWindow extends Window {
 				 case "Data Control":
 					 try {
 						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/data-unifon.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Jurassic Park":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Jurassic Park.ttf");
 					 } catch (Exception ex) {}
 					 break;
 				 case "Keep Calm":
@@ -987,10 +983,10 @@ public class TextBufferWindow extends Window {
 					 tf = Typeface.SERIF;
 			 }
 
-			_typeface = tf;
-		}
+			mTypeface = tf;
+	//	}
 
-		return _typeface;
+		return mTypeface;
 	}
 
 	public void setPrompt(CharSequence p){
