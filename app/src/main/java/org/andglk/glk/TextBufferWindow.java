@@ -366,6 +366,15 @@ public class TextBufferWindow extends Window {
                 setTextSize(FontSize);
                 mPrompt.setTextSize(FontSize);
             }
+
+            /* Fix for selectorBug sporadically when setting Text to View */
+
+              //Better to set it even if not needed(already set at end),
+              //instead of using 2 more instructions + if to check if needed to
+            setSelection(this.getText().length());
+
+
+
             return true;
         }
     }
@@ -452,9 +461,9 @@ public class TextBufferWindow extends Window {
                                     if (selectedText.length() > 0) {
                                         Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
 
-                                        mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                                       // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
                                         SpannableStringBuilder output = new SpannableStringBuilder();
-                                        String userInput = mCommandView.getText().toString();
+                                        String userInput = mActiveCommand.getText().toString();
 
                                         if (userInput.contains("<%>")) {
                                             if (userInput.endsWith("$")) {
@@ -473,16 +482,18 @@ public class TextBufferWindow extends Window {
 
                                         //TextBufferWindow.this.mActiveCommand.setText(output);
                                         // mActiveCommand.setSelection(copyText.length());
+                                      //  mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
                                         if (!userInput.contains("<%>") && autoEnterFlag) {
                                             autoEnterFlag = false;
-                                            mCommandView.setText(output);
+                                            mActiveCommand.setText(output);
                                             mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                                         } else
-                                            mCommandView.setText(output);
+                                            mActiveCommand.setText(output);
 
                                         TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
                                         TextBufferWindow.this.mActiveCommand.showKeyboard();
-                                        TextBufferWindow.this.mActiveCommand.setSelection(output.length());
+                                        //Selection.setSelection(toEditable(mActiveCommand), output.length());
+                                        //TextBufferWindow.this.mActiveCommand.setSelection(output.length());
                                     }
                                 } else {
                                     Toast.makeText(mContext, "hui", Toast.LENGTH_LONG);
@@ -680,7 +691,7 @@ public class TextBufferWindow extends Window {
             setTypeface(TextBufferWindow.this.getDefaultTypeface());
             setReadOnly(this, true);
 
-            /* Typeface not to be set here, since if other than text's results in TextOverflow */
+            /* Typeface NOT to be set here, since if other than text's results in TextOverflow */
             /* Typeface set in org.andglk.glk.Styles.updatePaint() */
 
         }
@@ -1062,27 +1073,29 @@ public class TextBufferWindow extends Window {
     private TextView tempView = null;
 
     public void shortcutCommandEnter(View v) {
-        mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+        //mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
         tempView = (TextView) v;
-        if (mCommandView != null) {
+        if (mActiveCommand != null) {
             boolean semaphore = true;
             while (semaphore) {
                 animate(v);
-                SpannableStringBuilder userInput = new SpannableStringBuilder(mCommandView.getText().toString());
+                SpannableStringBuilder userInput = new SpannableStringBuilder(mActiveCommand.getText().toString());
                 String userCommand = tempView.getTag().toString();
                 userCommand = userCommand.substring(0, userCommand.length() - 1);
                 if (!userCommand.equals(""))
-                    mCommandView.setText(userInput + " " + userCommand);
+                    mActiveCommand.setText(userInput + " " + userCommand);
                 else
-                    mCommandView.setText(userCommand);
+                    mActiveCommand.setText(userCommand);
 
 
                 mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
 
-                mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
-                if (mCommandView != null && userCommand.equals("Inventory")) {
-                    userInput.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false), 0, userInput.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    mCommandView.setText(userInput);
+                //mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                //TODO: dynamic (user)settable list of commands remembering the last typed in text before click
+                if (mActiveCommand != null && userCommand.equals("Inventory")) {
+                    userInput.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
+                            0, userInput.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    mActiveCommand.setText(userInput);
                 }
                 semaphore = false;
             }
@@ -1096,20 +1109,26 @@ public class TextBufferWindow extends Window {
      * Sets the text in the CommandView, enabling the user to proceed typing the rest
      */
     public void shortcutCommand(View v) {
-        mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+       // mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
         tempView = (TextView) v;
-        if (mCommandView != null) {
+        if (mActiveCommand != null) {
             animate(v);
-            String userInput = mCommandView.getText().toString();
-            String shortcutCommand = tempView.getTag().toString();
+          //  String userInput = mActiveCommand.getText().toString();
+            SpannableStringBuilder shortcutCommand = new SpannableStringBuilder();
+                shortcutCommand = shortcutCommand.append(tempView.getTag().toString());
 
-            //shortcutCommand.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-            //      , 0, shortcutCommand.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            if (!userInput.equals(""))
-                mCommandView.setText(userInput + " " + shortcutCommand);
-            else
-                mCommandView.setText(shortcutCommand);
-            Selection.setSelection(toEditable(mCommandView), shortcutCommand.length());
+            shortcutCommand.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
+                     0, shortcutCommand.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            /*FRAGE @Orkan: Der rauskommentierte Code is nutzlos. Da du sowieso das userInput d.h.
+             *was auf der KommandoZeile steht, ueberschreibst. Ich hab auch das shortcutKommando als SpannableString gelasen da
+             * kann man was dazu schreiben und der Stil bleibt geupdatet sonst ist schwarz.
+               */
+            //if (!userInput.equals(""))
+              //  mActiveCommand.setText(userInput + " " + shortcutCommand);
+            //else
+                mActiveCommand.setText(shortcutCommand);
+            //moved to onPreDraw of CommandView, but working
+             //Selection.setSelection(toEditable(mActiveCommand), shortcutCommand.length());
         } else {
             //Of course not (reachable)
             Toast.makeText(mGlk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
