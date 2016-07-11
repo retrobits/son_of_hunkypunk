@@ -1,24 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-  <ListPreference
-	  android:title="Font size"
-	  android:key="fontSize"
-	  android:summary="font size"
-	  android:defaultValue="16"
-	  android:entries="@array/fontSizeArray"
-	  android:entryValues="@array/fontSizeArray" />
-  <EditTextPreference
-      android:enabled="false"
-	  android:title="Font folder path"
-	  android:key="fontFolderPath" 
-	  android:summary="folder to store custom TTF font files"
-	  android:defaultValue="/sdcard/Fonts" />
-  <ListPreference
-      android:enabled="false"
-	  android:title="Font file name"
-	  android:key="fontFileName"
-	  android:summary="Custom TTF font file"
-	  android:defaultValue="Droid Serif"
-	  android:entries="@array/fontNameArray"
-	  android:entryValues="@array/fontNameArray" />
+    <ListPreference
+        android:defaultValue="16"
+        android:entries="@array/fontSizeArray"
+        android:entryValues="@array/fontSizeArray"
+        android:key="fontSize"
+        android:summary="font size"
+        android:title="Font size" />
+    <Preference
+        android:key="setIFDir"
+        android:summary="Your new IF-Directory"
+        android:title="@string/add" />
+    <Preference
+        android:key="defaultif"
+        android:summary="Your default IF-Directory"
+        android:title="@string/ifdef" />
+    <EditTextPreference
+        android:defaultValue="/sdcard/Fonts"
+        android:enabled="false"
+        android:key="fontFolderPath"
+        android:summary="folder to store custom TTF font files"
+        android:title="Font folder path" />
+    <ListPreference
+        android:defaultValue="Droid Serif"
+        android:enabled="false"
+        android:entries="@array/fontNameArray"
+        android:entryValues="@array/fontNameArray"
+        android:key="fontFileName"
+        android:summary="Custom TTF font file"
+        android:title="Font file name" />
 </PreferenceScreen>
