@@ -718,9 +718,16 @@ public class TextBufferWindow extends Window {
 
         private String stringHelper(int offset) {
             setSelection(offset); // touch was at end of text
+            int maxEnd = getText().toString().length() - 1;
 
-            /*Firstly, determine beatify the selection clearing multiple whitespaces*/
-            int selection = getSelectionStart();
+            /*Firstly, beatify the selection clearing multiple whitespaces*/
+            int selection;
+
+            if (getSelectionStart() < maxEnd)
+                selection = getSelectionStart();
+            else
+                selection = maxEnd;
+
             if (selection > 1 && Character.isWhitespace(getText().toString().charAt(selection - 1)) && !Character.isWhitespace(getText().toString().charAt(selection)))
                 ;
             else
@@ -730,7 +737,6 @@ public class TextBufferWindow extends Window {
 
             /*Secondly, determine end position of the selector*/
             String substringStart = getText().toString().substring(selection);
-            int maxEnd = getText().toString().length() - 1;
             int nextSpaceIndex = maxEnd;
             for (int i = 0; i < substringStart.length() - 1; i++) {
                 if (Character.isWhitespace(substringStart.toCharArray()[i])) {
