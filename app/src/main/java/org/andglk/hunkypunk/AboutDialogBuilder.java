@@ -59,7 +59,27 @@ public class AboutDialogBuilder {
 		aboutText += "http://code.google.com/p/hunkypunk/wiki/Introduction\n\n";
 
 		aboutText += "Please report issues & requests here:\n";
-		aboutText += "http://code.google.com/p/hunkypunk/issues\n\n";
+		aboutText += "http://code.google.com/p/hunkypunk/issues\n\n\n";
+
+		/*JPDOB Team*/
+
+		aboutText += "This version has been updated by the JPDOB Team, ";
+		aboutText += "students from the University of Constance, Germany.\n\n";
+		aboutText += "Improvements include:\n";
+		aboutText += "  * Shortcut command buttons\n";
+		aboutText += "  * Long Touch to Copy Words\n";
+		aboutText += "  * Selectable IFs File Path\n";
+		aboutText += "  * Swipe through games\n";
+		aboutText += "  * Night Mode \n";
+		aboutText += "  * Fonts support\n";
+		aboutText += "  * TADS actualization\n";
+		aboutText += "  * Improved preferences layout\n";
+		aboutText += "  * Bug fixes\n\n";
+
+
+
+		aboutText += "Issues and project wiki here:\n";
+		aboutText += "https://github.com/BeniEnge/as_son_of_hunkypunk\n\n";
 
 		final SpannableString s = new SpannableString(aboutText);
 		Linkify.addLinks(s, Linkify.WEB_URLS);

@@ -30,6 +30,7 @@ import org.andglk.hunkypunk.R;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Handler;
@@ -481,7 +482,7 @@ public class TextBufferWindow extends Window {
 
                                         TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
                                         TextBufferWindow.this.mActiveCommand.showKeyboard();
-                                        TextBufferWindow.this.mActiveCommand.selectAll();
+                                        TextBufferWindow.this.mActiveCommand.setSelection(output.length());
                                     }
                                 } else {
                                     Toast.makeText(mContext, "hui", Toast.LENGTH_LONG);
@@ -694,7 +695,18 @@ public class TextBufferWindow extends Window {
 
         private String stringHelper(int offset) {
             setSelection(offset); // touch was at end of text
-            String substringStart = getText().toString().substring(getSelectionStart());
+
+            /*Firstly, determine beatify the selection clearing multiple whitespaces*/
+            int selection = getSelectionStart();
+            if (selection > 1 && Character.isWhitespace(getText().toString().charAt(selection-1)) && !Character.isWhitespace(getText().toString().charAt(selection)));
+            else
+                while(selection > 0 && Character.isWhitespace(getText().toString().charAt(selection-1))) {
+                    System.out.println(selection);
+                    selection--;
+                }
+
+            /*Secondly, determine end position of the selector*/
+            String substringStart = getText().toString().substring(selection);
             int maxEnd = getText().toString().length() - 1;
             int nextSpaceIndex = maxEnd;
             for (int i = 0; i < substringStart.length() - 1; i++) {
@@ -705,38 +717,27 @@ public class TextBufferWindow extends Window {
             }
             int selectionEnd;
             if (nextSpaceIndex < maxEnd)
-                selectionEnd = getSelectionStart() + nextSpaceIndex;
+                selectionEnd = selection + nextSpaceIndex;
             else
                 selectionEnd = maxEnd;
 
-
-            String beforeStart = getText().toString().substring(0, getSelectionStart());
+            /*Thirdly, determine start position of the selector*/
+            String beforeStart = getText().toString().substring(0, selection);
             int selectionStart = 0;
 
             char[] beforeStartArray = beforeStart.toCharArray();
+
                 selectionStartLoop:
                 {
-                    for (int i = beforeStartArray.length - 1; i >= 0; i--) {
-                        if (beforeStartArray[i] == Character.LINE_SEPARATOR) {
-                            int j = i;
-                            boolean inLoop = false;
-                            while (!Character.isWhitespace(beforeStartArray[j]) && j >= 0) {
-                                j--;
-                                inLoop = true;
-                            }
-                            if (inLoop) {
-                                selectionStart = j;
-                                break selectionStartLoop;
-                            }
-                        } else if(beforeStartArray[i] == ' ' || beforeStartArray[i] == '\t') {
-                            selectionStart = i;
+                    for (int j = beforeStartArray.length - 1; j >= 0; j--) {
+                        if (Character.isWhitespace(beforeStart.toCharArray()[j])) {
+                            selectionStart = j;
                             break selectionStartLoop;
                         }
                     }
                 }
 
-            //Toast.makeText(mContext,getText().toString()
-              //      .substring(selectionStart, selectionEnd),Toast.LENGTH_SHORT).show();
+            /*Lastly, beatify selected text wiping off everything that is not alphanumeric*/
             String selectedText = getText().toString()
                     .substring(selectionStart, selectionEnd).replaceAll("[^\\p{L}\\p{N}]+", "");
 
