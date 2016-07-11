@@ -370,10 +370,12 @@ public class TextBufferWindow extends Window {
 
             /* Fix for selectorBug sporadically when setting Text to View */
 
-            //Better to set it even if not needed(already set at end),
+            //Better to set it even if not needed (already set at end),
             //instead of using 2 more instructions + if to check if needed to
-            if (!this.getText().toString().contains("<%>"))
+            if (!this.getText().toString().contains("<%>") && selectorCount > 0) {
                 setSelection(this.getText().length());
+                selectorCount--;
+            }
 
 
             return true;
@@ -490,7 +492,7 @@ public class TextBufferWindow extends Window {
                                         } else
                                             mActiveCommand.setText(output);
 
-
+                                        selectorCount = 2;
 
                                         TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
                                         TextBufferWindow.this.mActiveCommand.showKeyboard();
@@ -888,8 +890,6 @@ public class TextBufferWindow extends Window {
                 FontSize = DefaultFontSize;
                 setTextSize(FontSize);
             }
-            if (!mActiveCommand.toString().contains("<%>"))
-                setSelection(this.getText().length());
 
             return true;
         }
@@ -912,6 +912,7 @@ public class TextBufferWindow extends Window {
     private CharSequence mCommandText = null;
     private EditText mCommandView = null;
     private Object mLineInputSpan;
+    private int selectorCount = 0;
 
     public TextBufferWindow(Glk glk, int rock) {
         super(rock);
@@ -1159,6 +1160,7 @@ public class TextBufferWindow extends Window {
                 shortcutCommand.append(tempView.getTag().toString());
 
             mActiveCommand.setText(shortcutCommand);
+            selectorCount = 2;
         } else {
             //Of course not (reachable)
             Toast.makeText(mGlk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
