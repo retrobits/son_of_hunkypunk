@@ -46,6 +46,8 @@
     <string name="preferences">Preferences</string>
     <string name="manageshortcuts">Manage Shortcuts</string>
     <string name="addshortcut">Add new shortcut</string>
+    <string name="add_button">Add new shortcut</string>
+    <string name="restore_button">Restore default shortcuts</string>
     <string name="restoredefaultshortcuts">Restore default shortcuts</string>
     <string name="remove">Remove</string>
     <string name="restart">Restart</string>

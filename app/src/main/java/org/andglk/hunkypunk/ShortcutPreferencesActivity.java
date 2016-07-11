@@ -7,6 +7,8 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -268,5 +270,11 @@ public class ShortcutPreferencesActivity extends ListActivity {
     public class ViewHolder {
         public TextView title;
         public TextView command;
+    }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = new MenuInflater(getApplication());
+        inflater.inflate(R.layout.shortcut_menu, menu);
+        return true;
     }
 }
