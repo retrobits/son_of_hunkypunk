@@ -57,6 +57,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
@@ -444,73 +445,77 @@ public class TextBufferWindow extends Window {
 
             @Override
             public boolean onTouchEvent(final TextView widget, Spannable text, MotionEvent event) {
-                switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                    case MotionEvent.ACTION_DOWN:
-                        mDownX = event.getX();
-                        mDownY = event.getY();
-                        isOnClick = true;
-                        downTime = event.getEventTime();
-                        break;
-                    case MotionEvent.ACTION_CANCEL:
-                    case MotionEvent.ACTION_UP:
-                        long time = event.getEventTime() - downTime;
-                        if (isOnClick && time > 100) {
-                            float x = mDownX + getScrollX();
-                            int offset = getOffset(event);
-                            if (offset != Integer.MIN_VALUE) {
-                                if (x > getLayout().getLineMax(0)) {
-                                    String selectedText = stringHelper(offset);
-                                    if (selectedText.length() > 0) {
-                                        // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
-                                        SpannableStringBuilder output = new SpannableStringBuilder();
-                                        String userInput = mActiveCommand.getText().toString();
+                SharedPreferences sharedShortcutPrefs = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
+                if (sharedShortcutPrefs.getBoolean("enablelongpress", true))
+                    switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                        case MotionEvent.ACTION_DOWN:
+                            mDownX = event.getX();
+                            mDownY = event.getY();
+                            isOnClick = true;
+                            downTime = event.getEventTime();
+                            break;
+                        case MotionEvent.ACTION_CANCEL:
+                        case MotionEvent.ACTION_UP:
+                            long time = event.getEventTime() - downTime;
+                            if (isOnClick && time > 100) {
+                                float x = mDownX + getScrollX();
+                                int offset = getOffset(event);
+                                if (offset != Integer.MIN_VALUE) {
+                                    if (x > getLayout().getLineMax(0)) {
+                                        String selectedText = stringHelper(offset);
+                                        if (selectedText.length() > 0) {
+                                            // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                                            SpannableStringBuilder output = new SpannableStringBuilder();
+                                            String userInput = mActiveCommand.getText().toString();
 
-                                        if (userInput.contains("<%>")) {
-                                            if (userInput.endsWith("$")) {
-                                                autoEnterFlag = true;
-                                                userInput = userInput.substring(0, userInput.length() - 1);
-                                            }
-                                            userInput = userInput.replaceFirst("<%>", selectedText);
-                                            output.append(userInput);
+                                            if (userInput.contains("<%>")) {
+                                                if (userInput.endsWith("$")) {
+                                                    autoEnterFlag = true;
+                                                    userInput = userInput.substring(0, userInput.length() - 1);
+                                                }
+                                                userInput = userInput.replaceFirst("<%>", selectedText);
+                                                output.append(userInput);
 
-                                        } else if (!userInput.equals("")) {
-                                            output.append(userInput + " ");
-                                            output.append(selectedText);
-                                        } else
-                                            output.append(selectedText);
-                                        output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-                                                , 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                                            } else if (!userInput.equals("")) {
+                                                output.append(userInput + " ");
+                                                output.append(selectedText);
+                                            } else
+                                                output.append(selectedText);
+                                            output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                                                    , 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
 
-                                        //TextBufferWindow.this.mActiveCommand.setText(output);
-                                        // mActiveCommand.setSelection(copyText.length());
-                                        //  mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
-                                        if (!userInput.contains("<%>") && autoEnterFlag) {
-                                            autoEnterFlag = false;
-                                            mActiveCommand.setText(output);
-                                            mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-                                        } else
-                                            mActiveCommand.setText(output);
+                                            //TextBufferWindow.this.mActiveCommand.setText(output);
+                                            // mActiveCommand.setSelection(copyText.length());
+                                            //  mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                                            if (!userInput.contains("<%>") && autoEnterFlag) {
+                                                autoEnterFlag = false;
+                                                mActiveCommand.setText(output);
+                                                mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                                            } else
+                                                mActiveCommand.setText(output);
 
-                                        selectorCount = 2;
+                                            selectorCount = 2;
 
-                                        TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
-                                        TextBufferWindow.this.mActiveCommand.showKeyboard();
-                                        //Selection.setSelection(toEditable(mActiveCommand), output.length());
-                                        //TextBufferWindow.this.mActiveCommand.setSelection(output.length());
+                                            TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
+                                            TextBufferWindow.this.mActiveCommand.showKeyboard();
+                                            //Selection.setSelection(toEditable(mActiveCommand), output.length());
+                                            //TextBufferWindow.this.mActiveCommand.setSelection(output.length());
 
                                         /* only works for a short time, has to be fixed*/
-                                        if (userInput.contains("<%>")) {
-                                            Toast.makeText(mGlk.getContext(), "Long press on next object", Toast.LENGTH_SHORT).show();
-                                            Pattern p = Pattern.compile("<%>");
-                                            Matcher m = p.matcher(mActiveCommand.getText().toString());
-                                            if (m.find())
-                                                Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
+                                            if (userInput.contains("<%>")) {
+                                                Toast.makeText(mGlk.getContext(), "Long press on next object", Toast.LENGTH_SHORT).show();
+                                                Pattern p = Pattern.compile("<%>");
+                                                Matcher m = p.matcher(mActiveCommand.getText().toString());
+                                                if (m.find()) {
+                                                    Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
+                                                    selectorCount = 2;
+                                                }
 
+                                            }
                                         }
-                                    }
-                                } else {
-                                    Toast.makeText(mContext, "hui", Toast.LENGTH_LONG);
+                                    } else {
+                                        Toast.makeText(mContext, "hui", Toast.LENGTH_LONG);
                                     /*String selectedText = stringHelper(offset - 1);
                                     if (selectedText.length() > 0) {
                                         Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
@@ -522,22 +527,22 @@ public class TextBufferWindow extends Window {
                                         TextBufferWindow.this.mActiveCommand.setText(copyText);
                                         TextBufferWindow.this.mActiveCommand.setSelection(copyText.length());
                                     }*/
+                                    }
                                 }
+                                //Go to input line
+
+
                             }
-                            //Go to input line
-
-
-                        }
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        if (isOnClick && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
-                                || Math.abs(mDownY - event.getY()) > SCROLL_THRESHOLD)) {
-                            isOnClick = false;
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            if (isOnClick && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
+                                    || Math.abs(mDownY - event.getY()) > SCROLL_THRESHOLD)) {
+                                isOnClick = false;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
 
                 return true;
             }
@@ -999,29 +1004,30 @@ public class TextBufferWindow extends Window {
 
                         SharedPreferences sharedShortcuts = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
                         SharedPreferences sharedShortcutIDs = mContext.getSharedPreferences("shortcutIDs", Context.MODE_PRIVATE);
+                        SharedPreferences sharedShortcutPrefs = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
+                        if (sharedShortcutPrefs.getBoolean("enablelist", true))
+                            for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
+                                String title = sharedShortcutIDs.getString(i + "", "");
+                                final String command = sharedShortcuts.getString(title, "");
 
+                                View shorcutView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_view, null);
+                                CardView cardView = (CardView) shorcutView.findViewById(R.id.cardview);
+                                final TextView textView = (TextView) shorcutView.findViewById(R.id.shortcuttitle);
+                                textView.setText(title);
 
-                        for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
-                            String title = sharedShortcutIDs.getString(i + "", "");
-                            final String command = sharedShortcuts.getString(title, "");
+                                textView.setTag(command);
+                                cardView.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        if (command.endsWith("$"))
+                                            shortcutCommandEnter(textView);
+                                        else
+                                            shortcutCommand(textView);
+                                    }
+                                });
 
-                            View shorcutView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_view, null);
-                            CardView cardView = (CardView) shorcutView.findViewById(R.id.cardview);
-                            final TextView textView = (TextView) shorcutView.findViewById(R.id.shortcuttitle);
-                            textView.setText(title);
-
-                            textView.setTag(command);
-                            cardView.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    if (command.endsWith("$"))
-                                        shortcutCommandEnter(textView);
-                                    else
-                                        shortcutCommand(textView);
-                                }
-                            });
-                            viewGroup.addView(shorcutView);
-                        }
+                                viewGroup.addView(shorcutView);
+                            }
 
                         mHLView.addView(viewGroup);
                         hll.addView(mHLView, paramsLView);
@@ -1160,6 +1166,14 @@ public class TextBufferWindow extends Window {
                 shortcutCommand.append(tempView.getTag().toString());
 
             mActiveCommand.setText(shortcutCommand);
+            if (userInput.contains("<%>")) {
+                autoEnterFlag = true;
+                Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
+                Pattern p = Pattern.compile("<%>");
+                Matcher m = p.matcher(mActiveCommand.getText().toString());
+                if (m.find())
+                    Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
+            }
             selectorCount = 2;
         } else {
             //Of course not (reachable)

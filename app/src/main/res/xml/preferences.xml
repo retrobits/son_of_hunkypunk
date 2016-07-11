@@ -29,21 +29,16 @@
         <SwitchPreference
             android:id="@+id/enable_list"
             android:key="enablelist"
-            android:title="Enable Shortcuts List" />
+            android:title="Enable shortcuts list"
+            android:defaultValue="true"/>
+        <SwitchPreference
+            android:id="@+id/Longpresstocopy"
+            android:key="enablelongpress"
+            android:title="Enable long press to copy"
+            android:defaultValue="true"/>
         <Preference
             android:key="manageshortcuts"
             android:title="@string/manageshortcuts" />
-        <!--<PreferenceCategory android:title="Settings">
-            <Preference
-                android:key="#restoredefaultshortcuts"
-                android:title="@string/restoredefaultshortcuts" />
-            <Preference
-                android:key="#addshortcut"
-                android:title="@string/addshortcut" />
-        </PreferenceCategory>
-        <PreferenceCategory
-            android:key="shortcuts"
-            android:title="Shortcuts"></PreferenceCategory>-->
 
     </PreferenceCategory>
 </PreferenceScreen>

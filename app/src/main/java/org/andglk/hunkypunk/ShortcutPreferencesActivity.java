@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 import com.mobeta.android.dslv.DragSortListView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class ShortcutPreferencesActivity extends ListActivity {
     private ShortcutItemAdapter adapter;
@@ -158,19 +160,22 @@ public class ShortcutPreferencesActivity extends ListActivity {
                         adapter.notifyDataSetChanged();
                     }
                 });
-
                 builder.create().show();
-
             }
         });
 
     }
 
     public void addShortcutToSharedPreferences(String title, String command) {
-        SharedPreferences sharedPreferences = getSharedPreferences("shortcuts", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(title, command);
-        editor.commit();
+        SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
+        SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
+        SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
+        SharedPreferences.Editor shortcutIDEditor = sharedShortcutIDs.edit();
+
+        shortcutEditor.putString(title, command);
+        shortcutIDEditor.putString(sharedShortcutIDs.getAll().size() + "", title);
+        shortcutEditor.commit();
+        shortcutIDEditor.commit();
     }
 
     public void editShortcutSharedPreference(int position, String oldTitle, String newTitle, String command) {
@@ -208,6 +213,101 @@ public class ShortcutPreferencesActivity extends ListActivity {
         sharedShortcutIDsEditor.commit();
     }
 
+    private void restoreDefaultShortcutsPreference() {
+        SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
+        SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
+        SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
+        SharedPreferences.Editor shortcutIDEditor = sharedShortcutIDs.edit();
+
+        shortcutEditor.clear();
+        shortcutIDEditor.clear();
+
+        String[] defaults = new String[]{"look", "examine", "take", "inventory", "ask", "drop", "tell", "again", "open", "close", "give", "show"};
+        ArrayList<String> list = new ArrayList<String>();
+        for (int i = 0; i < defaults.length; i++)
+            list.add(defaults[i]);
+        Collections.sort(list);
+
+
+        for (int i = 0; i < list.size(); i++) {
+            shortcutEditor.putString(list.get(i) + "", list.get(i));
+            shortcutIDEditor.putString(i + "", list.get(i));
+        }
+
+        shortcutEditor.commit();
+        shortcutIDEditor.commit();
+    }
+
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = new MenuInflater(getApplication());
+        inflater.inflate(R.layout.shortcut_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
+        SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
+        switch (item.getItemId()) {
+            case R.id.add_button:
+                final View promptsView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_preferences_prompt, null);
+
+                final EditText inputTitle = (EditText) promptsView.findViewById(R.id.editTitleDialogUserInput);
+                final EditText inputCommand = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
+
+                final CheckBox checkBox = (CheckBox) promptsView.findViewById(R.id.autoenter);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setView(promptsView);
+                builder.setTitle("Add new shortcut");
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String nTitle = inputTitle.getText().toString();
+                        String nCommand = inputCommand.getText().toString();
+                        ShortcutItem shortcutItem = new ShortcutItem();
+
+                        if (checkBox.isChecked()) {
+                            if (!nCommand.endsWith("$"))
+                                nCommand += "$";
+                            shortcutItem.setCommand(nCommand);
+                        } else if (nCommand.endsWith("$")) {
+                            nCommand = nCommand.substring(0, nCommand.length() - 1);
+                            shortcutItem.setCommand(nCommand);
+                        } else
+                            shortcutItem.setCommand(nCommand);
+
+                        shortcutItem.setTitle(nTitle);
+                        addShortcutToSharedPreferences(nTitle, nCommand);
+                        adapter.add(shortcutItem);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+                builder.create().show();
+                return true;
+
+            case R.id.restore_button:
+                adapter.clear();
+                restoreDefaultShortcutsPreference();
+
+                for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
+                    String title = sharedShortcutIDs.getString(i + "", "");
+                    String command = sharedShortcuts.getString(title, "");
+
+                    adapter.add(new ShortcutItem(title, command));
+                }
+                adapter.notifyDataSetChanged();
+                return true;
+
+            default:
+
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
     public class ShortcutItem {
         private String title;
         private String command;
@@ -215,6 +315,9 @@ public class ShortcutPreferencesActivity extends ListActivity {
         public ShortcutItem(String title, String command) {
             this.title = title;
             this.command = command;
+        }
+
+        public ShortcutItem() {
         }
 
         public void setTitle(String title) {
@@ -272,30 +375,5 @@ public class ShortcutPreferencesActivity extends ListActivity {
     public class ViewHolder {
         public TextView title;
         public TextView command;
-    }
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        MenuInflater inflater = new MenuInflater(getApplication());
-        inflater.inflate(R.layout.shortcut_menu, menu);
-        return true;
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add_button:
-                Toast.makeText(ShortcutPreferencesActivity.this, "add shortcuts",
-                        Toast.LENGTH_LONG).show();
-                return true;
-
-            case R.id.restore_button:
-                Toast.makeText(ShortcutPreferencesActivity.this, "restore default shortcuts",
-                        Toast.LENGTH_LONG).show();
-                return true;
-
-            default:
-
-                return super.onOptionsItemSelected(item);
-
-        }
     }
 }
