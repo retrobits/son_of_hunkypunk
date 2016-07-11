@@ -46,12 +46,13 @@ import java.util.ArrayList;
 
 import android.preference.SwitchPreference;
 import android.widget.Toast;
+
 import org.andglk.glk.Glk;
 import org.andglk.glk.TextBufferWindow;
 
 
 public class PreferencesActivity
-	extends PreferenceActivity implements OnSharedPreferenceChangeListener {    
+        extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
     private static final String[] extension = new String[]{".z1", ".z2", ".z3", ".z4", ".z5", ".z6", ".z7", ".z8", ".zblorb", ".zlb", ".t2", ".t3", ".gam"};
 
@@ -59,47 +60,47 @@ public class PreferencesActivity
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-		//getPreferenceManager().setSharedPreferencesName("hunkypunk");
+        //getPreferenceManager().setSharedPreferencesName("hunkypunk");
 
-		// Load the preferences from an XML resource
-		addPreferencesFromResource(R.xml.preferences);
+        // Load the preferences from an XML resource
+        addPreferencesFromResource(R.xml.preferences);
 
-		SwitchPreference modePref = (SwitchPreference) findPreference("day_night");
-		if (modePref != null) {
-			modePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-				@Override
-				public boolean onPreferenceChange(Preference pref, Object isOnObject) {
-					boolean isModeOn = (Boolean) isOnObject;
-					SharedPreferences sharedPrefs = getSharedPreferences("Night", Context.MODE_PRIVATE);
-					SharedPreferences.Editor editor = sharedPrefs.edit();
+        SwitchPreference modePref = (SwitchPreference) findPreference("day_night");
+        if (modePref != null) {
+            modePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference pref, Object isOnObject) {
+                    boolean isModeOn = (Boolean) isOnObject;
+                    SharedPreferences sharedPrefs = getSharedPreferences("Night", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPrefs.edit();
 
-					if (isModeOn) {
-						//Toast.makeText(PreferencesActivity.this, "Night Mode toggled on.",Toast.LENGTH_SHORT).show();
-						//Implementation
-						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
-						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
-						/* Since styles are compiled in advance and not dynamically modifiable
-						 * new *night* input style is used and swapped with the default one
+                    if (isModeOn) {
+                        //Toast.makeText(PreferencesActivity.this, "Night Mode toggled on.",Toast.LENGTH_SHORT).show();
+                        //Implementation
+                        org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
+                        org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
+                        /* Since styles are compiled in advance and not dynamically modifiable
+                         * new *night* input style is used and swapped with the default one
 						 */
-						org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;
-						//store the switch-state
-						editor.putBoolean("NightOn", true);
-						editor.commit();
-					} else {
-						//Toast.makeText(PreferencesActivity.this, "Night Mode toggled off.",Toast.LENGTH_SHORT).show();
-						//Implementation
-						org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
-						org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
-						org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_INPUT;
+                        org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;
+                        //store the switch-state
+                        editor.putBoolean("NightOn", true);
+                        editor.commit();
+                    } else {
+                        //Toast.makeText(PreferencesActivity.this, "Night Mode toggled off.",Toast.LENGTH_SHORT).show();
+                        //Implementation
+                        org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
+                        org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
+                        org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_INPUT;
 
-						editor.putBoolean("NightOn", false);
-						editor.commit();
-					}
-					return true;
-				}
+                        editor.putBoolean("NightOn", false);
+                        editor.commit();
+                    }
+                    return true;
+                }
 
-			});
-		}
+            });
+        }
 
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 
@@ -161,23 +162,24 @@ public class PreferencesActivity
         // however setDir is not persistent when only onClick set
     }
 
-	@Override protected void onPause() {
-		super.onPause(); 
-		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-	} 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+    }
 
-	private void setSummaryAll(PreferenceScreen pScreen) {        
-		for (int i = 0; i < pScreen.getPreferenceCount(); i++) {
-            Preference pref = pScreen.getPreference(i);            
-			setSummaryPref(pref);
-		}
-	} 
+    private void setSummaryAll(PreferenceScreen pScreen) {
+        for (int i = 0; i < pScreen.getPreferenceCount(); i++) {
+            Preference pref = pScreen.getPreference(i);
+            setSummaryPref(pref);
+        }
+    }
 
-	public void setSummaryPref(Preference pref) {
-		if (pref == null) return;
+    public void setSummaryPref(Preference pref) {
+        if (pref == null) return;
 
-		String key = pref.getKey();
-		if (key == null) key = "";
+        String key = pref.getKey();
+        if (key == null) key = "";
 
         if (pref instanceof EditTextPreference) {
             EditTextPreference etPref = (EditTextPreference) pref;
@@ -198,53 +200,42 @@ public class PreferencesActivity
         }
     }
 
-    public void onSharedPreferenceChanged(SharedPreferences
-                                                  sharedPreferences, String key) {
+
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Preference pref = findPreference(key);
-        if (key.compareTo("fontFolderPath") == 0) {
-            EditTextPreference prefFol = (EditTextPreference) pref;
-            ListPreference prefFn = (ListPreference) findPreference("fontFileName");
+
+        if (key.compareTo("fontFileName") == 0) {
+
+            //EditTextPreference prefFol = (EditTextPreference)pref;
+            ListPreference prefFn = (ListPreference) pref;//findPreference("fontFileName");
 
             ArrayList<String> ff = new ArrayList<String>();
+            ff.add("256 BYTES");
+            ff.add("Adventure");
+            ff.add("Coda Regular");
+            ff.add("CODE Bold");
+            ff.add("CODE Light");
+            ff.add("Crimson Roman");
+            ff.add("Daniel");
+            ff.add("Data Control");
+            ff.add("Droid Mono");
             ff.add("Droid Sans");
             ff.add("Droid Serif");
-            ff.add("Droid Mono");
-	public void	onSharedPreferenceChanged(SharedPreferences
-										  sharedPreferences, String key) {
-		Preference pref = findPreference(key);
-
-		if (key.compareTo("fontFileName")==0) {
-
-			//EditTextPreference prefFol = (EditTextPreference)pref;
-			ListPreference prefFn = (ListPreference)pref;//findPreference("fontFileName");
-
-			ArrayList<String> ff = new ArrayList<String>();
-			ff.add("256 BYTES");
-			ff.add("Adventure");
-			ff.add("Coda Regular");
-			ff.add("CODE Bold");
-			ff.add("CODE Light");
-			ff.add("Crimson Roman");
-			ff.add("Daniel");
-			ff.add("Data Control");
-			ff.add("Droid Mono");
-			ff.add("Droid Sans");
-			ff.add("Droid Serif");
-			ff.add("Keep Calm");
-			ff.add("Marlboro");
-			ff.add("MKOCR");
-			ff.add("Old Game Fatty");
-			ff.add("Pokemon Hollow");
-			ff.add("Pokemon Solid");
-			ff.add("Roboto Regular");
-			ff.add("Roboto Thin");
-			ff.add("TeX Regular");
-			ff.add("Traveling Typewriter");
+            ff.add("Keep Calm");
+            ff.add("Marlboro");
+            ff.add("MKOCR");
+            ff.add("Old Game Fatty");
+            ff.add("Pokemon Hollow");
+            ff.add("Pokemon Solid");
+            ff.add("Roboto Regular");
+            ff.add("Roboto Thin");
+            ff.add("TeX Regular");
+            ff.add("Traveling Typewriter");
 
 
 
 			/*File ffol = new File(prefFol.getText());
-			if (ffol.exists()) {
+            if (ffol.exists()) {
 				final File[] fileList = new File(prefFol.getText()).listFiles(
 					new FilenameFilter() {
 						public boolean accept(File dir, String name) {
@@ -261,13 +252,13 @@ public class PreferencesActivity
 					ff.add(fileList[i].getName());
 				}
 			}*/
-			String[] aff = (String[])ff.toArray(new String[ff.size()]);
+            String[] aff = (String[]) ff.toArray(new String[ff.size()]);
 
-			String save = prefFn.getValue();
-			//prefFn.setValue(""); //WHY set?? >> it gives StackOverflow
-			prefFn.setEntries(aff);
-			prefFn.setEntryValues(aff);
-			if (ff.contains(save)) prefFn.setValue(save);
+            String save = prefFn.getValue();
+            //prefFn.setValue(""); //WHY set?? >> it gives StackOverflow
+            prefFn.setEntries(aff);
+            prefFn.setEntryValues(aff);
+            if (ff.contains(save)) prefFn.setValue(save);
 
             setSummaryPref(prefFn);
         } else if (key.equals("setIFDir")) {
