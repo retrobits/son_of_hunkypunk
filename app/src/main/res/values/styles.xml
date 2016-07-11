@@ -38,7 +38,7 @@
 		<item name="android:textSize">11dip</item>
 	</style>
 	
-	<style name="theme1" parent="@android:style/Theme.Light.NoTitleBar">
+	<style name="theme" parent="@android:style/Theme.Light.NoTitleBar">
 		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
 		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
 		<item name="textGridWindowStyle">@style/TextGridWindow</item>
@@ -113,4 +113,6 @@
 		<item name="android:textColor">#e5fff6</item>
 	</style>
 
+
+	<color name="shortcutsColor">#52A6B8</color>
 </resources>

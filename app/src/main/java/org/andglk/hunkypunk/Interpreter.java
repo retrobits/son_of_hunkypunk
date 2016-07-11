@@ -28,6 +28,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import org.andglk.glk.Glk;
+import org.andglk.glk.Styles;
 import org.andglk.glk.Window;
 import org.andglk.glk.TextBufferWindow;
 
@@ -43,11 +44,26 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.support.v7.widget.CardView;
+import android.text.Editable;
+import android.text.Selection;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.preference.SwitchPreference;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class Interpreter extends Activity {
@@ -137,7 +153,6 @@ public class Interpreter extends Activity {
 		case '1':
 			intent = new Intent(this, PreferencesActivity.class);
 			startActivity(intent);
-			finish();
 			break;
 		case '2':
 			AlertDialog builder;
@@ -239,7 +254,7 @@ public class Interpreter extends Activity {
 	private boolean setFont() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		
-		//TODO: changing font is broken (text overflows the view) |:fixed:|
+		//TODO: changing font is broken (text overflows the view)
 		
 		//String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
 		//String fontFile = prefs.getString("fontFileName", "Droid Serif");
@@ -260,11 +275,10 @@ public class Interpreter extends Activity {
 		TextBufferWindow.DefaultFontName = fontName;
 
 		if (TextBufferWindow.DefaultFontSize != fontSize) {
-		/*dead code*/
-		//	TextBufferWindow.DefaultFontName == null) {
-		//	|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0) {
+			//(TextBufferWindow.DefaultFontPath == null 
+			//|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0 
 
-			//TextBufferWindow.DefaultFontName = fontName; //TODO: try again here in the IF
+			//TextBufferWindow.DefaultFontPath = fontPath;
 			TextBufferWindow.DefaultFontSize = fontSize;
 			return true;
 		}

@@ -24,6 +24,9 @@ import java.io.FilenameFilter;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Color;
@@ -37,6 +40,12 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
@@ -52,7 +61,7 @@ import org.andglk.glk.TextBufferWindow;
 
 
 public class PreferencesActivity
-        extends PreferenceActivity implements OnSharedPreferenceChangeListener {
+	extends PreferenceActivity implements OnSharedPreferenceChangeListener {    
 
     private static final String[] extension = new String[]{".z1", ".z2", ".z3", ".z4", ".z5", ".z6", ".z7", ".z8", ".zblorb", ".zlb", ".t2", ".t3", ".gam"};
 
@@ -161,44 +170,71 @@ public class PreferencesActivity
         onSharedPreferenceChanged(null, "setIFDir"); //onSharedPreferenceChanged(null, "defaultif"); //otherwise default summary is not visible
         // however setDir is not persistent when only onClick set
     }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-    }
-
-    private void setSummaryAll(PreferenceScreen pScreen) {
-        for (int i = 0; i < pScreen.getPreferenceCount(); i++) {
-            Preference pref = pScreen.getPreference(i);
-            setSummaryPref(pref);
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, final Preference preference) {
+        SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
+        if (preference.getKey().equals("manageshortcuts"))
+            startActivity(new Intent(this, ShortcutPreferencesActivity.class));
+        else if (preference.getKey().equals("enablelist")) {
+            if (((SwitchPreference) preference).isChecked())
+                sharedPreferencesEditor.putBoolean("enablelist", true);
+            else
+                sharedPreferencesEditor.putBoolean("enablelist", false);
+        } else if(preference.getKey().equals("enablelongpress")){
+            if (((SwitchPreference) preference).isChecked())
+                sharedPreferencesEditor.putBoolean("enablelongpress", true);
+            else
+                sharedPreferencesEditor.putBoolean("enablelongpress", false);
         }
+        sharedPreferencesEditor.commit();
+        return super.onPreferenceTreeClick(preferenceScreen, preference);
     }
 
-    public void setSummaryPref(Preference pref) {
-        if (pref == null) return;
+	@Override protected void onPause() {
+		super.onPause(); 
+		getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+	} 
 
-        String key = pref.getKey();
-        if (key == null) key = "";
+	private void setSummaryAll(PreferenceScreen pScreen) {        
+		for (int i = 0; i < pScreen.getPreferenceCount(); i++) {
+            Preference pref = pScreen.getPreference(i);            
+			setSummaryPref(pref);
+		}
+	} 
 
-        if (pref instanceof EditTextPreference) {
-            EditTextPreference etPref = (EditTextPreference) pref;
-            String desc = etPref.getText();
-            pref.setSummary(desc);
-        } else if (pref instanceof PreferenceCategory) {
-            PreferenceCategory prefCat = (PreferenceCategory) pref;
-            int count = prefCat.getPreferenceCount();
-            for (int i = 0; i < count; i++) {
-                setSummaryPref(prefCat.getPreference(i));
-            }
-        } else if (pref instanceof ListPreference) {
-            ListPreference lPref = (ListPreference) pref;
-            String desc = lPref.getValue();
-            pref.setSummary(desc);
-        } else if (pref instanceof PreferenceScreen) {
-            setSummaryAll((PreferenceScreen) pref);
-        }
-    }
+	public void setSummaryPref(Preference pref) {
+		if (pref == null) return;
+
+		String key = pref.getKey();
+		if (key == null) key = "";
+
+		if (pref instanceof EditTextPreference) {                
+			EditTextPreference etPref = (EditTextPreference) pref;     
+			String desc = etPref.getText();
+			pref.setSummary(desc); 
+		}
+		else if (pref instanceof PreferenceCategory) {
+			PreferenceCategory prefCat = (PreferenceCategory)pref;
+			int count = prefCat.getPreferenceCount();
+			for (int i=0; i < count; i++) {
+				setSummaryPref(prefCat.getPreference(i));
+			}
+		}
+		else if (pref instanceof ListPreference) {
+			ListPreference lPref = (ListPreference) pref;     
+			String desc = lPref.getValue();
+			pref.setSummary(desc); 
+		} 
+		else if (pref instanceof PreferenceScreen) {
+			setSummaryAll((PreferenceScreen) pref); 
+		} 
+	}
 
 
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {

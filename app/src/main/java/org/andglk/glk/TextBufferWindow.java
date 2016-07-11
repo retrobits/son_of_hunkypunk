@@ -22,11 +22,14 @@ package org.andglk.glk;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.andglk.glk.Styles.StyleSpan;
 import org.andglk.hunkypunk.R;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -36,7 +39,9 @@ import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
+import android.support.v7.widget.CardView;
 import android.text.Editable;
+import android.text.Layout;
 import android.text.Selection;
 import android.text.method.MovementMethod;
 import android.text.Spannable;
@@ -45,13 +50,18 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.ViewTreeObserver;
+import android.util.TypedValue;;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
@@ -164,7 +174,7 @@ public class TextBufferWindow extends Window {
 			
 			final SpannableString ss = new SpannableString(mBuffer);
 			if (ss.length() > 0)
-				ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo),
+				ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo), 
 						   0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			mSsb.append(ss);
 			
@@ -207,29 +217,29 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
-	protected Glk mGlk;
-	protected _View mView;
-	protected Handler mHandler;
-	protected Context mContext;
-	private int mLineEventBuffer;
-	private long mLineEventBufferLength;
-	private int mLineEventBufferRock;
-	private boolean mUnicodeEvent = false;
+    protected Glk mGlk;
+    protected _View mView;
+    protected Handler mHandler;
+    protected Context mContext;
+    private int mLineEventBuffer;
+    private long mLineEventBufferLength;
+    private int mLineEventBufferRock;
+    private boolean mUnicodeEvent = false;
+    private boolean autoEnterFlag = false;
 
 	private class _CommandView extends EditText {
 
-		public boolean mCharInputEnabled;
-		public boolean mLineInputEnabled;
-		private TextWatcher mWatcher = 
-			new TextWatcher() 
-			{
-				public void afterTextChanged(Editable s) {
-				}
-					
-				public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-				}
-					
-				public void onTextChanged(CharSequence s, int start, int before, int count) {
+        public boolean mCharInputEnabled;
+        public boolean mLineInputEnabled;
+        private TextWatcher mWatcher =
+                new TextWatcher() {
+                    public void afterTextChanged(Editable s) {
+                    }
+
+                    public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+                    }
+
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
 
 					int char_inp = 0;
 
@@ -269,9 +279,9 @@ public class TextBufferWindow extends Window {
 							SpannableStringBuilder sb = new SpannableStringBuilder();
 							sb.append(getText().toString().replace("\n","")+"\n");
 
-							Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
-							if (sb.length() > 0)
-								sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+                                if (sb.length() > 0)
+                                    sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 							lineInputAccepted(sb);
 							
@@ -288,7 +298,7 @@ public class TextBufferWindow extends Window {
 
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
-			//setTextSize(DefaultFontSize);		
+			//setTextSize(DefaultFontSize);
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 			addTextChangedListener(mWatcher);
@@ -316,7 +326,7 @@ public class TextBufferWindow extends Window {
 
 		public void clear() {
 			setText("");
-			Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
+			Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
 			getText().setSpan(sp, 0, 0, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 		}
 
@@ -372,23 +382,29 @@ public class TextBufferWindow extends Window {
 				}, 100);		
 		}
 
-		private int FontSize = 0;
-		@Override
-		public boolean onPreDraw() {
-			if (FontSize != DefaultFontSize) {
-				FontSize = DefaultFontSize;
-				setTextSize(FontSize);      
-				mPrompt.setTextSize(FontSize);
-			}
+        private int FontSize = 0;
 
-			/*DONT DELETE*/
-			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
-			//setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			//updateInput(getText());
+        @Override
+        public boolean onPreDraw() {
+            if (FontSize != DefaultFontSize) {
+                FontSize = DefaultFontSize;
+                setTextSize(FontSize);
+                mPrompt.setTextSize(FontSize);
+            }
 
-			return true;
-		}
-	}
+            /* Fix for selectorBug sporadically when setting Text to View */
+
+            //Better to set it even if not needed (already set at end),
+            //instead of using 2 more instructions + if to check if needed to
+            if (!this.getText().toString().contains("<%>") && selectorCount > 0) {
+                setSelection(this.getText().length());
+                selectorCount--;
+            }
+
+
+            return true;
+        }
+    }
 
 	private class _PromptView extends TextView {
 		public _PromptView(Context context) {
@@ -398,7 +414,7 @@ public class TextBufferWindow extends Window {
 
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
-			//setTextSize(DefaultFontSize);		
+			//setTextSize(DefaultFontSize);
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
 			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 
@@ -416,13 +432,26 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
-	private class _View extends TextView { 
+    private class _HorListView extends HorizontalScrollView {
+        public _HorListView(Context context) {
+            super(context, null, R.attr.textBufferWindowStyle);
+            setTag("_HorListViewTAG");
+        }
+    }
+
+    private class _View extends EditText {
 
 		public class _MovementMethod implements MovementMethod {
 
-			public boolean onGenericMotionEvent(TextView widget, Spannable text, MotionEvent event) {
-				return false;
-			}
+            private float mDownX;
+            private float mDownY;
+            private final float SCROLL_THRESHOLD = 10;
+            private boolean isOnClick;
+            private long downTime;
+
+            public boolean onGenericMotionEvent(TextView widget, Spannable text, MotionEvent event) {
+                return false;
+            }
 
 			@Override
 			public boolean canSelectArbitrarily() {
@@ -452,16 +481,109 @@ public class TextBufferWindow extends Window {
 			public void onTakeFocus(TextView widget, Spannable text, int direction) {
 			}
 
-			@Override
-			public boolean onTouchEvent(TextView widget, Spannable text, MotionEvent event) {
-				if (event.getAction()==MotionEvent.ACTION_UP) {
-					TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
-					TextBufferWindow.this.mActiveCommand.showKeyboard();
-					return true;
-				}
-				else 
-					return false;
-			}
+            @Override
+            public boolean onTouchEvent(final TextView widget, Spannable text, MotionEvent event) {
+                SharedPreferences sharedShortcutPrefs = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
+                if (sharedShortcutPrefs.getBoolean("enablelongpress", true))
+                    switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                        case MotionEvent.ACTION_DOWN:
+                            mDownX = event.getX();
+                            mDownY = event.getY();
+                            isOnClick = true;
+                            downTime = event.getEventTime();
+                            break;
+                        case MotionEvent.ACTION_CANCEL:
+                        case MotionEvent.ACTION_UP:
+                            long time = event.getEventTime() - downTime;
+                            if (isOnClick && time > 100) {
+                                float x = mDownX + getScrollX();
+                                int offset = getOffset(event);
+                                if (offset != Integer.MIN_VALUE) {
+                                    if (x > getLayout().getLineMax(0)) {
+                                        String selectedText = stringHelper(offset);
+                                        if (selectedText.length() > 0) {
+                                            // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                                            SpannableStringBuilder output = new SpannableStringBuilder();
+                                            String userInput = mActiveCommand.getText().toString();
+
+                                            if (userInput.contains("<%>")) {
+                                                if (userInput.endsWith("$")) {
+                                                    autoEnterFlag = true;
+                                                    userInput = userInput.substring(0, userInput.length() - 1);
+                                                }
+                                                userInput = userInput.replaceFirst("<%>", selectedText);
+                                                output.append(userInput);
+
+                                            } else if (!userInput.equals("")) {
+                                                output.append(userInput + " ");
+                                                output.append(selectedText);
+                                            } else
+                                                output.append(selectedText);
+                                            output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                                                    , 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+
+                                            //TextBufferWindow.this.mActiveCommand.setText(output);
+                                            // mActiveCommand.setSelection(copyText.length());
+                                            //  mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                                            if (!userInput.contains("<%>") && autoEnterFlag) {
+                                                autoEnterFlag = false;
+                                                mActiveCommand.setText(output);
+                                                mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                                            } else
+                                                mActiveCommand.setText(output);
+
+                                            selectorCount = 2;
+
+                                            TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
+                                            TextBufferWindow.this.mActiveCommand.showKeyboard();
+                                            //Selection.setSelection(toEditable(mActiveCommand), output.length());
+                                            //TextBufferWindow.this.mActiveCommand.setSelection(output.length());
+
+                                        /* only works for a short time, has to be fixed*/
+                                            if (userInput.contains("<%>")) {
+                                                Toast.makeText(mGlk.getContext(), "Long press on next object", Toast.LENGTH_SHORT).show();
+                                                Pattern p = Pattern.compile("<%>");
+                                                Matcher m = p.matcher(mActiveCommand.getText().toString());
+                                                if (m.find()) {
+                                                    Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
+                                                    selectorCount = 2;
+                                                }
+
+                                            }
+                                        }
+                                    } else {
+                                        Toast.makeText(mContext, "hui", Toast.LENGTH_LONG);
+                                    /*String selectedText = stringHelper(offset - 1);
+                                    if (selectedText.length() > 0) {
+                                        Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
+                                        //putInClipMemory(selectedText);
+                                        SpannableStringBuilder copyText = new SpannableStringBuilder();
+                                        copyText = copyText.append(selectedText);
+                                        copyText.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                                                , 0, copyText.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                                        TextBufferWindow.this.mActiveCommand.setText(copyText);
+                                        TextBufferWindow.this.mActiveCommand.setSelection(copyText.length());
+                                    }*/
+                                    }
+                                }
+                                //Go to input line
+
+
+                            }
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            if (isOnClick && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
+                                    || Math.abs(mDownY - event.getY()) > SCROLL_THRESHOLD)) {
+                                isOnClick = false;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                return true;
+            }
 
 			@Override
 			public boolean onTrackballEvent(TextView widget, Spannable text, MotionEvent event) {
@@ -586,8 +708,8 @@ public class TextBufferWindow extends Window {
 					final int spanReverse = stream.readInt();
 
 					if (spanStart != spanEnd)
-						ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0),
-								spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+						ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), 
+								   spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				}
 			
 				mTrailingCr = stream.readBoolean();
@@ -618,15 +740,108 @@ public class TextBufferWindow extends Window {
 			
 			setMovementMethod(mMovementMethod = new _MovementMethod());
 
-			setTextColor(TextBufferWindow.this.DefaultTextColor);
+            setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+            setBackgroundResource(0);
+            //setTextSize(DefaultFontSize);
+            setTypeface(TextBufferWindow.this.getDefaultTypeface());
+            setReadOnly(this, true);
 
-			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
-			setBackgroundResource(0);
-			//setTextSize(DefaultFontSize);		
-			setTypeface(TextBufferWindow.this.getDefaultTypeface());
-			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-		}
+            /* Typeface NOT to be set here, since if other than text's results in TextOverflow */
+            /* Typeface set in org.andglk.glk.Styles.updatePaint() */
 
+        }
+
+        private void setReadOnly(final TextView view, final boolean readOnly) {
+            view.setFocusable(!readOnly);
+            view.setFocusableInTouchMode(!readOnly);
+            view.setClickable(!readOnly);
+            view.setLongClickable(!readOnly);
+            view.setCursorVisible(!readOnly);
+        }
+
+        private String stringHelper(int offset) {
+            setSelection(offset); // touch was at end of text
+            int maxEnd = getText().toString().length() - 1;
+
+            /*Firstly, beatify the selection clearing multiple whitespaces*/
+            int selection;
+
+            if (getSelectionStart() < maxEnd)
+                selection = getSelectionStart();
+            else
+                selection = maxEnd;
+
+            if (selection > 1 && Character.isWhitespace(getText().toString().charAt(selection - 1)) && !Character.isWhitespace(getText().toString().charAt(selection)))
+                ;
+            else
+                while (selection > 0 && Character.isWhitespace(getText().toString().charAt(selection - 1)))
+                    selection--;
+
+
+            /*Secondly, determine end position of the selector*/
+            String substringStart = getText().toString().substring(selection);
+            int nextSpaceIndex = maxEnd;
+            for (int i = 0; i < substringStart.length() - 1; i++) {
+                if (Character.isWhitespace(substringStart.toCharArray()[i])) {
+                    nextSpaceIndex = i;
+                    break;
+                }
+            }
+            int selectionEnd;
+            if (nextSpaceIndex < maxEnd)
+                selectionEnd = selection + nextSpaceIndex;
+            else
+                selectionEnd = maxEnd;
+
+            /*Thirdly, determine start position of the selector*/
+            String beforeStart = getText().toString().substring(0, selection);
+            int selectionStart = 0;
+
+            char[] beforeStartArray = beforeStart.toCharArray();
+
+            selectionStartLoop:
+            {
+                for (int j = beforeStartArray.length - 1; j >= 0; j--) {
+                    if (Character.isWhitespace(beforeStart.toCharArray()[j])) {
+                        selectionStart = j;
+                        break selectionStartLoop;
+                    }
+                }
+            }
+
+            /*Lastly, beatify selected text wiping off everything that is not alphanumeric*/
+            String selectedText = getText().toString()
+                    .substring(selectionStart, selectionEnd).replaceAll("[^\\p{L}\\p{N}]+", "");
+
+            return selectedText;
+        }
+
+
+        private int getOffset(MotionEvent event) {
+            Layout layout = getLayout();
+            if (layout == null)
+                return Integer.MIN_VALUE;
+            float x = event.getX() + getScrollX();
+            float y = event.getY() + getScrollY();
+            int line = layout.getLineForVertical((int) y);
+            int offset = layout.getOffsetForHorizontal(line, x);
+            return offset;
+        }
+
+
+        /**
+         * private void putInClipMemory(String str) {
+         * if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
+         * //TO DO: check if getAppContext returns instance of app
+         * android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+         * clipboard.setText(str);
+         * } else {
+         * android.content.ClipboardManager clipboard = (android.content.ClipboardManager) mContext.getApplicationContext().getSystemService(Context.CLIPBOARD_SERVICE);
+         * android.content.ClipData clip = android.content.ClipData.newPlainText("Text copied.", str);
+         * clipboard.setPrimaryClip(clip);
+         * }
+         * }
+         */
 
 		private CharSequence mLastLine = null;
 		private boolean mTrailingCr = false;
@@ -696,32 +911,34 @@ public class TextBufferWindow extends Window {
 			Utils.beautify(e, start);
 		}
 
-		/* see TextBufferWindow.clear() */
-		public void clear() {
-			Glk.getInstance().waitForUi(
-				new Runnable() {
-					@Override
-					public void run() {					   
-						setTextEx("");
-					}
-				});
-		}
-		private int FontSize = 0;
-		@Override
-		public boolean onPreDraw() {
-			if (FontSize != DefaultFontSize) {
-				FontSize = DefaultFontSize;
-				setTextSize(FontSize);          
-			}
+        /* see TextBufferWindow.clear() */
+        public void clear() {
+            Glk.getInstance().waitForUi(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            setTextEx("");
+                        }
+                    });
+        }
 
-			/*DONT DELETE*/
-			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
-			//setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			//setTextColor(TextBufferWindow.this.DefaultTextColor);
+        private int FontSize = 0;
 
-			return true;
-		}
-	}
+        @Override
+        public boolean onPreDraw() {
+            if (FontSize != DefaultFontSize) {
+                FontSize = DefaultFontSize;
+                setTextSize(FontSize);
+            }
+
+            return true;
+        }
+    }
+
+	public static String DefaultFontPath = null;
+	public static int DefaultFontSize = 0;
+	public String FontPath = null;
+	public int FontSize = 0;
 
 	public static String DefaultFontName = null;
 	public static int DefaultFontSize = 0;
@@ -741,27 +958,32 @@ public class TextBufferWindow extends Window {
 	private _PromptView mPrompt = null;
 	private LinearLayout mLayout = null;
 	private LinearLayout hl = null;
+	private _HorListView mHLView = null;
 	private CharSequence mCommandText = null;
+	private EditText mCommandView = null;
 	private Object mLineInputSpan;
+	private int selectorCount = 0;
 
 	/*Every window has a rock. This is a value you provide when the window is created; you can use it however you want.*/
 	/*If you don't know what to use the rocks for, provide 0 and forget about it.*/
 	public TextBufferWindow(Glk glk, int rock) {
 		super(rock);
 
-		mGlk = glk;
-		mContext = glk.getContext();
-		mHandler = mGlk.getUiHandler();
-		Glk.getInstance().waitForUi(
-			new Runnable() {
-				@Override
-					public void run() {
-					int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
-															  2, 
-															  mContext.getResources().getDisplayMetrics());
-					int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 
-															  3, 
-															  mContext.getResources().getDisplayMetrics());
+        mGlk = glk;
+        mContext = glk.getContext();
+        mHandler = mGlk.getUiHandler();
+
+
+        Glk.getInstance().waitForUi(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        int pad = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                2,
+                                mContext.getResources().getDisplayMetrics());
+                        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                                3,
+                                mContext.getResources().getDisplayMetrics());
 
 
 					// when window is created, style hints are fixed
@@ -771,55 +993,99 @@ public class TextBufferWindow extends Window {
 					mScrollView.setPadding(0, 0, 0, 0);
 					mScrollView.setFocusable(false);
 
-					LinearLayout.LayoutParams paramsDefault = new
-						LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
-					LinearLayout.LayoutParams paramsHLayout = new
-						LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
-					LinearLayout.LayoutParams paramsPrompt = new
-						LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
-					LinearLayout.LayoutParams paramsCommand = new
-						LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.WRAP_CONTENT);
-					paramsPrompt.setMargins(0, -margin, 0, 0);
-					paramsCommand.setMargins(0, -margin, 0, 0);
+                        LinearLayout.LayoutParams paramsDefault = new
+                                LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams paramsHLayout = new
+                                LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams paramsPrompt = new
+                                LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams paramsCommand = new
+                                LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams paramsLView = new
+                                LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams paramsLLayout = new
+                                LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                        paramsPrompt.setMargins(0, -margin, 0, 0);
+                        paramsCommand.setMargins(0, -margin, 0, 0);
 
 					mLayout = new LinearLayout(mContext);
 					mLayout.setOrientation(LinearLayout.VERTICAL);
 					mLayout.setPadding(0, 0, 0, 0);
 					mLayout.setBackgroundColor(DefaultBackground);
 
-					hl = new LinearLayout(mContext);
-					hl.setPadding(0, 0, 0, 0);
-					hl.setOrientation(LinearLayout.HORIZONTAL);
-					hl.setBackgroundColor(DefaultBackground);
-				   
-					mCommand1 = new _CommandView(mContext);
-					mCommand1.setPadding(pad, 0, pad, pad);
-					mCommand1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-					mCommand1.clear();
-					mCommand1.disableInput();
-					//mCommand1.setBackgroundColor(Color.YELLOW);
-					mCommand2 = new _CommandView(mContext);
-					mCommand2.setPadding(pad, 0, pad, pad);
-					mCommand2.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-					mCommand2.clear();
-					mCommand2.disableInput();
-					//mCommand2.setBackgroundColor(Color.LTGRAY);
-					ToggleCommandView();
+                        LinearLayout hl = new LinearLayout(mContext);
+                        hl.setPadding(0, 0, 0, 0);
+                        hl.setOrientation(LinearLayout.HORIZONTAL);
+
+                        LinearLayout hll = new LinearLayout(mContext);
+                        hll.setPadding(0, 0, 0, 0);
+                        hll.setOrientation(LinearLayout.HORIZONTAL);
+
+
+                        mCommand1 = new _CommandView(mContext);
+                        mCommand1.setPadding(pad, 0, pad, pad);
+                        mCommand1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                        mCommand1.clear();
+                        mCommand1.disableInput();
+                        //mCommand1.setBackgroundColor(Color.YELLOW);
+                        mCommand2 = new _CommandView(mContext);
+                        mCommand2.setPadding(pad, 0, pad, pad);
+                        mCommand2.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+                        mCommand2.clear();
+                        mCommand2.disableInput();
+                        //mCommand2.setBackgroundColor(Color.LTGRAY);
+                        ToggleCommandView();
 
 					mPrompt = new _PromptView(mContext);
 					mPrompt.setPadding(pad, 0, pad, pad);
 					mPrompt.setFocusable(false);
 
-					hl.addView(mPrompt, paramsPrompt);
-					hl.addView(mCommand1, paramsCommand);
-					hl.addView(mCommand2, paramsCommand);
-					
-					mView = new _View(mContext);
-					mView.setPadding(pad, pad, pad, 0);
-					mView.setFocusable(false);
+                        hl.addView(mPrompt, paramsPrompt);
+                        hl.addView(mCommand1, paramsCommand);
+                        hl.addView(mCommand2, paramsCommand);
 
-					mLayout.addView(mView,paramsDefault);
-					mLayout.addView(hl,paramsHLayout);
+
+                        mHLView = new _HorListView(mContext);
+                        mHLView.setPadding(0, 0, 0, 0);
+                        final ViewGroup viewGroup = new LinearLayout(mContext);
+
+                        SharedPreferences sharedShortcuts = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
+                        SharedPreferences sharedShortcutIDs = mContext.getSharedPreferences("shortcutIDs", Context.MODE_PRIVATE);
+                        SharedPreferences sharedShortcutPrefs = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
+                        if (sharedShortcutPrefs.getBoolean("enablelist", true))
+                            for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
+                                String title = sharedShortcutIDs.getString(i + "", "");
+                                final String command = sharedShortcuts.getString(title, "");
+
+                                View shorcutView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_view, null);
+                                CardView cardView = (CardView) shorcutView.findViewById(R.id.cardview);
+                                final TextView textView = (TextView) shorcutView.findViewById(R.id.shortcuttitle);
+                                textView.setText(title);
+
+                                textView.setTag(command);
+                                cardView.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        if (command.endsWith("$"))
+                                            shortcutCommandEnter(textView);
+                                        else
+                                            shortcutCommand(textView);
+                                    }
+                                });
+
+                                viewGroup.addView(shorcutView);
+                            }
+
+                        mHLView.addView(viewGroup);
+                        hll.addView(mHLView, paramsLView);
+
+                        mView = new _View(mContext);
+                        mView.setPadding(pad, pad, pad, 0);
+                        mView.setFocusable(false);
+
+                        mLayout.addView(mView, paramsDefault);
+                        mLayout.addView(hl, paramsHLayout);
+                        mLayout.addView(hll, paramsLLayout);
 
 					mScrollView.setBackgroundColor(DefaultBackground);
 					mScrollView.addView(mLayout);
@@ -842,35 +1108,173 @@ public class TextBufferWindow extends Window {
 			});
 	}
 
-	// hack to fix fatal exception from Android framework thrown by spellchecker.
-	// basic idea is to hide the textview (and show another one) rather than clearing it.
-	// just before we need to use the old textview again we clear it & hopefully by
-	// then the idiot spellchecker bot has visited and moved on.
-	//
-	// Issue 41971:	setText() in afterTextChanged function may case spellChecker bug
-	// http://code.google.com/p/android/issues/detail?id=41971
-	public void ToggleCommandView() {
-		if (mActiveCommand == mCommand1) {
-			mCommand1.setVisibility(View.GONE);
+    /**
+     * A method for recursively finding a view given a tag. If there
+     * is no view with such tag, then the parameter is not set and
+     * keeps its previous value unchanged.
+     *
+     * @param vg  parent ViewGroup from which the iteration starts
+     * @param tag Tag Object to identify the needed View
+     */
 
-			mCommand2.clear();
-			mCommand2.setVisibility(View.VISIBLE);
-			mActiveCommand = mCommand2;
-		}
-		else {
-			mCommand2.setVisibility(View.GONE);
+    public View findViewByTag(ViewGroup vg, Object tag) {
 
-			mCommand1.clear();
-			mCommand1.setVisibility(View.VISIBLE);
-			mActiveCommand = mCommand1;
-		}
-	}
+        View result = null;
+
+        if (vg == null)
+            return null;
+
+        for (int i = 0; i < vg.getChildCount(); i++) {
+            //because some are not set and we don't like NullPtrs
+            if (vg.getChildAt(i).getTag() != null) {
+                if (vg.getChildAt(i).getTag().toString().equals(tag))
+                    result = vg.getChildAt(i);
+            }
+        }
+        for (int i = 0; i < vg.getChildCount(); i++) {
+            if (vg.getChildAt(i) instanceof ViewGroup) {
+                result = findViewByTag((ViewGroup) vg.getChildAt(i), tag);
+                if (result != null) break;
+            }
+        }
+        return result;
+    }
+
+    private void animate(View v) {
+        Animation animation1 = AnimationUtils.loadAnimation(mContext, R.anim.press);
+        v.startAnimation(animation1);
+    }
+
+    private Editable toEditable(EditText et) {
+        Editable etext = et.getText();
+        etext.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                , 0, et.getText().length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        return etext;
+    }
+
+    /**
+     * Directly inputs text onto Glk.select through TextWatcher
+     */
+    private TextView tempView = null;
+
+    public void shortcutCommandEnter(View v) {
+        //mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+        tempView = (TextView) v;
+        if (mActiveCommand != null) {
+            boolean semaphore = true;
+            while (semaphore) {
+                animate(v);
+                SpannableStringBuilder userInput = new SpannableStringBuilder(mActiveCommand.getText().toString());
+                String userCommand = tempView.getTag().toString();
+                userCommand = userCommand.substring(0, userCommand.length() - 1);
+
+                SpannableStringBuilder output = new SpannableStringBuilder(userInput.toString());
+                output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false), 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+                if (!output.toString().equals(""))
+                    output.append(" " + userCommand);
+                else
+                    output.append(userCommand);
+
+                mActiveCommand.setText(output);
+
+                if (!userCommand.contains("<%>"))
+                    mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                else {
+                    autoEnterFlag = true;
+                    Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
+                    Pattern p = Pattern.compile("<%>");
+                    Matcher m = p.matcher(mActiveCommand.getText().toString());
+                    if (m.find())
+                        Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
+
+                    //mActiveCommand.setSelection(m.start(), m.end());
+
+                }
+
+                //mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                //TODO: dynamic (user)settable list of commands remembering the last typed in text before click
+                if (mActiveCommand != null && userCommand.equals("Inventory")) {
+                    userInput.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
+                            0, userInput.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    mActiveCommand.setText(userInput);
+                }
+                semaphore = false;
+            }
+        } else {
+            //Of course not (reachable)
+            Toast.makeText(mGlk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Sets the text in the CommandView, enabling the user to proceed typing the rest
+     */
+    public void shortcutCommand(View v) {
+        // mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+        tempView = (TextView) v;
+        if (mActiveCommand != null) {
+            animate(v);
+            String userInput = mActiveCommand.getText().toString();
+            SpannableStringBuilder shortcutCommand = new SpannableStringBuilder();
+
+
+            shortcutCommand.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
+                    0, shortcutCommand.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            if (!userInput.equals("")) {
+                shortcutCommand.append(userInput + " ");
+                shortcutCommand.append(tempView.getTag().toString());
+            } else
+                shortcutCommand.append(tempView.getTag().toString());
+
+            mActiveCommand.setText(shortcutCommand);
+            if (userInput.contains("<%>")) {
+                autoEnterFlag = true;
+                Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
+                Pattern p = Pattern.compile("<%>");
+                Matcher m = p.matcher(mActiveCommand.getText().toString());
+                if (m.find())
+                    Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
+            }
+            selectorCount = 2;
+        } else {
+            //Of course not (reachable)
+            Toast.makeText(mGlk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // hack to fix fatal exception from Android framework thrown by spellchecker.
+    // basic idea is to hide the textview (and show another one) rather than clearing it.
+    // just before we need to use the old textview again we clear it & hopefully by
+    // then the idiot spellchecker bot has visited and moved on.
+    //
+    // Issue 41971:	setText() in afterTextChanged function may case spellChecker bug
+    // http://code.google.com/p/android/issues/detail?id=41971
+    public void ToggleCommandView() {
+        if (mActiveCommand == mCommand1) {
+            mCommand1.setVisibility(View.GONE);
+            mCommand1.setTag("Inactive");
+
+            mCommand2.clear();
+            mCommand2.setVisibility(View.VISIBLE);
+            mCommand2.setTag("_ActiveCommandViewTAG");
+            mActiveCommand = mCommand2;
+        } else {
+            mCommand2.setVisibility(View.GONE);
+            mCommand2.setTag("Inactive");
+
+            mCommand1.clear();
+            mCommand1.setVisibility(View.VISIBLE);
+            mCommand1.setTag("_ActiveCommandViewTAG");
+            mActiveCommand = mCommand1;
+        }
+    }
 
 	public static Typeface mTypeface = Typeface.SERIF;
 	public Typeface getDefaultTypeface() {
 		//if (mTypeface == null) {
-			Typeface tf = null; 
-			
+			Typeface tf = null;
+
 			//TODO: this is broken & disabled for now |:fixed:|
 		    //see documentation
 			 switch(DefaultFontName) {
@@ -1115,11 +1519,11 @@ public class TextBufferWindow extends Window {
 	boolean styleDistinguish(int style1, int style2) {
 		if (style1 == style2)
 			return false;
-
+		
 		int res1, res2;
 		res1 = getTextAppearanceId(style1);
 		res2 = getTextAppearanceId(style2);
-		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor,
+		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor, 
 							   android.R.attr.typeface, android.R.attr.textStyle };
 		TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
 		TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);
