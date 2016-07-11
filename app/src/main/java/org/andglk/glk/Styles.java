@@ -1,9 +1,12 @@
 package org.andglk.glk;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
+
 
 /** This class handles all the styles a window can have. 
  * */
@@ -41,9 +44,15 @@ public class Styles {
 			//Log.w("Glk/Styles/clear", "unknown style or hint: " + styl + " " + hint);
 		}
 	}
-	
-	/** Get a text paint for the given style, using the hints 
-	 * @param b */
+
+	/**
+	 * Get a text paint for the given style, using the hints
+	 * @param context
+	 * @param mPaint
+	 * @param styl
+	 * @param reverse
+	 * @return
+	 */
 	public TextPaint getPaint(Context context, TextPaint mPaint, int styl, boolean reverse) {
 		// Create an copy of the paint
 		TextPaint tpx = new TextPaint();
@@ -54,13 +63,41 @@ public class Styles {
 		
 		return tpx;
 	}
-	
+
+	/**
+	 * Used for the Day-Night Mode to toggle styles
+	 * @param context Used to call the value in the SharedPreferences
+	 * @param styl the style to be checked and respectively toggled
+	 * @return     the new updated style
+	 */
+	private static int determineStyle(Context context, int styl) {
+		if (styl == Glk.STYLE_HEADER && context.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false))
+			styl = Glk.STYLE_NIGHT_HEADER;
+
+		if (styl == Glk.STYLE_SUBHEADER && context.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false))
+			styl = Glk.STYLE_NIGHT_SUBHEADER;
+
+		if (styl == Glk.STYLE_INPUT && context.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false))
+			styl = Glk.STYLE_NIGHT;
+
+		if (styl == Glk.STYLE_NIGHT && !(context.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)))
+			styl = Glk.STYLE_INPUT;
+
+		if (styl == Glk.STYLE_PREFORMATTED && context.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false))
+			styl = Glk.STYLE_NIGHT_FORMAT;
+
+		if (styl == Glk.STYLE_NIGHT_FORMAT && !(context.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)))
+			styl = Glk.STYLE_PREFORMATTED;
+
+		return styl;
+	}
+
 	public class StyleSpan extends TextAppearanceSpan {
 		private final int _styl;
 		private final boolean _reverse;
 
 		public StyleSpan(Context context, int styl, boolean reverse) {
-			super(context, Window.getTextAppearanceId(styl));
+			super(context,Window.getTextAppearanceId(determineStyle(context, styl)));
 			_styl = styl;
 			_reverse = reverse;
 		}
@@ -92,10 +129,19 @@ public class Styles {
 		Integer[] hints = _styles[styl];
 		// Set typeface first, because it's used by WEIGHT and OBLIQUE cases
 		if (hints[Glk.STYLEHINT_PROPORTIONAL] != null) {
-			if (Integer.valueOf(0).equals(hints[Glk.STYLEHINT_PROPORTIONAL])) {
+			/*if (Integer.valueOf(0).equals(hints[Glk.STYLEHINT_PROPORTIONAL])) {
 				ds.setTypeface(Typeface.MONOSPACE);
 			} else {
 				ds.setTypeface(Typeface.SERIF);
+			}*/
+			if (TextBufferWindow.mTypeface != null) {
+				ds.setTypeface(TextBufferWindow.mTypeface);
+			}else {
+				if (Integer.valueOf(0).equals(hints[Glk.STYLEHINT_PROPORTIONAL])) {
+					ds.setTypeface(Typeface.MONOSPACE);
+				} else {
+					ds.setTypeface(Typeface.SERIF);
+				}
 			}
 		}
 
@@ -151,7 +197,7 @@ public class Styles {
 		if (hints[Glk.STYLEHINT_TEXTCOLOR] != null) {
 			ds.setColor(hints[Glk.STYLEHINT_TEXTCOLOR]);
 		}
-		
+
 		if (hints[Glk.STYLEHINT_BACKCOLOR] != null) {
 			ds.bgColor = hints[Glk.STYLEHINT_BACKCOLOR];
 		}
@@ -159,8 +205,14 @@ public class Styles {
 		if (reverse || Integer.valueOf(1).equals(hints[Glk.STYLEHINT_REVERSECOLOR])) {
 			// swap background and foreground colors
 			int color = ds.getColor();
-			ds.setColor(ds.bgColor);
-			ds.bgColor = color;
+			if (TextBufferWindow.DefaultTextColor == Color.WHITE) {//it's night
+				ds.setColor(TextBufferWindow.DefaultTextColor);
+				ds.bgColor = Color.BLACK;
+				//reverse = true;
+			} else {
+					ds.setColor(ds.bgColor);
+					ds.bgColor = color;
+			}
 		}
 	}
 

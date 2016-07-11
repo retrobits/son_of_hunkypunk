@@ -34,8 +34,27 @@
 	<item>40</item>
   </string-array>
   <string-array name="fontNameArray">
+	<item>256 BYTES</item>
+	<item>Adventure</item>
+	<item>Coda Regular</item>
+	<item>CODE Bold</item>
+	<item>CODE Light</item>
+	<item>Crimson Roman</item>
+	<item>Daniel</item>
+	<item>Data Control</item>
+	<item>Droid Mono</item>
 	<item>Droid Sans</item>
 	<item>Droid Serif</item>
-	<item>Droid Mono</item>
+	<item>Keep Calm</item>
+	<item>Marlboro</item>
+	<item>MKOCR</item>
+	<item>Old Game Fatty</item>
+	<item>Pokemon Hollow</item>
+	<item>Pokemon Solid</item>
+	<item>Roboto Regular</item>
+	<item>Roboto Thin</item>
+	<item>TeX Regular</item>
+	<item>Traveling Typewriter</item>
+
   </string-array>
 </resources>

@@ -33,18 +33,22 @@ import org.andglk.glk.TextBufferWindow;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.preference.SwitchPreference;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class Interpreter extends Activity {
     private static final String TAG = "hunkypunk.Interpreter";
@@ -56,7 +60,10 @@ public class Interpreter extends Activity {
     public void onCreate(Bundle savedInstanceState) {
     	System.loadLibrary("andglk-loader");
 
-    	setTheme(R.style.theme);
+		if (getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false))
+			setTheme(R.style.theme2);
+		else
+    		setTheme(R.style.theme1);
 		setFont();
 
         Intent i = getIntent();
@@ -99,6 +106,21 @@ public class Interpreter extends Activity {
         	loadBookmark();
 		}
     	glk.start();
+		/*
+			Sets the night mode privately if it was previously on, otherwise it is left so
+			Basically, acts like a restore and overwrites the colors accoring to the switch
+			value.
+		 */
+		SharedPreferences sharedPrefs = getSharedPreferences("Night", Context.MODE_PRIVATE);
+		if (sharedPrefs.getBoolean("NightOn", false)) {
+			org.andglk.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
+			org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
+			org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;
+		} else {
+			org.andglk.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
+			org.andglk.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
+			org.andglk.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_INPUT;
+		}
     }
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -115,6 +137,7 @@ public class Interpreter extends Activity {
 		case '1':
 			intent = new Intent(this, PreferencesActivity.class);
 			startActivity(intent);
+			finish();
 			break;
 		case '2':
 			AlertDialog builder;
@@ -205,24 +228,43 @@ public class Interpreter extends Activity {
 		if (setFont()) glk.getView().invalidate();
 	}
 
+	/* Changing font fixed with a workaround solution. Apparently,
+ 	 * all that was needed was setting the returned value to the
+	 * default value in TextBufferWindow and performing the other changes there.
+	 * Path option is eliminated. Later, would be thought of letting the user
+	 * upload downloaded fonts, but for now the available fonts are fixed. More
+	 * fonts are to be added.
+	 */
+
 	private boolean setFont() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		
-		//TODO: changing font is broken (text overflows the view)
+		//TODO: changing font is broken (text overflows the view) |:fixed:|
 		
 		//String fontFolder = prefs.getString("fontFolderPath", "/sdcard/Fonts");
 		//String fontFile = prefs.getString("fontFileName", "Droid Serif");
-		//String fontPath = new File(fontFolder, fontFile).getAbsolutePath();
+		//String fontPath;
+		//File fonts = new File(fontFolder, fontFile);
+
+
 		int fontSize = 16;
 		try{
 			fontSize = Integer.parseInt(prefs.getString("fontSize", Integer.toString(fontSize)));
 		}catch(Exception e){}
 
-		if (TextBufferWindow.DefaultFontSize != fontSize) {
-			//(TextBufferWindow.DefaultFontPath == null 
-			//|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0 
+		String fontName = prefs.getString("fontFileName", "Droid Serif"); //returns the Svalue in "fontfileName"-preference and otherwise "DSerif"
+		//debugging msg
+		//if (TextBufferWindow.DefaultFontName == null)
+     	//			Toast.makeText(getApplicationContext(), "Font " + fontName + " set.",Toast.LENGTH_LONG).show();
 
-			//TextBufferWindow.DefaultFontPath = fontPath;
+		TextBufferWindow.DefaultFontName = fontName;
+
+		if (TextBufferWindow.DefaultFontSize != fontSize) {
+		/*dead code*/
+		//	TextBufferWindow.DefaultFontName == null) {
+		//	|| TextBufferWindow.DefaultFontPath.compareTo(fontPath)!=0) {
+
+			//TextBufferWindow.DefaultFontName = fontName; //TODO: try again here in the IF
 			TextBufferWindow.DefaultFontSize = fontSize;
 			return true;
 		}

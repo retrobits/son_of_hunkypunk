@@ -15,12 +15,6 @@
         android:key="defaultif"
         android:summary="Your default IF-Directory"
         android:title="@string/ifdef" />
-    <EditTextPreference
-        android:defaultValue="/sdcard/Fonts"
-        android:enabled="false"
-        android:key="fontFolderPath"
-        android:summary="folder to store custom TTF font files"
-        android:title="Font folder path" />
     <ListPreference
         android:defaultValue="Droid Serif"
         android:enabled="false"
@@ -29,4 +23,19 @@
         android:key="fontFileName"
         android:summary="Custom TTF font file"
         android:title="Font file name" />
+	<ListPreference
+		android:enabled="true"
+		android:title="Fonts"
+		android:key="fontFileName"
+		android:summary="List of TTF fonts"
+		android:defaultValue="Droid Serif"
+		android:entries="@array/fontNameArray"
+		android:entryValues="@array/fontNameArray" />
+
+	<SwitchPreference
+		android:key="day_night"
+		android:title="@string/dayNight"
+		android:defaultValue="false"
+		android:hint="NightOn"/>
+
 </PreferenceScreen>

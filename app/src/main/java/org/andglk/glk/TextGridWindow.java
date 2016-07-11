@@ -26,6 +26,7 @@ import org.andglk.hunkypunk.R;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
@@ -35,6 +36,7 @@ import android.os.Parcelable;
 import android.text.TextPaint;
 import android.util.FloatMath;
 import android.view.KeyEvent;
+import android.view.ViewTreeObserver;
 
 public class TextGridWindow extends Window {
 	 public static class TextGridParcelable implements Parcelable {
@@ -154,7 +156,7 @@ public class TextGridWindow extends Window {
 	}
 
 	public boolean mChanged;
-	
+
 	protected class View extends android.view.View {
 		private final int _fontSize;
 		private final Paint mPaint;
@@ -196,10 +198,22 @@ public class TextGridWindow extends Window {
 			mPaint.setSubpixelText(true);
 
 			mBackPaint = new Paint();
-			mBackPaint.setColor(0xffffffff);
+			mBackPaint.setColor(TextBufferWindow.DefaultBackground);
 			mBackPaint.setStyle(Style.FILL);
 
 			mWidth = mHeight = 0;
+
+
+			/*DONT DELETE*/
+			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			/*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+				@Override
+				public boolean onPreDraw () {
+					mPaint.setColor(mDefaultColor);
+					mBackPaint.setColor(TextBufferWindow.DefaultBackground);
+					return true;
+				}
+			});*/
 		}
 
 		public void setStyle(int styl) {
@@ -552,7 +566,7 @@ public class TextGridWindow extends Window {
 			public void run() {
 				init(glk);
 			}
-		});		
+		});
 	}
 
 	protected void init(Glk glk) {

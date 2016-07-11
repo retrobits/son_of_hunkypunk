@@ -28,13 +28,16 @@ import org.andglk.hunkypunk.R;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.inputmethodservice.KeyboardView;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.text.Editable;
+import android.text.Selection;
 import android.text.method.MovementMethod;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -43,6 +46,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -52,6 +56,7 @@ import android.widget.ScrollView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class TextBufferWindow extends Window {
@@ -159,7 +164,7 @@ public class TextBufferWindow extends Window {
 			
 			final SpannableString ss = new SpannableString(mBuffer);
 			if (ss.length() > 0)
-				ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo), 
+				ss.setSpan(stylehints.getSpan(mContext, (int) mCurrentStyle, mReverseVideo),
 						   0, ss.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			mSsb.append(ss);
 			
@@ -218,7 +223,7 @@ public class TextBufferWindow extends Window {
 		private TextWatcher mWatcher = 
 			new TextWatcher() 
 			{
-				public void afterTextChanged(Editable s) { 
+				public void afterTextChanged(Editable s) {
 				}
 					
 				public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
@@ -264,7 +269,7 @@ public class TextBufferWindow extends Window {
 							SpannableStringBuilder sb = new SpannableStringBuilder();
 							sb.append(getText().toString().replace("\n","")+"\n");
 
-							Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+							Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
 							if (sb.length() > 0)
 								sb.setSpan(sp, 0, sb.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
@@ -278,17 +283,40 @@ public class TextBufferWindow extends Window {
 
 		public _CommandView(Context context) {
 			super(context, null, R.attr.textBufferWindowEditStyle);
-			
+
+			//setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
+			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 			addTextChangedListener(mWatcher);
+			setTextStyle(this);
+
+		}
+
+		/** Dont put into the onPreDraw, it crashes the app and destroys game progress */
+		private void setTextStyle(EditText etext) {
+			SpannableStringBuilder temp = new SpannableStringBuilder();
+			temp = temp.append(etext.getText().toString());
+			temp.setSpan(_stylehints.getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+					, 0, temp.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+			etext.setText(temp);
+			Selection.setSelection(etext.getText(), etext.getText().length());
+		}
+
+		private void updateInput(Editable s) {
+			if (mContext.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
+				SpannableString text = new SpannableString(s.toString());
+				Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
+				s.setSpan(sp, 0, text.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+			}
 		}
 
 		public void clear() {
 			setText("");
-			Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+			Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
 			getText().setSpan(sp, 0, 0, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 		}
 
@@ -352,6 +380,12 @@ public class TextBufferWindow extends Window {
 				setTextSize(FontSize);      
 				mPrompt.setTextSize(FontSize);
 			}
+
+			/*DONT DELETE*/
+			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			//setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			//updateInput(getText());
+
 			return true;
 		}
 	}
@@ -359,13 +393,28 @@ public class TextBufferWindow extends Window {
 	private class _PromptView extends TextView {
 		public _PromptView(Context context) {
 			super(context, null, R.attr.textBufferWindowStyle);
-			
+
+			setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
-		}		
-	}							  
+			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+
+			/*DONT DELETE*/
+			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			/*getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+				@Override
+				public boolean onPreDraw () {
+					setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+					setTextColor(TextBufferWindow.this.DefaultTextColor);
+					return true;
+				}
+			});*/
+
+		}
+	}
 
 	private class _View extends TextView { 
 
@@ -537,8 +586,8 @@ public class TextBufferWindow extends Window {
 					final int spanReverse = stream.readInt();
 
 					if (spanStart != spanEnd)
-						ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0), 
-								   spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+						ed.setSpan(stylehints.getSpan(mContext, spanStyle, spanReverse != 0),
+								spanStart, spanEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				}
 			
 				mTrailingCr = stream.readBoolean();
@@ -569,11 +618,14 @@ public class TextBufferWindow extends Window {
 			
 			setMovementMethod(mMovementMethod = new _MovementMethod());
 
+			setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
 			setBackgroundResource(0);
 			//setTextSize(DefaultFontSize);		
 			setTypeface(TextBufferWindow.this.getDefaultTypeface());
-		}		
+			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+		}
 
 
 		private CharSequence mLastLine = null;
@@ -661,12 +713,25 @@ public class TextBufferWindow extends Window {
 				FontSize = DefaultFontSize;
 				setTextSize(FontSize);          
 			}
+
+			/*DONT DELETE*/
+			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			//setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+			//setTextColor(TextBufferWindow.this.DefaultTextColor);
+
 			return true;
 		}
 	}
 
-	public static String DefaultFontPath = null;
+	public static String DefaultFontName = null;
 	public static int DefaultFontSize = 0;
+
+	/*Night Mode Vars*/
+	public static int DefaultBackground = Color.WHITE;
+	public static int DefaultTextColor = Color.BLACK;
+	public static int DefaultInputStyle = Glk.STYLE_INPUT;
+	/*Night Mode Vars*/
+
 	public String FontPath = null;
 	public int FontSize = 0;
 	private _ScrollView mScrollView = null;
@@ -675,16 +740,18 @@ public class TextBufferWindow extends Window {
 	private _CommandView mCommand2 = null;
 	private _PromptView mPrompt = null;
 	private LinearLayout mLayout = null;
+	private LinearLayout hl = null;
 	private CharSequence mCommandText = null;
 	private Object mLineInputSpan;
 
+	/*Every window has a rock. This is a value you provide when the window is created; you can use it however you want.*/
+	/*If you don't know what to use the rocks for, provide 0 and forget about it.*/
 	public TextBufferWindow(Glk glk, int rock) {
 		super(rock);
 
 		mGlk = glk;
 		mContext = glk.getContext();
 		mHandler = mGlk.getUiHandler();
-
 		Glk.getInstance().waitForUi(
 			new Runnable() {
 				@Override
@@ -718,10 +785,12 @@ public class TextBufferWindow extends Window {
 					mLayout = new LinearLayout(mContext);
 					mLayout.setOrientation(LinearLayout.VERTICAL);
 					mLayout.setPadding(0, 0, 0, 0);
+					mLayout.setBackgroundColor(DefaultBackground);
 
-					LinearLayout hl = new LinearLayout(mContext);
+					hl = new LinearLayout(mContext);
 					hl.setPadding(0, 0, 0, 0);
 					hl.setOrientation(LinearLayout.HORIZONTAL);
+					hl.setBackgroundColor(DefaultBackground);
 				   
 					mCommand1 = new _CommandView(mContext);
 					mCommand1.setPadding(pad, 0, pad, pad);
@@ -752,10 +821,25 @@ public class TextBufferWindow extends Window {
 					mLayout.addView(mView,paramsDefault);
 					mLayout.addView(hl,paramsHLayout);
 
+					mScrollView.setBackgroundColor(DefaultBackground);
 					mScrollView.addView(mLayout);
 					mStream = new _Stream();
+
+
+					/*DONT DELETE*/
+					/*Not used for now but left for compatibility as part of issue #41 - onPreDrawNight*/
+					/*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+						@Override
+						public boolean onPreDraw () {
+							mScrollView.setBackgroundColor(DefaultBackground);
+							mLayout.setBackgroundColor(DefaultBackground);
+							hl.setBackgroundColor(DefaultBackground);
+
+							return true;
+						}
+					});*/
 				}
-			});		
+			});
 	}
 
 	// hack to fix fatal exception from Android framework thrown by spellchecker.
@@ -782,29 +866,127 @@ public class TextBufferWindow extends Window {
 		}
 	}
 
-	private Typeface _typeface = null;
+	public static Typeface mTypeface = Typeface.SERIF;
 	public Typeface getDefaultTypeface() {
-		if (_typeface == null) {
+		//if (mTypeface == null) {
 			Typeface tf = null; 
 			
-			//TODO: this is broken & disabled for now
+			//TODO: this is broken & disabled for now |:fixed:|
+		    //see documentation
+			 switch(DefaultFontName) {
+				 case"Droid Serif":
+					 //	|| DefaultFontName.endsWith("otf"))
+					 tf = Typeface.SERIF;
+					 break;
+				 case "Droid Sans":
+					 tf = Typeface.SANS_SERIF;
+					 break;
+				 case "Droid Mono" :
+					 tf = Typeface.MONOSPACE;
+					 break;
+				 case "Daniel":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Daniel.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "256 BYTES":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/256BYTES.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Adventure":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Adventure.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Coda Regular":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Coda-Regular.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "CODE Bold":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Bold.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "CODE Light":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Light.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Crimson Roman":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Crimson-Roman.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Data Control":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/data-unifon.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Keep Calm":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/KeepCalm.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Marlboro":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Marlboro.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "MKOCR":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/MKOCR.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Old Game Fatty":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/OldGameFatty.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Pokemon Hollow":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Hollow.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Pokemon Solid":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Solid.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Roboto Regular":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Regular.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Roboto Thin":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Thin.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Star Jedi":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Starjedi.ttf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "TeX Regular":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/tex-regular.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 case "Traveling Typewriter":
+					 try {
+						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/TravelingTypewriter.otf");
+					 } catch (Exception ex) {}
+					 break;
+				 default:
+					 tf = Typeface.SERIF;
+			 }
 
-			// if (DefaultFontPath.endsWith("ttf") 
-			// 	|| DefaultFontPath.endsWith("otf"))
-			// 	try {
-			// 		tf = Typeface.createFromFile(DefaultFontPath);
-			// 	} catch (Exception ex) {}
-			// else if (DefaultFontPath.endsWith("Droid Sans")) 
-			// 	tf = Typeface.SANS_SERIF;
-			// else if (DefaultFontPath.endsWith("Droid Mono")) 
-			// 	tf = Typeface.MONOSPACE;
+			mTypeface = tf;
+	//	}
 
-			if (tf == null) tf = Typeface.SERIF;
-
-			_typeface = tf;
-		}
-
-		return _typeface;
+		return mTypeface;
 	}
 
 	public void setPrompt(CharSequence p){
@@ -812,7 +994,7 @@ public class TextBufferWindow extends Window {
 	}
 	
 	public Object makeInputSpan() {
-		return stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
+		return stylehints.getSpan(mContext, TextBufferWindow.DefaultInputStyle, false);
 	}
 
 	public void lineInputAccepted(Spannable s) {
@@ -933,11 +1115,11 @@ public class TextBufferWindow extends Window {
 	boolean styleDistinguish(int style1, int style2) {
 		if (style1 == style2)
 			return false;
-		
+
 		int res1, res2;
 		res1 = getTextAppearanceId(style1);
 		res2 = getTextAppearanceId(style2);
-		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor, 
+		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor,
 							   android.R.attr.typeface, android.R.attr.textStyle };
 		TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
 		TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);

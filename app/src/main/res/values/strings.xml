@@ -78,4 +78,6 @@
    	<string name="download_preselected">Download preselected</string> 
    	<string name="please_wait">Please wait</string>
    	<string name="downloading_stories">Downloading stories...</string>
+
+    <string name="dayNight">Night Mode</string>
 </resources>
