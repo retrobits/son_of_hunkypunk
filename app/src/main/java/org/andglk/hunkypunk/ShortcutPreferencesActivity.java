@@ -18,7 +18,6 @@ import android.widget.TextView;
 import com.mobeta.android.dslv.DragSortListView;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 public class ShortcutPreferencesActivity extends ListActivity {
     private ShortcutItemAdapter adapter;
@@ -32,6 +31,7 @@ public class ShortcutPreferencesActivity extends ListActivity {
                     adapter.notifyDataSetChanged();
                     adapter.remove(item);
                     adapter.insert(item, to);
+                    moveShortcutPreference(from, to);
                 }
             };
 
@@ -40,6 +40,25 @@ public class ShortcutPreferencesActivity extends ListActivity {
                 @Override
                 public void remove(int which) {
                     adapter.remove(adapter.getItem(which));
+
+                    SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
+                    SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
+                    SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
+                    SharedPreferences.Editor shortcutIDEditor = sharedShortcutIDs.edit();
+
+                    String title = sharedShortcutIDs.getString(which + "", "");
+                    shortcutIDEditor.remove(which + "");
+                    shortcutEditor.remove(title);
+
+
+                    for (int i = which + 1; i < sharedShortcutIDs.getAll().size() + 1; i++) {
+                        shortcutIDEditor.putString((i - 1) + "", sharedShortcutIDs.getString(i + "", ""));
+                    }
+
+                    shortcutIDEditor.remove((sharedShortcutIDs.getAll().size() - 1) + "");
+
+                    shortcutEditor.commit();
+                    shortcutIDEditor.commit();
                 }
             };
 
@@ -56,13 +75,14 @@ public class ShortcutPreferencesActivity extends ListActivity {
                 }
             };
 
-    private AdapterView.OnItemClickListener onItemClickListener;
 
     private ArrayList<ShortcutItem> list;
     private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        final SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
+        SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.shortcut_list);
 
@@ -70,9 +90,11 @@ public class ShortcutPreferencesActivity extends ListActivity {
         DragSortListView lv = (DragSortListView) getListView();
         list = new ArrayList<ShortcutItem>();
 
-        final SharedPreferences sharedPreferences = getSharedPreferences("shortcuts", MODE_PRIVATE);
-        for (Map.Entry<String, ?> map : sharedPreferences.getAll().entrySet()) {
-            list.add(new ShortcutItem(map.getKey().toString(), map.getValue().toString()));
+        for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
+            String title = sharedShortcutIDs.getString(i + "", "");
+            String command = sharedShortcuts.getString(title, "");
+
+            list.add(new ShortcutItem(title, command));
         }
 
         adapter = new ShortcutItemAdapter(list);
@@ -81,14 +103,16 @@ public class ShortcutPreferencesActivity extends ListActivity {
 
         lv.setDropListener(onDrop);
         lv.setRemoveListener(onRemove);
+
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+            public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
+
                 final View promptsView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_preferences_prompt, null);
                 final ShortcutItem shortcutItem = adapter.getItem(position);
 
-                final String title = shortcutItem.getTitle();
-                final String command = sharedPreferences.getString(title, "");
+                final String title = shortcutItem.getTitle(); //sharedShortcutIDs.getString(position + "", "");
+                final String command = sharedShortcuts.getString(title, "");
 
                 final EditText inputTitle = (EditText) promptsView.findViewById(R.id.editTitleDialogUserInput);
                 final EditText inputCommand = (EditText) promptsView.findViewById(R.id.editTextDialogUserInput);
@@ -122,18 +146,19 @@ public class ShortcutPreferencesActivity extends ListActivity {
                         } else if (nCommand.endsWith("$")) {
                             nCommand = nCommand.substring(0, nCommand.length() - 1);
                             shortcutItem.setCommand(nCommand);
-                        }
+                        } else
+                            shortcutItem.setCommand(nCommand);
+
                         shortcutItem.setTitle(nTitle);
-                        editShortcutPreference(title, nTitle, nCommand);
+                        editShortcutSharedPreference(position, title, nTitle, nCommand);
+                        adapter.notifyDataSetChanged();
                     }
                 });
 
                 builder.create().show();
-                //titleView.setText("blaaa");
 
             }
         });
-
 
     }
 
@@ -144,13 +169,39 @@ public class ShortcutPreferencesActivity extends ListActivity {
         editor.commit();
     }
 
-    public void editShortcutPreference(String oldTitle, String newTitle, String command) {
-        SharedPreferences sharedPreferences = getSharedPreferences("shortcuts", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove(oldTitle);
-        editor.putString(newTitle, command);
+    public void editShortcutSharedPreference(int position, String oldTitle, String newTitle, String command) {
+        SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
+        SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
+        SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
+        SharedPreferences.Editor shortcutIDEditor = sharedShortcutIDs.edit();
 
-        editor.commit();
+        shortcutEditor.remove(oldTitle);
+        shortcutEditor.putString(newTitle, command);
+
+        shortcutIDEditor.putString(position + "", newTitle);
+
+        shortcutEditor.commit();
+        shortcutIDEditor.commit();
+    }
+
+    private void moveShortcutPreference(int from, int to) {
+        SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
+        SharedPreferences.Editor sharedShortcutIDsEditor = sharedShortcutIDs.edit();
+
+        String title = sharedShortcutIDs.getString(from + "", "");
+
+        if (from < to) {
+            for (int i = from + 1; i <= to; i++) {
+                sharedShortcutIDsEditor.putString((i - 1) + "", sharedShortcutIDs.getString(i + "", ""));
+            }
+            sharedShortcutIDsEditor.putString(to + "", title);
+        } else if (from > to) {
+            for (int i = from - 1; i >= to; i--) {
+                sharedShortcutIDsEditor.putString((i + 1) + "", sharedShortcutIDs.getString(i + "", ""));
+            }
+            sharedShortcutIDsEditor.putString(to + "", title);
+        }
+        sharedShortcutIDsEditor.commit();
     }
 
     public class ShortcutItem {

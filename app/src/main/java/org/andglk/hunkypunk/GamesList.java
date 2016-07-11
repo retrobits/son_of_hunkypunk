@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import org.andglk.glk.Utils;
 import org.andglk.hunkypunk.HunkyPunk.Games;
@@ -122,18 +124,29 @@ public class GamesList extends ListActivity implements OnClickListener {
 
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
+        SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
+
         if (sharedPreferences.getBoolean("firstStart", true)) {
             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
             SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
+            SharedPreferences.Editor shortcutIDEditor = sharedShortcutIDs.edit();
 
             String[] defaults = new String[]{"look", "examine", "take", "inventory", "ask", "drop", "tell", "again", "open", "close", "give", "show"};
+            ArrayList<String> list = new ArrayList<String>();
             for (int i = 0; i < defaults.length; i++)
-                shortcutEditor.putString(defaults[i], defaults[i]);
+                list.add(defaults[i]);
+            Collections.sort(list);
+
+
+            for (int i = 0; i < list.size(); i++) {
+                shortcutEditor.putString(i + "", list.get(i));
+                shortcutIDEditor.putString(i + "", i + "");
+            }
+            prefEditor.putBoolean("firstStart", false);
+            shortcutIDEditor.commit();
             shortcutEditor.commit();
-            prefEditor.putBoolean("#firstStart", false);
             prefEditor.commit();
         }
-
         startScan();
     }
 

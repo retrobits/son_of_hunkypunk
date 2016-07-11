@@ -11,13 +11,13 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 14
+    compileSdkVersion 21
     buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "org.andglk.hunkypunk"
         minSdkVersion 14
-        targetSdkVersion 14
+        targetSdkVersion 21
     }
     sourceSets.main {
         jni.srcDirs = [] // This prevents the auto generation of Android.mk

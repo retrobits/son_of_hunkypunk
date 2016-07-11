@@ -22,8 +22,6 @@ package org.andglk.hunkypunk;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -50,25 +48,6 @@ public class PreferencesActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
-
-        SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
-        PreferenceCategory cat = (PreferenceCategory) findPreference("shortcuts");
-        Preference pref;
-        Set<String> keySet = sharedPreferences.getAll().keySet();
-        ArrayList<Map.Entry<String, ?>> prefList = new ArrayList<Map.Entry<String, ?>>();
-        for (Map.Entry<String, ?> map : sharedPreferences.getAll().entrySet()) {
-            prefList.add(map);
-
-        }
-        /*for (String s : keySet) {
-            if (!s.matches("#.*")) {
-                pref = new Preference(getApplicationContext());
-                pref.setKey(s);
-                pref.setTitle(s);
-                pref.setSummary(sharedPreferences.getString(s, ""));
-                cat.addPreference(pref);
-            }
-        }*/
     }
 
     @Override
