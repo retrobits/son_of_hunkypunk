@@ -36,6 +36,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -75,6 +76,9 @@ public class Interpreter extends Activity {
         saveDir.mkdir();
 
 		glk = new Glk(this);
+
+		if (i.getBooleanExtra("landscape", false))
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         setContentView(glk.getView());
 		glk.setAutoSave(getBookmark(), 0);

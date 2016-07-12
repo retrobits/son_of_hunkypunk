@@ -66,15 +66,20 @@
     
     <string name="empty_list">You seem to have no stories installed.
     	To install one, just put it in the Interactive Fiction directory of the SD card.
+        Alternatively you can define another directory in preferences.
     	You may find many stories at IFDb, or you can just
-    	let me download for you a handful to get you started. 
+    	let me download a handful to get you started.
 		Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
-		Tads files (ending in .t2, t3, or .gam) are currently supported.
+		Tads files (ending in .t2, t3, or .gam) are all currently supported.
    	</string>
    	<string name="go_to_ifdb">Go to IFDb</string>
    	<string name="download_preselected">Download preselected</string> 
    	<string name="please_wait">Please wait</string>
    	<string name="downloading_stories">Downloading stories...</string>
+
+    <string name="theatre_message">This game needs a wider screen. Please rotate your screen
+        manually or press Apply to start it first time in landscape mode. From then on it will work
+        like a charm in any mode. Good luck playing!</string>
 
     <string name="dayNight">Night Mode</string>
 </resources>

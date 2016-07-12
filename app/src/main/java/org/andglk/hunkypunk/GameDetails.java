@@ -34,19 +34,23 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.text.Editable;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
@@ -236,7 +240,7 @@ public class GameDetails extends Activity implements OnClickListener {
 		mDetails = (TextView) findViewById(R.id.details);
 		mScroll = (ScrollView) findViewById(R.id.info_scroll);
 		mRestartButton = findViewById(id.restart);
-		
+
 		((Button) findViewById(R.id.open)).setOnClickListener(this);
 		((Button) findViewById(R.id.remove)).setOnClickListener(this);
 		mRestartButton.setOnClickListener(this);
@@ -386,16 +390,24 @@ public class GameDetails extends Activity implements OnClickListener {
 	}
 
 	private void openGame() {
-		Intent intent = new Intent(Intent.ACTION_VIEW, 
-								   Uri.parse(mGameFile.getAbsolutePath()), 
-								   this, 
-								   Interpreter.class);
+		Intent intent = new Intent(Intent.ACTION_VIEW,
+				Uri.parse(mGameFile.getAbsolutePath()),
+				this,
+				Interpreter.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
 		intent.putExtra("terp", getTerp());
 		intent.putExtra("ifid", mGameIfid);
 		intent.putExtra("loadBookmark", true);
-		startActivity(intent);
+
+		//System.out.println(getResources().getDisplayMetrics().widthPixels +"|" + getResources().getDisplayMetrics().densityDpi);
+		//TODO Get minimum IFs supported screen size
+		float screen = getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().densityDpi;
+		System.out.println(mGameIfid + "|" + screen);
+		if (mGameIfid.equals("ZCODE-2-951203-A9FD") && screen <= 2.7f && !getBookmark().exists()) {
+			//tested upto 2.54 = 540/213 then jumps to 3.38 = 540/160
+			rotateDialog(intent);
+		} else
+			startActivity(intent);
 	}
 
 	private void askRestartGame() {
@@ -418,4 +430,59 @@ public class GameDetails extends Activity implements OnClickListener {
 			.setIcon(android.R.drawable.ic_dialog_alert)
 			.show();
 	}
+
+
+	private void rotateDialog(final Intent intent) {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this);
+			setUpAlertTheatre(rotateDialog, intent);
+		} else {
+			AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this,android.R.style.Holo_ButtonBar_AlertDialog);
+			setUpAlertTheatre(rotateDialog, intent);
+		}
+	}
+
+	private void setUpAlertTheatre(AlertDialog.Builder rotateDialog,final Intent intent) {
+		rotateDialog.setTitle("Theatre")
+				.setMessage(R.string.theatre_message)
+				.setPositiveButton("Apply", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+							intent.putExtra("landscape", true);
+							startActivity(intent);
+						} else {
+							Toast.makeText(getBaseContext(), "Sorry, device screen too small to play ''Theatre''.", Toast.LENGTH_SHORT).show();
+						}
+					}
+				})
+				.setNegativeButton("No, thanks", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						startActivity(intent);
+					}
+				})
+				.setIcon(android.R.drawable.ic_dialog_alert).show();
+	}
+
+	/*NOT WORKING >> needs AppCompat Snackbar.make(findViewById(android.R.id.content), "''The Theatre'' needs a wider screen.", Snackbar.LENGTH_LONG)
+			.setAction("Rotate", rotateSnack)
+	.show();
+	private OnClickListener rotateSnack = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			setRequestedOrientation(Build.VERSION.SDK_INT < 9 ?
+					ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE :
+					ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+			rotated = true;
+		}
+	};*/
+
+								/*Settings.System.putInt(
+									getContentResolver(),
+									Settings.System.ACCELEROMETER_ROTATION,
+									0);
+							if(Settings.System.putInt(
+									getContentResolver(),
+									Settings.System.USER_ROTATION,
+									Surface.ROTATION_0))
+								startActivity(intent);*/
 }
