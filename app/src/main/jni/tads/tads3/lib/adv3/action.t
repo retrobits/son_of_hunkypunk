@@ -880,7 +880,7 @@ class Action: BasicProd
      *   looking for, and 'oldRole' is the role the object previously
      *   played in the action.  
      */
-    getResolveInfo(obj, oldRole) { return new ResolveInfo(obj, 0); }
+    getResolveInfo(obj, oldRole) { return new ResolveInfo(obj, 0, nil); }
 
     /*
      *   Explicitly set the resolved objects.  This should be overridden
@@ -1023,11 +1023,14 @@ class Action: BasicProd
     /* wrap an object with a ResolveInfo */
     makeResolveInfo(val)
     {
-        /* if it's already a ResolveInfo object, return it as-is */
+        /* 
+         *   if it's already a ResolveInfo object, return it as-is;
+         *   otherwise, create a new ResolveInfo wrapper for it
+         */
         if (dataType(val) == TypeObject && val.ofKind(ResolveInfo))
             return val;
         else
-            return new ResolveInfo(val, 0);
+            return new ResolveInfo(val, 0, nil);
     }
 
     /*
@@ -1646,7 +1649,8 @@ class Action: BasicProd
         if (numberInList > 1 || (info.flags_ & AlwaysAnnounce) != 0)
         {
             /* show the current object of a multi-object action */
-            gTranscript.announceMultiActionObject(info.obj_, whichObj);
+            gTranscript.announceMultiActionObject(
+                info.multiAnnounce, info.obj_, whichObj);
 
             /* tell the caller we made an announcement */
             return true;
@@ -1656,6 +1660,37 @@ class Action: BasicProd
         return nil;
     }
     
+    /*   
+     *   Pre-calculate the multi-object announcement text for each object.
+     *   This is important because these announcements might choose a form
+     *   for the name that distinguishes it from the other objects in the
+     *   iteration, and the basis for distinction might be state-dependent
+     *   (such as the object's current owner or location), and the relevant
+     *   state might change as we iterate over the objects.  From the
+     *   user's perspective, they're referring to the objects based on the
+     *   state at the start of the command, so the user will expect to see
+     *   names based on the that state.  
+     */
+    cacheMultiObjectAnnouncements(lst, whichObj)
+    {
+        /* run through the list and cache each object's announcement */
+        foreach (local cur in lst)
+        {
+            /* calculate and cache this object's multi-object announcement */
+            cur.multiAnnounce = libMessages.announceMultiActionObject(
+                cur.obj_, whichObj, self);
+        }
+    }
+
+    /* get the list of resolved objects in the given role */
+    getResolvedObjList(which)
+    {
+        /* 
+         *   the base action doesn't have any objects in any roles, so just
+         *   return nil; subclasses need to override this 
+         */
+        return nil;
+    }
 
     /*
      *   Announce a defaulted object list, if appropriate.  We'll announce
@@ -1968,7 +2003,7 @@ class Action: BasicProd
                 && overrides(obj, remapSrc, verProp))
             {
                 resultSoFar = withVerifyResults(
-                    resultSoFar, obj, new function() { obj.(verProp)(); });
+                    resultSoFar, obj, function() { obj.(verProp)(); });
             }
 
             /* return the results */
@@ -1982,7 +2017,7 @@ class Action: BasicProd
          *   run the verifiers in the presence of a results list, and
          *   return the result list 
          */
-        return withVerifyResults(resultSoFar, obj, new function()
+        return withVerifyResults(resultSoFar, obj, function()
         {
             local lst;
             
@@ -2179,7 +2214,7 @@ class Action: BasicProd
          *   methods, so we don't want to send them generic notifiers as
          *   well. 
          */
-        tab.forEachAssoc(new function(obj, val)
+        tab.forEachAssoc(function(obj, val)
         {
             if (actor.isIn(obj))
                 tab.removeElement(obj);
@@ -2317,7 +2352,7 @@ class Action: BasicProd
         lst.forEach({x: x.index_ = i++});
 
         /* sort the precondition list by execution order */
-        lst = lst.sort(SortAsc, new function(a, b) {
+        lst = lst.sort(SortAsc, function(a, b) {
             local delta;
             
             /* if the execution orders differ, sort by execution order */
@@ -2450,7 +2485,7 @@ class Action: BasicProd
          *   return the sorted list.  When results are equivalently
          *   logical, keep the results in their existing order.  
          */
-        return results.toList().sort(SortDesc, new function(x, y)
+        return results.toList().sort(SortDesc, function(x, y)
         {
             /* compare the logicalness */
             local c = x.compareTo(y);
@@ -2903,6 +2938,21 @@ class Action: BasicProd
         return inherited();
     }
     
+    /* 
+     *   Create a topic qualifier resolver.  This type of resolver is used
+     *   for qualifier phrases (e.g., possessives) within topic phrases
+     *   within objects of this verb.  Topics *usually* only apply to
+     *   TopicActionBase subclasses, but not exclusively: action remappings
+     *   can sometimes require a topic phrase from one action to be
+     *   resolved in the context of another action that wouldn't normally
+     *   involve a topic phrase.  That's why this is needed on the base
+     *   Action class. 
+     */
+    createTopicQualifierResolver(issuingActor, targetActor)
+    {
+        /* create and return a topic qualifier object resolver */
+        return new TopicQualifierResolver(self, issuingActor, targetActor);
+    }
 
     /* 
      *   List of objects that verified okay on a prior pass.  This is a
@@ -2916,6 +2966,13 @@ class Action: BasicProd
      *   should be allowed to proceed and do nothing.  
      */
     verifiedOkay = []
+
+    /*
+     *   Get the missing object response production for a given resolver
+     *   role.  (The base action doesn't have any objects, so there's no
+     *   such thing as a missing object query.)
+     */
+    getObjResponseProd(resolver) { return nil; }
 ;
 
 /*
@@ -2975,6 +3032,18 @@ class IAction: Action
          */
         doActionOnce();
     }
+;
+
+/* ------------------------------------------------------------------------ */
+/*
+ *   "All" and "Default" are a pseudo-actions used for dobjFor(All),
+ *   iobjFor(Default), and similar catch-all handlers.  These are never
+ *   executed as actual actions, but we define them so that dobjFor(All)
+ *   and the like won't generate any warnings for undefined actions.
+ */
+class AllAction: object
+;
+class DefaultAction: object
 ;
 
 /* ------------------------------------------------------------------------ */
@@ -3094,14 +3163,11 @@ class TAction: Action, Resolver
      */
     testRetryDefaultDobj(orig)
     {
-        local action;
-        local def;
-        
         /* create the new action for checking for a direct object */
-        action = createForMissingDobj(orig, ResolveAsker);
+        local action = createForMissingDobj(orig, ResolveAsker);
 
         /* get the default dobj */
-        def = action.getDefaultDobj(
+        local def = action.getDefaultDobj(
             action.dobjMatch,
             action.getDobjResolver(gIssuingActor, gActor, nil));
 
@@ -3115,10 +3181,8 @@ class TAction: Action, Resolver
      */
     createForMissingDobj(orig, asker)
     {
-        local action;
-
         /* create the action for a retry */
-        action = createForRetry(orig);
+        local action = createForRetry(orig);
 
         /* use an empty noun phrase for the new action's direct object */
         action.dobjMatch = new EmptyNounPhraseProd();
@@ -3155,6 +3219,17 @@ class TAction: Action, Resolver
      *   the appropriate preposition in the response.  
      */
     askDobjResponseProd = nounList
+
+    /* get the missing object response production for a given role */
+    getObjResponseProd(resolver)
+    {
+        /* if it's the direct object, return the dobj response prod */
+        if (resolver.whichObject == DirectObject)
+            return askDobjResponseProd;
+
+        /* otherwise use the default handling */
+        return inherited(resolver);
+    }
 
     /*
      *   Can the direct object potentially resolve to the given simulation
@@ -3235,7 +3310,7 @@ class TAction: Action, Resolver
     /* get the ResolveInfo for the given object */
     getResolveInfo(obj, oldRole)
     {
-        local info;
+        local info = nil;
         
         /* scan our resolved direct object list for the given object */
         if (dobjList_ != nil)
@@ -3244,17 +3319,34 @@ class TAction: Action, Resolver
         /* if we didn't find one, create one from scratch */
         if (info == nil)
         {
-            /* get the flags for the first object in the old role */
-            local flags = (dobjList_.length() > 0 ? dobjList_[1].flags_ : 0);
-
-            /* create a ResolveInfo to represent the object */
-            info = new ResolveInfo(obj, flags);
+            /* 
+             *   if there's anything in the old dobj role, copy the flags
+             *   and noun phrase to the new role
+             */
+            if (dobjList_.length() > 0)
+            {
+                /* get the flags and noun phrase from the old role */
+                info = new ResolveInfo(
+                    obj, dobjList_[1].flags_, dobjList_[1].np_);
+            }
+            else
+            {
+                /* there's no old role, so start from scratch */
+                info = new ResolveInfo(obj, 0, nil);
+            }
         }
 
         /* return what we found (or created) */
         return info;
     }
 
+    /* get the list of resolved objects in the given role */
+    getResolvedObjList(which)
+    {
+        return (which == DirectObject ? getResolvedDobjList()
+                : inherited(which));
+    }
+    
     /* get the list of resolved direct objects */
     getResolvedDobjList()
     {
@@ -3349,6 +3441,9 @@ class TAction: Action, Resolver
 
         /* we haven't yet canceled the iteration */
         iterationCanceled = nil;
+
+        /* pre-calculate the multi-object announcement text for each dobj */
+        cacheMultiObjectAnnouncements(dobjList_, DirectObject);
 
         /* run through the sequence once for each direct object */
         for (local i = 1, local len = dobjList_.length() ;
@@ -3621,6 +3716,20 @@ class TAction: Action, Resolver
     /* get the number of direct objects */
     getDobjCount() { return dobjList_ != nil ? dobjList_.length() : 0; }
 
+    /* get the original token list of the current direct object phrase */
+    getDobjTokens()
+    {
+        return dobjInfoCur_ != nil && dobjInfoCur_.np_ != nil
+            ? dobjInfoCur_.np_.getOrigTokenList() : nil;
+    }
+
+    /* get the original words (as a list of strings) of the current dobj */
+    getDobjWords()
+    {
+        local l = getDobjTokens();
+        return l != nil ? l.mapAll({x: getTokOrig(x)}) : nil;
+    }
+
     /* the predicate must assign the direct object production tree here */
     dobjMatch = nil
 
@@ -3724,6 +3833,7 @@ class TentativeResolveResults: ResolveResults
      *   resolution pass 
      */
     noMatch(action, txt) { }
+    noMatchPoss(action, txt) { }
     noVocabMatch(action, txt) { }
     noMatchForAll() { }
     noteEmptyBut() { }
@@ -3855,14 +3965,11 @@ class TIAction: TAction
      */
     retryWithAmbiguousIobj(orig, objs, asker, objPhrase)
     {
-        local action;
-        local resolver;
-        
         /* create a missing-indirect-object replacement action */
-        action = createForMissingIobj(orig, asker);
+        local action = createForMissingIobj(orig, asker);
 
         /* reduce the object list to the objects in scope */
-        resolver = action.getIobjResolver(gIssuingActor, gActor, true);
+        local resolver = action.getIobjResolver(gIssuingActor, gActor, true);
         objs = objs.subset({x: resolver.objInScope(x)});
 
         /* plug in the ambiguous indirect object list */
@@ -3902,10 +4009,8 @@ class TIAction: TAction
      */
     createForMissingIobj(orig, asker)
     {
-        local action;
-        
         /* create the new action based on the original action */
-        action = createForRetry(orig);
+        local action = createForRetry(orig);
 
         /* use an empty noun phrase for the new action's indirect object */
         action.iobjMatch = new EmptyNounPhraseProd();
@@ -3980,6 +4085,17 @@ class TIAction: TAction
      *   the appropriate preposition in the response.  
      */
     askIobjResponseProd = singleNoun
+
+    /* get the missing object response production for a given role */
+    getObjResponseProd(resolver)
+    {
+        /* if it's the indirect object, return the iobj response prod */
+        if (resolver.whichObject == IndirectObject)
+            return askIobjResponseProd;
+
+        /* otherwise use the default handling */
+        return inherited(resolver);
+    }
 
     /*
      *   Resolution order - returns DirectObject or IndirectObject to
@@ -4159,7 +4275,7 @@ class TIAction: TAction
             if (results.allowActionRemapping)
             {
                 withParserGlobals(issuingActor, targetActor, self,
-                                  new function()
+                                  function()
                 {
                     local remapInfo;
                     
@@ -4238,17 +4354,23 @@ class TIAction: TAction
         /* if we didn't find one, create one from scratch */
         if (info == nil)
         {
-            local lst;
-            local flags;
-
             /* get the list for the old role */
-            lst = (oldRole == DirectObject ? dobjList_ : iobjList_);
+            local lst = (oldRole == DirectObject ? dobjList_ : iobjList_);
 
-            /* get the flags from the first element of the old list */
-            flags = (lst.length() > 0 ? lst[1].flags_ : 0);
-
-            /* create a ResolveInfo to wrap the object */
-            info = new ResolveInfo(obj, flags);
+            /* 
+             *   if there's anything in the old role, copy its flags and
+             *   noun phrase to the new role 
+             */
+            if (lst.length() > 0)
+            {
+                /* copy the old role's attributes */
+                info = new ResolveInfo(obj, lst[1].flags_, lst[1].np_);
+            }
+            else
+            {
+                /* nothing in the old role - start from scratch */
+                info = new ResolveInfo(obj, 0, nil);
+            }
         }
 
         /* return what we found (or created) */
@@ -4285,6 +4407,13 @@ class TIAction: TAction
     getRemapPropForRole(role)
     {
         return (role == IndirectObject ? remapIobjProp : inherited(role));
+    }
+
+    /* get the list of resolved objects in the given role */
+    getResolvedObjList(which)
+    {
+        return (which == IndirectObject ? getResolvedIobjList()
+                : inherited(which));
     }
 
     /* get the list of resolved indirect objects */
@@ -4515,6 +4644,9 @@ class TIAction: TAction
 
             /* we haven't announced the direct object yet */
             preAnnouncedDobj = nil;
+
+            /* pre-calculate the multi-object announcements */
+            cacheMultiObjectAnnouncements(dobjList_, DirectObject);
         }
         else
         {
@@ -4524,6 +4656,9 @@ class TIAction: TAction
 
             /* we haven't announced the indirect object yet */
             preAnnouncedIobj = nil;
+
+            /* pre-calculate the multi-object announcements */
+            cacheMultiObjectAnnouncements(iobjList_, IndirectObject);
         }
 
         /* we haven't yet canceled the iteration */
@@ -4840,15 +4975,13 @@ class TIAction: TAction
      */
     checkAction()
     {
-        local defIo, defDo;
-                
         try
         {
             /* invoke the catch-all 'check' methods on each object */
-            defIo = callCatchAllProp(iobjCur_, checkIobjProp,
-                                     &checkIobjDefault, &checkIobjAll);
-            defDo = callCatchAllProp(dobjCur_, checkDobjProp,
-                                     &checkDobjDefault, &checkDobjAll);
+            local defIo = callCatchAllProp(
+                iobjCur_, checkIobjProp, &checkIobjDefault, &checkIobjAll);
+            local defDo = callCatchAllProp(
+                dobjCur_, checkDobjProp, &checkDobjDefault, &checkDobjAll);
 
             /* 
              *   invoke the 'check' method on each object, as long as it
@@ -4946,6 +5079,20 @@ class TIAction: TAction
 
     /* get the number of direct objects */
     getIobjCount() { return iobjList_ != nil ? iobjList_.length() : 0; }
+
+    /* get the original token list of the current indirect object phrase */
+    getIobjTokens()
+    {
+        return iobjInfoCur_ != nil && iobjInfoCur_.np_ != nil
+            ? iobjInfoCur_.np_.getOrigTokenList() : nil;
+    }
+
+    /* get the original words (as a list of strings) of the current iobj */
+    getIobjWords()
+    {
+        local l = getIobjTokens();
+        return l != nil ? l.mapAll({x: getTokOrig(x)}) : nil;
+    }
 
     /*
      *   Get the list of active objects.  We have a direct and indirect
@@ -5554,13 +5701,6 @@ class TopicActionBase: object
         return topicQualResolver_;
     }
 
-    /* create a topic qualifier resolver */
-    createTopicQualifierResolver(issuingActor, targetActor)
-    {
-        /* create and return a topic qualifier object resolver */
-        return new TopicQualifierResolver(self, issuingActor, targetActor);
-    }
-
     /* the topic qualifier resolver */
     topicQualResolver_ = nil
     
@@ -5932,16 +6072,14 @@ class TopicTAction: TopicActionBase, TAction
 class ConvTopicTAction: TopicTAction
     getDefaultDobj(np, resolver)
     {
-        local obj;
-        
         /* 
          *   check to see if the actor has a default interlocutor; if so,
          *   use it as the default actor to be addressed here, otherwise
          *   use the default handling 
          */
-        obj = resolver.getTargetActor().getCurrentInterlocutor();
+        local obj = resolver.getTargetActor().getCurrentInterlocutor();
         if (obj != nil)
-            return [new ResolveInfo(obj, 0)];
+            return [new ResolveInfo(obj, 0, nil)];
         else
             return inherited(np, resolver);
     }
@@ -5984,11 +6122,11 @@ class ResolvedTopic: object
          *   so that the action knows how we've classified the objects
          *   matching our phrase.  We keep a list of objects that are in
          *   scope; a list of objects that aren't in scope but which the
-         *   actor thinks are likely topics; and a list of all of the
-         *   other matches.
+         *   actor thinks are likely topics; and a list of all of the other
+         *   matches.
          *   
-         *   We keep only the simulation objects from the lists - we don't
-         *   keep the full ResolveInfo data.  
+         *   We keep only the simulation objects in these retained lists -
+         *   we don't keep the full ResolveInfo data here.  
          */
         inScopeList = inScope.mapAll({x: x.obj_});
         likelyList = likely.mapAll({x: x.obj_});
@@ -5996,6 +6134,20 @@ class ResolvedTopic: object
 
         /* keep the production match tree */
         topicProd = prod;
+
+        /*
+         *   But it might still be interesting to have the ResolveInfo
+         *   data, particularly for information on the vocabulary match
+         *   strength.  Keep that information in a separate lookup table
+         *   indexed by simulation object.  
+         */
+        local rt = new LookupTable();
+        others.forEach({x: rt[x.obj_] = x});
+        likely.forEach({x: rt[x.obj_] = x});
+        inScope.forEach({x: rt[x.obj_] = x});
+
+        /* save the ResolvedInfo lookup table */
+        resInfoTab = rt;
     }
 
     /* 
@@ -6126,6 +6278,13 @@ class ResolvedTopic: object
     }
 
     /*
+     *   Get the parser ResolveInfo object for a given matched object.
+     *   This recovers the ResolveInfo describing the parsing result for
+     *   any object in the resolved object lists (inScopeList, etc). 
+     */
+    getResolveInfo(obj) { return resInfoTab[obj]; }
+
+    /*
      *   Our lists of resolved objects matching the topic phrase,
      *   separated by classification.  
      */
@@ -6139,6 +6298,16 @@ class ResolvedTopic: object
      *   the command or the original text of the phrase.  
      */
     topicProd = nil
+
+    /*
+     *   ResolveInfo table for the resolved objects.  This is a lookup
+     *   table indexed by simulation object.  Each entry in the resolved
+     *   object lists (inScopeList, etc) has have a key in this table, with
+     *   the ResolveInfo object as the value for the key.  This can be used
+     *   to recover the ResolveInfo object describing the parser results
+     *   for this object.  
+     */
+    resInfoTab = nil
 ;
 
 /*
@@ -6289,13 +6458,11 @@ class TopicResolver: Resolver
      */
     filterAmbiguousNounPhrase(lst, requiredNum, np)
     {
-        local rt;
-            
         /* ask the action to create the ResolvedTopic */
-        rt = resolveTopic(lst, requiredNum, np);
+        local rt = resolveTopic(lst, requiredNum, np);
 
         /* wrap the ResolvedTopic in the usual ResolveInfo list */
-        return [new ResolveInfo(rt, 0)];
+        return [new ResolveInfo(rt, 0, np)];
     }
         
     /*
@@ -6321,17 +6488,15 @@ class TopicResolver: Resolver
      */
     resolveUnknownNounPhrase(tokList)
     {
-        local rt;
-        
         /* 
          *   Create our ResolvedTopic object for the results.  We have
          *   words we don't know, so we're not referring to any objects,
          *   so our underlying simulation object list is empty.  
          */
-        rt = new ResolvedTopic([], [], [], topicProd);
+        local rt = new ResolvedTopic([], [], [], topicProd);
 
         /* return a resolved topic object with the empty list */
-        return [new ResolveInfo(rt, 0)];
+        return [new ResolveInfo(rt, 0, new TokenListProd(tokList))];
     }
 
     /* filter a plural */
@@ -6356,6 +6521,7 @@ class TopicResolver: Resolver
     /* it's fine not to match a topic phrase */
     noVocabMatch(action, txt) { }
     noMatch(action, txt) { }
+    noMatchPoss(action, txt) { }
 
     /* we don't allow ALL or provide defaults */
     getAll(np) { return []; }
@@ -6482,41 +6648,17 @@ class SystemAction: IAction
     execSystemAction() { }
 
     /*
-     *   Ask for an input file.  Freezes the real-time event clock for the
-     *   duration of reading the event, and sets our property
-     *   origElapsedTime to the elapsed time when we started processing
-     *   the interaction.  
+     *   Ask for an input file.  We call the input manager, which freezes
+     *   the real-time clock, displays the appropriate local file selector
+     *   dialog, and restarts the clock.  
      */
     getInputFile(prompt, dialogType, fileType, flags)
     {
-        local result;
-        
-        /* 
-         *   note the game elapsed time before we start - we want to
-         *   freeze the real-time clock while we're waiting for the user
-         *   to respond, since this system verb exists outside of the
-         *   usual time flow of the game 
-         */
-        origElapsedTime = realTimeManager.getElapsedTime();
-        
-        /* ask for a file */
-        result = inputFile(prompt, dialogType, fileType, flags);
-
-        /* 
-         *   restore the game real-time counter to what it was before we
-         *   started the interactive response 
-         */
-        realTimeManager.setElapsedTime(origElapsedTime);
-
-        /* return the result from inputFile */
-        return result;
+        return inputManager.getInputFile(prompt, dialogType, fileType, flags);
     }
 
     /* system actions consume no game time */
     actionTime = 0
-
-    /* real-time event clock at start of getInputFile() */
-    origElapsedTime = nil
 ;
 
 /* ------------------------------------------------------------------------ */

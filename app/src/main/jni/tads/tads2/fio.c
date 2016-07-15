@@ -248,7 +248,9 @@ static void fiord1(mcmcxdef *mctx, voccxdef *vctx, tokcxdef *tctx,
     ulong       curpos;
     runxdef    *ex;
     ulong       eof_reset = 0;             /* reset here at EOF if non-zero */
-    int         xfcns_done = FALSE;                /* already loaded XFCN's */
+#if 0  // XFCNs are obsolete
+    int         xfcns_done = FALSE;                 /* already loaded XFCNs */
+#endif
     ulong       xfcn_pos = 0;          /* location of XFCN's if preloadable */
     uint        xor_seed = 17;                     /* seed value for fioxor */
     uint        xor_inc = 29;                 /* increment value for fioxor */
@@ -781,7 +783,7 @@ static void fiord1(mcmcxdef *mctx, voccxdef *vctx, tokcxdef *tctx,
             
             if (osfrb(fp, buf, 2)) errsig(ec, ERR_RDGAM);
             fmtl = osrp2(buf);
-            fmts = mchalo(vctx->voccxerr, (ushort)fmtl, "fiord1");
+            fmts = mchalo(vctx->voccxerr, fmtl, "fiord1");
             if (osfrb(fp, fmts, fmtl)) errsig(ec, ERR_RDGAM);
             if (*flagp & FIOFCRYPT) fioxor(fmts, fmtl, xor_seed, xor_inc);
             tiosetfmt(vctx->voccxtio, vctx->voccxrun, fmts, fmtl);
@@ -794,7 +796,7 @@ static void fiord1(mcmcxdef *mctx, voccxdef *vctx, tokcxdef *tctx,
             if (osfrb(fp, buf, 2)) errsig(ec, ERR_RDGAM);
             vctx->voccxcpl = osrp2(buf);
             vctx->voccxcpp = (char *)mchalo(vctx->voccxerr,
-                                            (ushort)vctx->voccxcpl, "fiord1");
+                                            vctx->voccxcpl, "fiord1");
             if (osfrb(fp, vctx->voccxcpp, (uint)vctx->voccxcpl))
                 errsig(ec, ERR_RDGAM);
             if (*flagp & FIOFCRYPT)
@@ -806,7 +808,7 @@ static void fiord1(mcmcxdef *mctx, voccxdef *vctx, tokcxdef *tctx,
             if (osfrb(fp, buf, 2)) errsig(ec, ERR_RDGAM);
             vctx->voccxspl = osrp2(buf);
             vctx->voccxspp = (char *)mchalo(vctx->voccxerr,
-                                            (ushort)vctx->voccxspl, "fiord1");
+                                            vctx->voccxspl, "fiord1");
             if (osfrb(fp, vctx->voccxspp, (uint)vctx->voccxspl))
                 errsig(ec, ERR_RDGAM);
             if (*flagp & FIOFCRYPT)
@@ -826,7 +828,7 @@ static void fiord1(mcmcxdef *mctx, voccxdef *vctx, tokcxdef *tctx,
             
             if (!(symtab = vctx->voccxrun->runcxdbg->dbgcxtab))
             {
-                symtab = (tokthdef *)mchalo(ec, (ushort)sizeof(tokthdef),
+                symtab = (tokthdef *)mchalo(ec, sizeof(tokthdef),
                                             "fiord:symtab");
                 tokthini(ec, mctx, (toktdef *)symtab);
                 vctx->voccxrun->runcxdbg->dbgcxtab = symtab;
@@ -953,7 +955,9 @@ static void fiord1(mcmcxdef *mctx, voccxdef *vctx, tokcxdef *tctx,
             {
                 osfseek(fp, eof_reset, OSFSK_SET);     /* back after EXTCNT */
                 eof_reset = 0;                   /* really done at next EOF */
-                xfcns_done = TRUE;                 /* don't do XFCN's again */
+#if 0 // XFCNs are obsolete
+                xfcns_done = TRUE;                  /* don't do XFCNs again */
+#endif
             }
             else
                 break;
@@ -1169,7 +1173,7 @@ static int fiorfda(osfildef *fp, vocddef *p, uint cnt)
         switch(buf[4])
         {
         case DAT_NUMBER:
-            q->vocdarg.runsv.runsvnum = osrp4(buf+5);
+            q->vocdarg.runsv.runsvnum = osrp4s(buf+5);
             break;
         case DAT_OBJECT:
         case DAT_FNADDR:
@@ -1218,7 +1222,11 @@ int fiorso_getgame(char *saved_file, char *fnamebuf, size_t buflen)
         namelen = buflen - 1;
 
     /* read the filename */
-    osfrb(fp, fnamebuf, namelen);
+    if (osfrb(fp, fnamebuf, namelen))
+    {
+        osfcls(fp);
+        return FALSE;
+    }
 
     /* null-terminate the string */
     fnamebuf[namelen] = '\0';
@@ -1522,7 +1530,7 @@ static int fiowfda(osfildef *fp, vocddef *p, uint cnt)
         switch(buf[4])
         {
         case DAT_NUMBER:
-            oswp4(buf+5, p->vocdarg.runsv.runsvnum);
+            oswp4s(buf+5, p->vocdarg.runsv.runsvnum);
             break;
         case DAT_OBJECT:
         case DAT_FNADDR:

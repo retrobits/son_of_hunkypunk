@@ -47,6 +47,11 @@ Modified
 #include "vmconsol.h"
 #include "vmglob.h"
 #include "vmhash.h"
+#include "vmdatasrc.h"
+#include "vmnetfil.h"
+#include "vmfilobj.h"
+#include "vmerr.h"
+#include "vmobj.h"
 
 
 /* ------------------------------------------------------------------------ */
@@ -55,31 +60,98 @@ Modified
  */
 
 /*
- *   delete 
- */
-CVmFormatterLog::~CVmFormatterLog()
-{
-    /* close any active log file */
-    close_log_file();
-}
-
-/*
  *   Open a new log file 
  */
-int CVmFormatterLog::open_log_file(const char *fname)
+int CVmFormatterLog::open_log_file(VMG_ const char *fname)
+{
+    CVmNetFile *nf = 0;
+    err_try
+    {
+        /* create the network file descriptor */
+        nf = CVmNetFile::open(
+            vmg_ fname, 0, NETF_NEW, OSFTLOG, "text/plain");
+    }
+    err_catch_disc
+    {
+        nf = 0;
+    }
+    err_end;
+
+    /* open the log file using the network file descriptor */
+    return open_log_file(vmg_ nf);
+}
+
+int CVmFormatterLog::open_log_file(VMG_ const vm_val_t *filespec,
+                                   const struct vm_rcdesc *rc)
+{
+    CVmNetFile *nf = 0;
+    err_try
+    {
+        /* create the network file descriptor */
+        nf = CVmNetFile::open(vmg_ filespec, rc,
+                              NETF_NEW, OSFTLOG, "text/plain");
+
+        /* validate file safety */
+        CVmObjFile::check_safety_for_open(vmg_ nf, VMOBJFILE_ACCESS_WRITE);
+    }
+    err_catch_disc
+    {
+        /* if we got a file, it must be a safety exception - rethrow it */
+        if (nf != 0)
+        {
+            nf->abandon(vmg0_);
+            err_rethrow();
+        }
+    }
+    err_end;
+
+    /* open the log file using the network file descriptor */
+    int err = open_log_file(vmg_ nf);
+
+    /* if that succeeded, remember the file spec in our global variable */
+    if (!err)
+    {
+        /* create our VM global if we don't have one already */
+        if (logglob_ == 0)
+            logglob_ = G_obj_table->create_global_var();
+
+        /* remember the file spec */
+        logglob_->val = *filespec;
+    }
+
+    /* return the result */
+    return err;
+}
+
+int CVmFormatterLog::open_log_file(VMG_ CVmNetFile *nf)
 {
     /* close any existing log file */
-    if (close_log_file())
+    if (close_log_file(vmg0_))
+    {
+        if (nf != 0)
+            nf->abandon(vmg0_);
+        return 1;
+    }
+
+    /* if there's no network file spec, return failure */
+    if (nf == 0)
         return 1;
 
     /* reinitialize */
     init();
 
-    /* save the filename for later (we'll need it when we close the file) */
-    logfname_ = lib_copy_str(fname);
+    /* remember the network file descriptor */
+    lognf_ = nf;
 
-    /* open the new file */
-    logfp_ = osfopwt(fname, OSFTLOG);
+    /* open the local file */
+    logfp_ = osfopwt(lognf_->lclfname, OSFTLOG);
+
+    /* if we couldn't open the file, abandon the network file descriptor */
+    if (logfp_ == 0)
+    {
+        lognf_->abandon(vmg0_);
+        lognf_ = 0;
+    }
 
     /* return success if we successfully opened the file, failure otherwise */
     return (logfp_ == 0);
@@ -88,10 +160,10 @@ int CVmFormatterLog::open_log_file(const char *fname)
 /*
  *   Set the log file to a file opened by the caller 
  */
-int CVmFormatterLog::set_log_file(const char *fname, osfildef *fp)
+int CVmFormatterLog::set_log_file(VMG_ CVmNetFile *nf, osfildef *fp)
 {
     /* close any existing log file */
-    if (close_log_file())
+    if (close_log_file(vmg0_))
         return 1;
 
     /* reinitialize */
@@ -99,9 +171,7 @@ int CVmFormatterLog::set_log_file(const char *fname, osfildef *fp)
 
     /* remember the file */
     logfp_ = fp;
-
-    /* remember the filename */
-    logfname_ = lib_copy_str(fname);
+    lognf_ = nf;
 
     /* success */
     return 0;
@@ -110,31 +180,43 @@ int CVmFormatterLog::set_log_file(const char *fname, osfildef *fp)
 /*
  *   Close the log file 
  */
-int CVmFormatterLog::close_log_file()
+int CVmFormatterLog::close_log_file(VMG0_)
 {
+    /* presume success */
+    int err = FALSE;
+    
     /* if we have a file, close it */
     if (logfp_ != 0)
     {
-        /* close the handle */
+        /* close and forget the handle */
         osfcls(logfp_);
-
-        /* forget about our log file handle */
         logfp_ = 0;
-
-        /* set the system file type to "log file" */
-        if (logfname_ != 0)
-            os_settype(logfname_, OSFTLOG);
     }
 
-    /* forget the log file name, if we have one */
-    if (logfname_ != 0)
+    /* forget the log network file descriptor, if we have one */
+    if (lognf_ != 0)
     {
-        lib_free_str(logfname_);
-        logfname_ = 0;
+        err_try
+        {
+            lognf_->close(vmg0_);
+        }
+        err_catch_disc
+        {
+            /* flag the error, but otherwise discard the exception */
+            err = TRUE;
+        }
+        err_end;
+
+        /* forget the descriptor, as we've just deleted it */
+        lognf_ = 0;
     }
+
+    /* clear our global for the file spec */
+    if (logglob_ != 0)
+        logglob_->val.set_nil();
 
     /* success */
-    return 0;
+    return err;
 }
 
 
@@ -325,7 +407,8 @@ void CVmFormatter::write_text(VMG_ const wchar_t *txt, size_t cnt,
 
         case VM_NL_NEWLINE:
             /* write a newline */
-            print_to_os(html_target_ ? "<BR HEIGHT=0>\n" : "\n");
+            print_to_os(html_target_ && html_pre_level_ == 0 ?
+                        "<BR HEIGHT=0>\n" : "\n");
             break;
 
         case VM_NL_OSNEWLINE:
@@ -444,7 +527,7 @@ void CVmFormatter::flush(VMG_ vm_nl_type nl)
          *   this line, or we didn't already just write a newline, write
          *   out a newline now; otherwise, write nothing.  
          */
-        if (linecol_ != 0 || !just_did_nl_)
+        if (linecol_ != 0 || !just_did_nl_ || html_pre_level_ > 0)
         {
             /* add the newline */
             write_nl = VM_NL_NEWLINE;
@@ -479,7 +562,8 @@ void CVmFormatter::flush(VMG_ vm_nl_type nl)
      *   and we didn't just do a newline, since this must mean that we've
      *   flushed a partial line and are just now doing the newline 
      */
-    if (cnt != 0 || (linecol_ != 0 && !just_did_nl_))
+    if (cnt != 0 || (linecol_ != 0 && !just_did_nl_)
+        || html_pre_level_ > 0)
     {
         /* write it out */
         write_text(vmg_ linebuf_, cnt, colorbuf_, write_nl);
@@ -782,20 +866,14 @@ void CVmFormatter::buffer_char(VMG_ wchar_t c)
  */
 void CVmFormatter::buffer_expchar(VMG_ wchar_t c)
 {
-    int i;
-    int cwid;
-    unsigned char cflags;
-    int shy;
-    int qspace;
-
     /* presume the character takes up only one column */
-    cwid = 1;
+    int cwid = 1;
 
     /* presume we'll use the current flags for the new character */
-    cflags = cur_flags_;
+    unsigned char cflags = cur_flags_;
 
     /* assume it's not a quoted space */
-    qspace = FALSE;
+    int qspace = FALSE;
 
     /* 
      *   Check for some special characters.
@@ -827,7 +905,10 @@ void CVmFormatter::buffer_expchar(VMG_ wchar_t c)
             if (c == '&')
                 html_passthru_state_ = VMCON_HPS_ENTITY_1ST;
             else if (c == '<')
-                html_passthru_state_ = VMCON_HPS_TAG;
+            {
+                html_passthru_tagp_ = html_passthru_tag_;
+                html_passthru_state_ = VMCON_HPS_TAG_START;
+            }
             else
                 html_passthru_state_ = VMCON_HPS_NORMAL;
             break;
@@ -880,10 +961,83 @@ void CVmFormatter::buffer_expchar(VMG_ wchar_t c)
                 html_passthru_state_ = VMCON_HPS_NORMAL;
             break;
 
+        case VMCON_HPS_TAG_START:
+            /* start of a tag, before the name - check for the name start */
+            if (c == '/' && html_passthru_tagp_ == html_passthru_tag_)
+            {
+                /* 
+                 *   note the initial '/', but stay in TAG_START state, so
+                 *   that we skip any spaces between the '/' and the tag name
+                 */
+                *html_passthru_tagp_++ = '/';
+            }
+            else if ((c >= 'a' && c <= 'z')
+                     || (c >= 'A' && c <= 'Z'))
+            {
+                /* start of the tag name */
+                html_passthru_state_ = VMCON_HPS_TAG_NAME;
+                *html_passthru_tagp_++ = (char)c;
+            }
+            else if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+            {
+                /* 
+                 *   ignore whitespace between '<' and the tag name - simply
+                 *   stay in TAG_START mode 
+                 */
+            }
+            else
+            {
+                /* anything else is invalid - must not be a tag after all */
+                html_passthru_state_ = VMCON_HPS_NORMAL;
+            }
+            break;
+
+        case VMCON_HPS_TAG_NAME:
+            /* tag name - check for continuation */
+            if ((c >= 'a' && c <= 'z')
+                || (c >= 'A' && c <= 'Z'))
+            {
+                /* gather the tag name if it fits */
+                if (html_passthru_tagp_ - html_passthru_tag_ + 1
+                    < sizeof(html_passthru_tag_))
+                    *html_passthru_tagp_++ = (char)c;
+            }
+            else
+            {
+                /* end of the tag name */
+                *html_passthru_tagp_ = '\0';
+                html_passthru_state_ = VMCON_HPS_TAG;
+                goto do_tag;
+            }
+            break;
+
         case VMCON_HPS_TAG:
+            do_tag:
             /* see if we're done with the tag, or entering quoted material */
             if (c == '>')
+            {
+                /* switch to end of markup mode */
                 html_passthru_state_ = VMCON_HPS_MARKUP_END;
+
+                /* note if entering or exiting a PRE tag */
+                if (stricmp(html_passthru_tag_, "pre") == 0)
+                    ++html_pre_level_;
+                else if (stricmp(html_passthru_tag_, "/pre") == 0
+                         && html_pre_level_ != 0)
+                    --html_pre_level_;
+            }
+            else if (c == '/'
+                     && html_passthru_tagp_ != html_passthru_tag_
+                     && *(html_passthru_tagp_ - 1) != '/')
+            {
+                /* add the '/' to the end of the tag name */
+                if (html_passthru_tagp_ - html_passthru_tag_ + 1
+                    < sizeof(html_passthru_tag_))
+                {
+                    *html_passthru_tagp_++ = (char)c;
+                    *html_passthru_tagp_ = '\0';
+                }
+            }
             else if (c == '"')
                 html_passthru_state_ = VMCON_HPS_DQUOTE;
             else if (c == '\'')
@@ -1026,18 +1180,18 @@ void CVmFormatter::buffer_expchar(VMG_ wchar_t c)
 
         default:
             /* 
-             *   Translate any whitespace character to a regular space
-             *   character.  Note that, once this is done, we don't need to
-             *   worry about calling t3_is_space() any more - we can just
-             *   check that we have a regular ' ' character.  
+             *   Translate any horizontal whitespace character to a regular
+             *   space character.  Note that, once this is done, we don't
+             *   need to worry about calling t3_is_space() any more - we can
+             *   just check that we have a regular ' ' character.  
              */
             if (t3_is_space(c))
             {
                 /* convert it to an ordinary space */
                 c = ' ';
                 
-                /* if we're in obey-whitespace mode, quote this space */
-                qspace = obey_whitespace_;
+                /* if we're in obey-whitespace mode, quote the space */
+                qspace = obey_whitespace_ || html_pre_level_ > 0;
             }
             break;
         }
@@ -1057,27 +1211,80 @@ void CVmFormatter::buffer_expchar(VMG_ wchar_t c)
     {
         if ((capsflag_ || allcapsflag_) && t3_is_alpha(c))
         {
-            /* capsflag is set, so capitalize this character */
-            c = t3_to_upper(c);
-            
-            /* okay, we've capitalized something; clear flag */
+            /* 
+             *   capsflag or allcapsflag is set, so render this character in
+             *   title case or upper case, respectively.  For the ordinary
+             *   capsflag, use title case rather than upper case, since
+             *   capsflag conceptually only applies to a single letter, and
+             *   some Unicode characters represent ligatures of multiple
+             *   letters.  In such cases we only want to capitalize the first
+             *   letter in the ligature, which is exactly what we get when we
+             *   convert it to the title case.
+             *   
+             *   Start by consuming the capsflag. 
+             */
             capsflag_ = FALSE;
+
+            /* get the appropriate expansion */
+            const wchar_t *u = allcapsflag_ ? t3_to_upper(c) : t3_to_title(c);
+
+            /*
+             *   If there's no expansion, continue with the original
+             *   character.  If it's a single-character expansion, continue
+             *   with the replacement character.  If it's a 1:N expansion,
+             *   recursively buffer the expansion. 
+             */
+            if (u != 0 && u[0] != 0)
+            {
+                if (u[1] != 0)
+                {
+                    /* 1:N expansion - handle it recursively */
+                    buffer_wstring(vmg_ u);
+                    return;
+                }
+                else
+                {
+                    /* 1:1 expansion - continue with the new character */
+                    c = u[0];
+                }
+            }
         }
         else if (nocapsflag_ && t3_is_alpha(c))
         {
-            /* nocapsflag is set, so minisculize this character */
-            c = t3_to_lower(c);
-            
-            /* clear the flag now that we've done the job */
+            /* lower-casing the character - consume the flag */
             nocapsflag_ = FALSE;
+
+            /* get the expansion */
+            const wchar_t *l = t3_to_lower(c);
+
+            /* 
+             *   recursively handle 1:N expansions; otherwise continue with
+             *   the replacement character, if there is one 
+             */
+            if (l != 0 && l[0] != 0)
+            {
+                if (l[1] != 0)
+                {
+                    /* 1:N expansion - handle it recursively */
+                    buffer_wstring(vmg_ l);
+                    return;
+                }
+                else
+                {
+                    /* 1:1 expansion - continue with the new character */
+                    c = l[0];
+                }
+            }
         }
     }
 
     /*
      *   If this is a space of some kind, we might be able to consolidate it
-     *   with a preceding character. 
+     *   with a preceding character.  If the display layer is an HTML
+     *   renderer, pass spaces through intact, and let the HTML parser handle
+     *   whitespace compression.
      */
-    if (c == ' ')
+    if (c == ' ' && html_pre_level_ == 0)
     {
         /* ignore ordinary whitespace at the start of a line */
         if (linecol_ == 0 && !qspace)
@@ -1231,7 +1438,8 @@ void CVmFormatter::buffer_expchar(VMG_ wchar_t c)
      *   at which we could break the line.  Keep going until we find a
      *   breaking point or reach the left edge of the line.  
      */
-    for (shy = FALSE, i = linepos_ ; i >= 0 ; --i)
+    int shy, i;
+    for (i = linepos_, shy = FALSE ; i >= 0 ; --i)
     {
         unsigned char f;
         unsigned char prvf;
@@ -1485,7 +1693,7 @@ void CVmFormatter::buffer_string(VMG_ const char *txt)
 void CVmFormatter::buffer_wstring(VMG_ const wchar_t *txt)
 {
     /* write out each wide character */
-    for ( ; *txt != '\0' ; ++txt)
+    for ( ; *txt != L'\0' ; ++txt)
         buffer_char(vmg_ *txt);
 }
 
@@ -1513,6 +1721,10 @@ wchar_t CVmFormatter::next_wchar(const char **s, size_t *len)
     *len -= charsize;
     *s += charsize;
 
+    /* render embedded null bytes as spaces */
+    if (ret == 0)
+        ret = ' ';
+
     /* return the result */
     return ret;
 }
@@ -1524,11 +1736,8 @@ wchar_t CVmFormatter::next_wchar(const char **s, size_t *len)
  */
 int CVmFormatter::format_text(VMG_ const char *s, size_t slen)
 {
-    wchar_t c;
-    int done = FALSE;
-
     /* get the first character */
-    c = next_wchar(&s, &slen);
+    wchar_t c = next_wchar(&s, &slen);
 
     /* if we have anything to show, show it */
     while (c != '\0')
@@ -1666,11 +1875,8 @@ int CVmFormatter::format_text(VMG_ const char *s, size_t slen)
             break;
         }
 
-        /* move on to the next character, unless we're finished */
-        if (done)
-            c = '\0';
-        else
-            c = next_wchar(&s, &slen);
+        /* move on to the next character */
+        c = next_wchar(&s, &slen);
     }
 
     /* success */
@@ -1688,6 +1894,8 @@ CVmConsole::CVmConsole()
 
     /* no command log file yet */
     command_fp_ = 0;
+    command_nf_ = 0;
+    command_glob_ = 0;
 
     /* assume we'll double-space after each period */
     doublespace_ = TRUE;
@@ -1700,28 +1908,21 @@ CVmConsole::CVmConsole()
 /*
  *   Delete the display object 
  */
-CVmConsole::~CVmConsole()
+void CVmConsole::delete_obj(VMG0_)
 {
     /* close any active script file(s) */
     while (script_sp_ != 0)
-    {
-        /* close this file */
-        osfcls(script_sp_->fp);
-
-        /* unlink this stack level */
-        script_stack_entry *cur = script_sp_;
-        script_sp_ = cur->enc;
-
-        /* delete the entry */
-        delete cur;
-    }
+        close_script_file(vmg0_);
 
     /* close any active command log file */
-    close_command_log();
+    close_command_log(vmg0_);
 
     /* delete the log stream if we have one */
     if (log_str_ != 0)
-        delete log_str_;
+        log_str_->delete_obj(vmg0_);
+
+    /* delete this object */
+    delete this;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -1835,32 +2036,30 @@ int CVmConsole::set_obey_whitespace(int f)
 /*
  *   Open a log file 
  */
-int CVmConsole::open_log_file(const char *fname)
+int CVmConsole::open_log_file(VMG_ const char *fname)
 {
-    /* if there's no log stream, we can't open a log file */
-    if (log_str_ == 0)
-        return 1;
+    /* pass the file to the log stream, if we have one */
+    return log_str_ != 0 ? log_str_->open_log_file(vmg_ fname) : 1;
+}
 
-    /* 
-     *   Tell the log stream to open the file.  Set the log file's HTML
-     *   source mode flag to the same value as is currently being used in
-     *   the main display stream, so that it will interpret source markups
-     *   the same way that the display stream is going to.  
-     */
-    return log_str_->open_log_file(fname);
+int CVmConsole::open_log_file(VMG_ const vm_val_t *filespec,
+                              const struct vm_rcdesc *rc)
+{
+    /* pass the file to the log stream, if we have one */
+    return log_str_ != 0 ? log_str_->open_log_file(vmg_ filespec, rc) : 1;
 }
 
 /*
  *   Close the log file 
  */
-int CVmConsole::close_log_file()
+int CVmConsole::close_log_file(VMG0_)
 {
     /* if there's no log stream, there's obviously no file open */
     if (log_str_ == 0)
         return 1;
 
     /* tell the log stream to close its file */
-    return log_str_->close_log_file();
+    return log_str_->close_log_file(vmg0_);
 }
 
 #if 0 //$$$
@@ -1999,18 +2198,76 @@ void CVmConsole::update_display(VMG0_)
 /*
  *   Open a script file 
  */
-void CVmConsole::open_script_file(const char *fname, int quiet,
-                                  int script_more_mode)
+int CVmConsole::open_script_file(VMG_ const char *fname,
+                                 int quiet, int script_more_mode)
+{
+    CVmNetFile *nf = 0;
+    err_try
+    {
+        /* create the network file descriptor */
+        nf = CVmNetFile::open(
+            vmg_ fname, 0, NETF_READ, OSFTCMD, "text/plain");
+    }
+    err_catch_disc
+    {
+        /* failed - no network file */
+        nf = 0;
+    }
+    err_end;
+
+    /* open the script on the network file */
+    return open_script_file(vmg_ nf, 0, quiet, script_more_mode);
+}
+
+int CVmConsole::open_script_file(VMG_ const vm_val_t *filespec,
+                                 const struct vm_rcdesc *rc,
+                                 int quiet, int script_more_mode)
+{
+    CVmNetFile *nf = 0;
+    err_try
+    {
+        /* create the network file descriptor */
+        nf = CVmNetFile::open(
+            vmg_ filespec, rc, NETF_READ, OSFTCMD, "text/plain");
+
+        /* validate file safety */
+        CVmObjFile::check_safety_for_open(vmg_ nf, VMOBJFILE_ACCESS_READ);
+    }
+    err_catch_disc
+    {
+        /* if we got a file, it must be a safety exception - rethrow it */
+        if (nf != 0)
+        {
+            nf->abandon(vmg0_);
+            err_rethrow();
+        }
+    }
+    err_end;
+
+    /* open the script on the network file */
+    return open_script_file(vmg_ nf, filespec, quiet, script_more_mode);
+}
+
+int CVmConsole::open_script_file(VMG_ CVmNetFile *nf, const vm_val_t *filespec,
+                                 int quiet, int script_more_mode)
 {
     int evt;
     char buf[50];
     
-    /* try opening the file */
-    osfildef *fp = osfoprt(fname, OSFTCMD);
+    /* if the network file open failed, return an error */
+    if (nf == 0)
+        return 1;
+
+    /* open the local file */
+    osfildef *fp = osfoprt(nf->lclfname, OSFTCMD);
 
     /* if that failed, silently ignore the request */
     if (fp == 0)
-        return;
+    {
+        /* abandon the network file descriptor and return failure */
+        nf->abandon(vmg0_);
+        return 1;
+    }
 
     /* read the first line to see if it looks like an event script */
     if (osfgets(buf, sizeof(buf), fp) != 0
@@ -2050,18 +2307,21 @@ void CVmConsole::open_script_file(const char *fname, int quiet,
 
     /* push the new script file onto the stack */
     script_sp_ = new script_stack_entry(
-        script_sp_, set_more_state(script_more_mode), fp,
+        vmg_ script_sp_, set_more_state(script_more_mode), nf, fp, filespec,
         script_more_mode, quiet, evt);
     
     /* turn on NONSTOP mode in the OS layer if applicable */
     if (!script_more_mode)
         os_nonstop_mode(TRUE);
+
+    /* success */
+    return 0;
 }
 
 /*
  *   Close the current script file 
  */
-int CVmConsole::close_script_file()
+int CVmConsole::close_script_file(VMG0_)
 {
     script_stack_entry *e;
     
@@ -2072,6 +2332,22 @@ int CVmConsole::close_script_file()
         
         /* close the file */
         osfcls(e->fp);
+
+        err_try
+        {
+            /* close the network file */
+            e->netfile->close(vmg0_);
+        }
+        err_catch_disc
+        {
+            /* 
+             *   Ignore any error - since we're reading the file, the chances
+             *   of anything going wrong are pretty minimal anyway; but even
+             *   if an error did occur, our interface just isn't set up to do
+             *   anything meaningful with it.  
+             */
+        }
+        err_end;
 
         /* pop the stack */
         script_sp_ = e->enc;
@@ -2086,7 +2362,7 @@ int CVmConsole::close_script_file()
         ret = e->old_more_mode;
 
         /* delete the stack level */
-        delete e;
+        e->delobj(vmg0_);
 
         /* return the result */
         return ret;
@@ -2103,18 +2379,130 @@ int CVmConsole::close_script_file()
 
 /* ------------------------------------------------------------------------ */
 /*
+ *   Script stack element 
+ */
+
+script_stack_entry::script_stack_entry(
+    VMG_ script_stack_entry *encp, int old_more,
+    class CVmNetFile *netfile, osfildef *outfp, const vm_val_t *filespec,
+    int new_more, int is_quiet, int is_event_script)
+{
+    /* remember the stack level settings */
+    this->enc = encp;
+    this->old_more_mode = old_more;
+    this->netfile = netfile;
+    this->fp = outfp;
+    this->more_mode = new_more;
+    this->quiet = is_quiet;
+    this->event_script = is_event_script;
+
+    /* if we have a file spec, create a global for it for gc protection */
+    this->filespec = 0;
+    if (filespec != 0)
+    {
+        this->filespec = G_obj_table->create_global_var();
+        this->filespec->val = *filespec;
+    }
+}
+
+void script_stack_entry::delobj(VMG0_)
+{
+    /* we're done with our file spec global, if we had one */
+    if (filespec != 0)
+        G_obj_table->delete_global_var(filespec);
+
+    /* delete myself */
+    delete this;
+}
+
+/* ------------------------------------------------------------------------ */
+/*
  *   Open a command log file 
  */
-int CVmConsole::open_command_log(const char *fname, int event_script)
+int CVmConsole::open_command_log(VMG_ const char *fname, int event_script)
+{
+    CVmNetFile *nf = 0;
+    err_try
+    {
+        /* create the network file descriptor */
+        nf = CVmNetFile::open(vmg_ fname, 0, NETF_NEW, OSFTCMD, "text/plain");
+    }
+    err_catch_disc
+    {
+        /* failed - no network file */
+        nf = 0;
+    }
+    err_end;
+
+    /* create the command log */
+    return open_command_log(vmg_ nf, event_script);
+}
+
+int CVmConsole::open_command_log(VMG_ const vm_val_t *filespec,
+                                 const struct vm_rcdesc *rc,
+                                 int event_script)
+{
+    CVmNetFile *nf = 0;
+    err_try
+    {
+        /* create the network file descriptor */
+        nf = CVmNetFile::open(vmg_ filespec, rc,
+                              NETF_NEW, OSFTCMD, "text/plain");
+
+        /* validate file safety */
+        CVmObjFile::check_safety_for_open(vmg_ nf, VMOBJFILE_ACCESS_WRITE);
+    }
+    err_catch_disc
+    {
+        /* if we got a file, it must be a safety exception - rethrow it */
+        if (nf != 0)
+        {
+            nf->abandon(vmg0_);
+            err_rethrow();
+        }
+    }
+    err_end;
+
+    /* create the command log */
+    int err = open_command_log(vmg_ nf, event_script);
+
+    /* if that succeeded, save the filespec in our VM global */
+    if (!err)
+    {
+        /* create our VM global if we don't have one already */
+        if (command_glob_ == 0)
+            command_glob_ = G_obj_table->create_global_var();
+
+        /* remember the file spec */
+        command_glob_->val = *filespec;
+    }
+
+    /* return the result */
+    return err;
+}
+
+int CVmConsole::open_command_log(VMG_ CVmNetFile *nf, int event_script)
 {
     /* close any existing command log file */
-    close_command_log();
-    
-    /* remember the filename */
-    strcpy(command_fname_, fname);
+    close_command_log(vmg0_);
 
+    /* if the network file open failed, return failure */
+    if (nf == 0)
+        return 1;
+    
     /* open the file */
-    command_fp_ = osfopwt(fname, OSFTCMD);
+    osfildef *fp = osfopwt(nf->lclfname, OSFTCMD);
+    if (fp != 0)
+    {
+        /* success - remember the file handle and net descriptor */
+        command_nf_ = nf;
+        command_fp_ = new CVmFileSource(fp);
+    }
+    else
+    {
+        /* failed - abandon the network file */
+        nf->abandon(vmg0_);
+    }
 
     /* note the type */
     command_eventscript_ = event_script;
@@ -2122,8 +2510,8 @@ int CVmConsole::open_command_log(const char *fname, int event_script)
     /* if it's an event script, write the file type tag */
     if (event_script && command_fp_ != 0)
     {
-        os_fprintz(command_fp_, "<eventscript>\n");
-        osfflush(command_fp_);
+        command_fp_->writez("<eventscript>\n");
+        command_fp_->flush();
     }
 
     /* return success if we successfully opened the file */
@@ -2133,20 +2521,35 @@ int CVmConsole::open_command_log(const char *fname, int event_script)
 /* 
  *   close the active command log file 
  */
-int CVmConsole::close_command_log()
+int CVmConsole::close_command_log(VMG0_)
 {
     /* if there's a command log file, close it */
     if (command_fp_ != 0)
     {
         /* close the file */
-        osfcls(command_fp_);
+        delete command_fp_;
 
-        /* set its file type */
-        os_settype(command_fname_, OSFTCMD);
+        /* close the network file */
+        err_try
+        {
+            command_nf_->close(vmg0_);
+        }
+        err_catch_disc
+        {
+            /* 
+             *   ignore any errors - our interface doesn't give us any
+             *   meaningful way to return error information
+             */
+        }
+        err_end;
 
         /* forget the file */
         command_fp_ = 0;
     }
+
+    /* clear out our file spec global, if we have one */
+    if (command_glob_ != 0)
+        command_glob_->val.set_nil();
 
     /* success */
     return 0;
@@ -2159,20 +2562,20 @@ int CVmConsole::close_command_log()
  *   null-terminated string in the UTF-8 character set.  Returns zero on
  *   success, non-zero on end-of-file.  
  */
-int CVmConsole::read_line(VMG_ char *buf, size_t buflen)
+int CVmConsole::read_line(VMG_ char *buf, size_t buflen, int bypass_script)
 {
     /* cancel any previous interrupted input */
     read_line_cancel(vmg_ TRUE);
 
 try_again:
     /* use the timeout version, with no timeout specified */
-    switch(read_line_timeout(vmg_ buf, buflen, 0, FALSE))
+    switch(read_line_timeout(vmg_ buf, buflen, 0, FALSE, bypass_script))
     {
     case OS_EVT_LINE:
         /* success */
         return 0;
 
-    case VMCON_EVT_END_SCRIPT:
+    case VMCON_EVT_END_QUIET_SCRIPT:
         /* 
          *   end of script - we have no way to communicate this result back
          *   to our caller, so simply ignore the result and ask for another
@@ -2189,6 +2592,49 @@ try_again:
 
 /* ------------------------------------------------------------------------ */
 /*
+ *   translate an OS_EVT_XXX code to an event script file tag 
+ */
+static const char *evt_to_tag(int evt)
+{
+    switch (evt)
+    {
+    case OS_EVT_KEY:
+        return "key";
+
+    case OS_EVT_TIMEOUT:
+        return "timeout";
+
+    case OS_EVT_HREF:
+        return "href";
+
+    case OS_EVT_NOTIMEOUT:
+        return "notimeout";
+
+    case OS_EVT_EOF:
+        return "eof";
+
+    case OS_EVT_LINE:
+        return "line";
+
+    case OS_EVT_COMMAND:
+        return "command";
+
+    case VMCON_EVT_END_QUIET_SCRIPT:
+        return "endqs";
+
+    case VMCON_EVT_DIALOG:
+        return "dialog";
+
+    case VMCON_EVT_FILE:
+        return "file";
+
+    default:
+        return "";
+    }
+}
+
+/* ------------------------------------------------------------------------ */
+/*
  *   Log an event to the output script.  The parameter is in the UI character
  *   set.  
  */
@@ -2196,28 +2642,44 @@ int CVmConsole::log_event(VMG_ int evt,
                           const char *param, size_t paramlen,
                           int param_is_utf8)
 {
+    /* translate the event code to a tag, and log the event */
+    log_event(vmg_ evt_to_tag(evt), param, paramlen, param_is_utf8);
+
+    /* return the event type code */
+    return evt;
+}
+
+void CVmConsole::log_event(VMG_ const char *tag,
+                           const char *param, size_t paramlen,
+                           int param_is_utf8)
+{
     /* if there's a script file, log the event */
     if (command_fp_ != 0)
     {
+        /* if the tag has < > delimiters, remove them */
+        size_t taglen = strlen(tag);
+        if (tag[0] == '<')
+            ++tag, --taglen;
+        if (taglen != 0 && tag[taglen-1] == '>')
+            --taglen;
+
         /* write the event in the proper format for the script type */
         if (command_eventscript_)
         {
-            const char *tag = 0;
-            
-            /* write the event according to its type */
-            switch (evt)
+            /* 
+             *   It's an event script, so we write all event types.  Check
+             *   for certain special parameter translations.  
+             */
+            if (taglen == 3 && memicmp(tag, "key", 3) == 0)
             {
-            case OS_EVT_KEY:
-                /* use the "<key>" tag */
-                tag = "<key>";
-                
                 /* 
-                 *   use the normal key representation, except we want to
-                 *   write \n as [enter] and \t as [tab] 
+                 *   key event - for characters that would look like
+                 *   whitespace characters if we wrote them as-is, translate
+                 *   to [xxx] key names 
                  */
-                if (param != 0)
+                if (param != 0 && paramlen == 1)
                 {
-                    switch (*param)
+                    switch (param[0])
                     {
                     case '\n':
                         param = "[enter]";
@@ -2235,68 +2697,38 @@ int CVmConsole::log_event(VMG_ int evt,
                         break;
                     }
                 }
-                break;
-                
-            case OS_EVT_TIMEOUT:
-                tag = "<timeout>";
-                break;
-                
-            case OS_EVT_HREF:
-                tag = "<href>";
-                break;
-                
-            case OS_EVT_NOTIMEOUT:
-                tag = "<notimeout>";
-                param = 0;
-                break;
-                
-            case OS_EVT_EOF:
-                tag = "<eof>";
-                param = 0;
-                break;
-                
-            case OS_EVT_LINE:
-                tag = "<line>";
-                break;
-                
-            case OS_EVT_COMMAND:
-                tag = "<command>";
-                break;
-
-            case VMCON_EVT_END_SCRIPT:
-                tag = "<endqs>";
-                break;
-
-            case VMCON_EVT_DIALOG:
-                tag = "<dialog>";
-                break;
-
-            case VMCON_EVT_FILE:
-                tag = "<file>";
-                break;
             }
-            
-            /* if we found a tag, write it */
-            if (tag != 0)
+
+            /* 
+             *   if the event doesn't have parameters, ignore any parameter
+             *   provided by the caller 
+             */
+            if ((taglen == 9 && memicmp(tag, "notimeout", 9) == 0)
+                || (taglen == 3 && memicmp(tag, "eof", 3) == 0))
+                param = 0;
+
+            /* if we have a non-empty tag, write the event */
+            if (taglen != 0)
             {
                 /* write the tag, in the local character set */
+                G_cmap_to_ui->write_file(command_fp_, "<", 1);
                 G_cmap_to_ui->write_file(command_fp_, tag, strlen(tag));
+                G_cmap_to_ui->write_file(command_fp_, ">", 1);
                 
                 /* add the parameter, if present */
                 if (param != 0)
                 {
                     if (param_is_utf8)
-                        G_cmap_to_ui->write_file(
-                            command_fp_, param, paramlen);
+                        G_cmap_to_ui->write_file(command_fp_, param, paramlen);
                     else
-                        os_fprint(command_fp_, param, paramlen);
+                        command_fp_->write(param, paramlen);
                 }
-
+                
                 /* add the newline */
                 G_cmap_to_ui->write_file(command_fp_, "\n", 1);
-
+                
                 /* flush the output */
-                osfflush(command_fp_);
+                command_fp_->flush();
             }
         }
         else
@@ -2306,7 +2738,7 @@ int CVmConsole::log_event(VMG_ int evt,
              *   input-line event, record it; otherwise leave it out, as this
              *   script file format can't represent any other event types.  
              */
-            if (evt == OS_EVT_LINE && param != 0)
+            if (taglen == 4 && memicmp(tag, "line", 4) == 0 && param != 0)
             {
                 /* write the ">" prefix */
                 G_cmap_to_ui->write_file(command_fp_, ">", 1);
@@ -2315,19 +2747,16 @@ int CVmConsole::log_event(VMG_ int evt,
                 if (param_is_utf8)
                     G_cmap_to_ui->write_file(command_fp_, param, paramlen);
                 else
-                    os_fprint(command_fp_, param, paramlen);
+                    command_fp_->write(param, paramlen);
 
                 /* add the newline */
                 G_cmap_to_ui->write_file(command_fp_, "\n", 1);
 
                 /* flush the output */
-                osfflush(command_fp_);
+                command_fp_->flush();
             }
         }
     }
-
-    /* return the event code */
-    return evt;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -2351,20 +2780,21 @@ static char S_read_buf[256];
  *   Read a line of input from the console, with an optional timeout value. 
  */
 int CVmConsole::read_line_timeout(VMG_ char *buf, size_t buflen,
-                                  unsigned long timeout, int use_timeout)
+                                  unsigned long timeout, int use_timeout,
+                                  int bypass_script)
 {
-    int echo_text;
-    char *outp;
-    size_t outlen;
-    int evt;
-    int resuming;
+    /* no event yet */
+    int evt = OS_EVT_NONE;
+
+    /* we haven't received any script input yet */
+    int got_script_input = FALSE;
 
     /* 
      *   presume we won't echo the text to the display; in most cases, it
      *   will be echoed to the display in the course of reading it from
      *   the keyboard 
      */
-    echo_text = FALSE;
+    int echo_text = FALSE;
 
     /* remember the initial MORE mode */
     S_old_more_mode = is_more_mode();
@@ -2387,131 +2817,135 @@ int CVmConsole::read_line_timeout(VMG_ char *buf, size_t buflen,
          *   input 
          */
         flush_all(vmg_ VM_NL_INPUT);
-
-        /* if there's a script file, read from it */
-        if (script_sp_ != 0)
-        {
-        read_script:
-            /* note whether we're in quiet mode */
-            int was_quiet = script_sp_->quiet;
-            
-            /* try reading a line from the script file */
-            if (read_line_from_script(S_read_buf, sizeof(S_read_buf), &evt))
-            {
-                /* 
-                 *   we successfully got a line from the script file - if
-                 *   we're not in quiet mode, make a note to echo the text to
-                 *   the display 
-                 */
-                if (!script_sp_->quiet)
-                    echo_text = TRUE;
-            }
-            else
-            {
-                int is_quiet;
-                
-                /* 
-                 *   End of script file - return to reading from the
-                 *   enclosing level (i.e., the enclosing script, or the
-                 *   keyboard if this is the outermost script).  The return
-                 *   value from close_script_file() is the MORE mode that was
-                 *   in effect before we started reading the script file;
-                 *   we'll use this when we restore the enclosing MORE mode
-                 *   so that we restore the pre-script MORE mode when we
-                 *   return.  
-                 */
-                S_old_more_mode = close_script_file();
-
-                /* note the new 'quiet' mode */
-                is_quiet = (script_sp_ != 0 && script_sp_->quiet);
-
-                /* 
-                 *   if we're still reading from a script (which means we
-                 *   closed the old script and popped out to an enclosing
-                 *   script), and the 'quiet' mode hasn't changed, simply go
-                 *   back for another read 
-                 */
-                if (script_sp_ != 0 && is_quiet == was_quiet)
-                    goto read_script;
-                
-                /* 
-                 *   temporarily turn off MORE mode, in case we read from the
-                 *   keyboard 
-                 */
-                set_more_state(FALSE);
-                
-                /* flush any output we generated while reading the script */
-                flush(vmg_ VM_NL_NONE);
-                
-                /* 
-                 *   If we were in quiet mode but no longer are, let the
-                 *   caller know we've finished reading a script, so that the
-                 *   caller can set up the display properly for reading from
-                 *   the keyboard.
-                 *   
-                 *   If we weren't in quiet mode, we'll simply proceed to the
-                 *   normal keyboard reading; when not in quiet mode, no
-                 *   special display fixup is needed.  
-                 */
-                if (was_quiet && !is_quiet)
-                {
-                    /* return to the old MORE mode */
-                    set_more_state(S_old_more_mode);
-
-                    /* add a blank line to the log file, if necessary */
-                    if (log_enabled_)
-                        log_str_->print_to_os("\n");
-
-                    /* note in the streams that we've read an input line */
-                    disp_str_->note_input_line();
-                    if (log_str_ != 0)
-                        log_str_->note_input_line();
-
-                    /* 
-                     *   generate a synthetic "end of script" event to let
-                     *   the caller know we're switching back to regular
-                     *   keyboard reading 
-                     */
-                    return log_event(vmg_ VMCON_EVT_END_SCRIPT);
-                }
-
-                /*
-                 *   Note that we do not have an event yet - we've merely
-                 *   closed the script file, and now we're going to continue
-                 *   by reading a line from the keyboard instead.  The call
-                 *   to close_script_file() above will have left script_sp_
-                 *   == 0, so we'll shortly read an event from the keyboard.
-                 *   Thus 'evt' is still not set to any value, because we do
-                 *   not yet have an event - this is intentional.  
-                 */
-            }
-        }
-
-        /* 
-         *   if we're not reading from a scripot, reset the MORE line
-         *   counter, since we're reading user input at the current point and
-         *   shouldn't pause for a MORE prompt until the text we're reading
-         *   has scrolled off the screen 
-         */
-        if (script_sp_ == 0)
-            reset_line_count(FALSE);
     }
 
     /* 
-     *   if reading was already in progress, we're resuming a previously
-     *   interrupted read operation 
+     *   if there's a script file, read from it, unless the caller has
+     *   specifically asked us to bypass it 
      */
-    resuming = S_read_in_progress;
+    if (script_sp_ != 0 && !bypass_script)
+    {
+    read_script:
+        /* note whether we're in quiet mode */
+        int was_quiet = script_sp_->quiet;
+        
+        /* try reading a line from the script file */
+        if (read_line_from_script(S_read_buf, sizeof(S_read_buf), &evt))
+        {
+            /* we successfully read input from the script */
+            got_script_input = TRUE;
 
+            /*
+             *   if we're not in quiet mode, make a note to echo the text to
+             *   the display 
+             */
+            if (!script_sp_->quiet)
+                echo_text = TRUE;
+        }
+        else
+        {
+            /* 
+             *   End of script file - return to reading from the enclosing
+             *   level (i.e., the enclosing script, or the keyboard if this
+             *   is the outermost script).  The return value from
+             *   close_script_file() is the MORE mode that was in effect
+             *   before we started reading the script file; we'll use this
+             *   when we restore the enclosing MORE mode so that we restore
+             *   the pre-script MORE mode when we return.  
+             */
+            S_old_more_mode = close_script_file(vmg0_);
+            
+            /* note the new 'quiet' mode */
+            int is_quiet = (script_sp_ != 0 && script_sp_->quiet);
+            
+            /* 
+             *   if we're still reading from a script (which means we closed
+             *   the old script and popped out to an enclosing script), and
+             *   the 'quiet' mode hasn't changed, simply go back for another
+             *   read 
+             */
+            if (script_sp_ != 0 && is_quiet == was_quiet)
+                goto read_script;
+            
+            /* 
+             *   temporarily turn off MORE mode, in case we read from the
+             *   keyboard 
+             */
+            set_more_state(FALSE);
+            
+            /* flush any output we generated while reading the script */
+            flush(vmg_ VM_NL_NONE);
+            
+            /* 
+             *   If we were in quiet mode but no longer are, let the caller
+             *   know we've finished reading a script, so that the caller can
+             *   set up the display properly for reading from the keyboard.
+             *   
+             *   If we weren't in quiet mode, we'll simply proceed to the
+             *   normal keyboard reading; when not in quiet mode, no special
+             *   display fixup is needed.  
+             */
+            if (was_quiet && !is_quiet)
+            {
+                /* return to the old MORE mode */
+                set_more_state(S_old_more_mode);
+                
+                /* add a blank line to the log file, if necessary */
+                if (log_enabled_)
+                    log_str_->print_to_os("\n");
+                
+                /* note in the streams that we've read an input line */
+                disp_str_->note_input_line();
+                if (log_str_ != 0)
+                    log_str_->note_input_line();
+                
+                /* 
+                 *   generate a synthetic "end of script" event to let the
+                 *   caller know we're switching back to regular keyboard
+                 *   reading 
+                 */
+                return log_event(vmg_ VMCON_EVT_END_QUIET_SCRIPT);
+            }
+
+            /*
+             *   Note that we do not have an event yet - we've merely closed
+             *   the script file, and now we're going to continue by reading
+             *   a line from the keyboard instead.  The call to
+             *   close_script_file() above will have left script_sp_ == 0, so
+             *   we'll shortly read an event from the keyboard.  Thus 'evt'
+             *   is still not set to any value, because we do not yet have an
+             *   event - this is intentional.  
+             */
+        }
+    }
+
+    /* 
+     *   if we're not reading from a scripot, reset the MORE line counter,
+     *   since we're reading user input at the current point and shouldn't
+     *   pause for a MORE prompt until the text we're reading has scrolled
+     *   off the screen 
+     */
+    if (script_sp_ == 0)
+        reset_line_count(FALSE);
+    
     /* reading is now in progress */
     S_read_in_progress = TRUE;
 
-    /* 
-     *   if we don't have a script file, or we're resuming an interrupted
-     *   read operation, read from the keyboard 
-     */
-    if (script_sp_ == 0 || resuming)
+    /* if we didn't get input from a script, read from the keyboard */
+    if (!got_script_input)
     {
+        /* 
+         *   If we're in network mode, return EOF to indicate that no console
+         *   input is available.  Network programs can only call this routine
+         *   to read script input, and aren't allowed to read from the
+         *   regular keyboard.  
+         */
+        if (G_net_config != 0)
+        {
+            read_line_done(vmg0_);
+            return OS_EVT_EOF;
+        }
+
         /* read a line from the keyboard */
         evt = os_gets_timeout((uchar *)S_read_buf, sizeof(S_read_buf),
                               timeout, use_timeout);
@@ -2558,6 +2992,7 @@ int CVmConsole::read_line_timeout(VMG_ char *buf, size_t buflen,
     if (evt == OS_EVT_EOF)
     {
         set_more_state(S_old_more_mode);
+        read_line_done(vmg0_);
         return log_event(vmg_ evt);
     }
 
@@ -2565,8 +3000,8 @@ int CVmConsole::read_line_timeout(VMG_ char *buf, size_t buflen,
      *   Convert the text from the local UI character set to UTF-8.  Reserve
      *   space in the output buffer for the null terminator.  
      */
-    outp = buf;
-    outlen = buflen - 1;
+    char *outp = buf;
+    size_t outlen = buflen - 1;
     G_cmap_from_ui->map(&outp, &outlen, S_read_buf, strlen(S_read_buf));
 
     /* add the null terminator */
@@ -2574,9 +3009,10 @@ int CVmConsole::read_line_timeout(VMG_ char *buf, size_t buflen,
 
     /* 
      *   If we need to echo the text (because we read it from a script file),
-     *   do so now.  
+     *   do so now.  Never echo text in the network configuration, since we
+     *   don't use the local console UI in this mode.  
      */
-    if (echo_text)
+    if (echo_text && G_net_config == 0)
     {
         /* show the text */
         format_text(vmg_ buf);
@@ -2685,7 +3121,7 @@ int CVmConsole::read_event_script(VMG_ int *evt, char *buf, size_t buflen,
         if (!read_script_event_type(evt, attrs))
         {
             /* end of the script - close it */
-            set_more_state(close_script_file());
+            set_more_state(close_script_file(vmg0_));
 
             /* if there's no more script file, there's no event */
             if (script_sp_ == 0)
@@ -2804,7 +3240,7 @@ int CVmConsole::read_script_event_type(int *evt, unsigned long *attrs)
         /* keep going until we find an input line */
         for (;;)
         {
-            /* read the first charater of the line */
+            /* read the first character of the line */
             int c = osfgetc(fp);
             if (c == '>')
             {
@@ -2847,7 +3283,7 @@ int CVmConsole::read_script_event_type(int *evt, unsigned long *attrs)
             { "line", OS_EVT_LINE },
             { "command", OS_EVT_COMMAND },
             
-            { "endqs", VMCON_EVT_END_SCRIPT },
+            { "endqs", VMCON_EVT_END_QUIET_SCRIPT },
             { "dialog", VMCON_EVT_DIALOG },
             { "file", VMCON_EVT_FILE },
 
@@ -3125,20 +3561,23 @@ CVmConsoleMain::CVmConsoleMain(VMG0_)
 /*
  *   delete 
  */
-CVmConsoleMain::~CVmConsoleMain()
+void CVmConsoleMain::delete_obj(VMG0_)
 {
     /* delete the system banner manager */
-    banner_manager_->delete_obj();
+    banner_manager_->delete_obj(vmg0_);
 
     /* delete the system log console manager */
-    log_console_manager_->delete_obj();
+    log_console_manager_->delete_obj(vmg0_);
 
     /* delete the display stream */
-    delete main_disp_str_;
+    main_disp_str_->delete_obj(vmg0_);
 
     /* delete the statusline stream, if we have one */
     if (statline_str_ != 0)
-        delete statline_str_;
+        statline_str_->delete_obj(vmg0_);
+
+    /* do the inherited work */
+    CVmConsole::delete_obj(vmg0_);
 }
 
 /*
@@ -3262,7 +3701,7 @@ CVmHandleManager::CVmHandleManager()
 }
 
 /* delete the object - this is the public destructor interface */
-void CVmHandleManager::delete_obj()
+void CVmHandleManager::delete_obj(VMG0_)
 {
     size_t i;
 
@@ -3276,7 +3715,7 @@ void CVmHandleManager::delete_obj()
     {
         /* if this banner is still valid, delete it */
         if (handles_[i] != 0)
-            delete_handle_object(i + 1, handles_[i]);
+            delete_handle_object(vmg_ i + 1, handles_[i]);
     }
 
     /* delete the object */
@@ -3393,7 +3832,7 @@ int CVmBannerManager::create_banner(VMG_ int parent_id,
  *   display configuration to remain visible even after the program has
  *   terminated.  
  */
-void CVmBannerManager::delete_or_orphan_banner(int banner, int orphan)
+void CVmBannerManager::delete_or_orphan_banner(VMG_ int banner, int orphan)
 {
     CVmConsoleBanner *item;
     void *handle;
@@ -3406,7 +3845,7 @@ void CVmBannerManager::delete_or_orphan_banner(int banner, int orphan)
     handle = item->get_os_handle();
 
     /* delete the banner item */
-    delete item;
+    item->delete_obj(vmg0_);
 
     /* clear the slot */
     clear_handle(banner);
@@ -3498,10 +3937,13 @@ CVmConsoleBanner::CVmConsoleBanner(void *banner_handle, int win_type,
 /*
  *   Deletion 
  */
-CVmConsoleBanner::~CVmConsoleBanner()
+void CVmConsoleBanner::delete_obj(VMG0_)
 {
     /* delete our display stream */
-    delete disp_str_;
+    disp_str_->delete_obj(vmg0_);
+
+    /* do the inherited work */
+    CVmConsole::delete_obj(vmg0_);
 }
 
 /*
@@ -3567,15 +4009,13 @@ int CVmConsoleBanner::get_banner_info(os_banner_info_t *info)
 /*
  *   create a log console 
  */
-int CVmLogConsoleManager::create_log_console(const char *fname,
-                                             osfildef *fp,
-                                             class CCharmapToLocal *cmap,
-                                             int width)
+int CVmLogConsoleManager::create_log_console(
+    VMG_ CVmNetFile *nf, osfildef *fp, CCharmapToLocal *cmap, int width)
 {
     CVmConsoleLog *con;
     
     /* create the new console */
-    con = new CVmConsoleLog(fname, fp, cmap, width);
+    con = new CVmConsoleLog(vmg_ nf, fp, cmap, width);
 
     /* allocate a handle for the new console and return the handle */
     return alloc_handle(con);
@@ -3584,7 +4024,7 @@ int CVmLogConsoleManager::create_log_console(const char *fname,
 /*
  *   delete log a console 
  */
-void CVmLogConsoleManager::delete_log_console(int handle)
+void CVmLogConsoleManager::delete_log_console(VMG_ int handle)
 {
     CVmConsoleLog *con;
     
@@ -3593,7 +4033,7 @@ void CVmLogConsoleManager::delete_log_console(int handle)
         return;
 
     /* delete the console */
-    delete con;
+    con->delete_obj(vmg0_);
 
     /* clear the slot */
     clear_handle(handle);
@@ -3603,7 +4043,7 @@ void CVmLogConsoleManager::delete_log_console(int handle)
 /*
  *   Log file console 
  */
-CVmConsoleLog::CVmConsoleLog(const char *fname, osfildef *fp,
+CVmConsoleLog::CVmConsoleLog(VMG_ CVmNetFile *nf, osfildef *fp,
                              class CCharmapToLocal *cmap, int width)
 {
     CVmFormatterLog *str;
@@ -3612,7 +4052,7 @@ CVmConsoleLog::CVmConsoleLog(const char *fname, osfildef *fp,
     disp_str_ = str = new CVmFormatterLog(this, width);
 
     /* set the file */
-    str->set_log_file(fname, fp);
+    str->set_log_file(vmg_ nf, fp);
 
     /* set the character mapper */
     str->set_charmap(cmap);
@@ -3621,9 +4061,11 @@ CVmConsoleLog::CVmConsoleLog(const char *fname, osfildef *fp,
 /*
  *   destroy 
  */
-CVmConsoleLog::~CVmConsoleLog()
+void CVmConsoleLog::delete_obj(VMG0_)
 {
     /* delete our display stream */
-    delete disp_str_;
-}
+    disp_str_->delete_obj(vmg0_);
 
+    /* do the inherited work */
+    CVmConsole::delete_obj(vmg0_);
+}

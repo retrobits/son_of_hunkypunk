@@ -439,7 +439,7 @@ static void runputbuf(uchar *dstp, runsdef *val)
         break;
         
     case DAT_NUMBER:
-        oswp4(dstp, val->runsv.runsvnum);
+        oswp4s(dstp, val->runsv.runsvnum);
         break;
         
     case DAT_PROPNUM:
@@ -461,7 +461,7 @@ void runpbuf(runcxdef *ctx, int typ, void *valp)
     switch(typ)
     {
     case DAT_NUMBER:
-        val.runsv.runsvnum = osrp4(valp);
+        val.runsv.runsvnum = osrp4s(valp);
         break;
         
     case DAT_OBJECT:
@@ -599,7 +599,7 @@ uchar *runfind(uchar *lst, runsdef *item)
                     return(lst);
                 break;
             case DAT_NUMBER:
-                if (osrp4(lst+1) == item->runsv.runsvnum)
+                if (osrp4s(lst+1) == item->runsv.runsvnum)
                     return(lst);
                 break;
 
@@ -1142,9 +1142,7 @@ resume_from_error:
     for (brkchk = 0 ;; ++brkchk)
     {
         /* check for break - signal if user has hit break */
-#ifndef ANDGLK
         if (brkchk == 1000)
-#endif
         {
             brkchk = 0;
             if (os_break()) runsig(ctx, ERR_USRINT);
@@ -1155,7 +1153,7 @@ resume_from_error:
         switch(opc)
         {
         case OPCPUSHNUM:
-            val.runsv.runsvnum = osrp4(p);
+            val.runsv.runsvnum = osrp4s(p);
             runpush(ctx, DAT_NUMBER, &val);
             p += 4;
             break;
@@ -1238,19 +1236,22 @@ resume_from_error:
 
         case OPCMUL:
             val.runstyp = DAT_NUMBER;
-            val.runsv.runsvnum = runpopnum(ctx) * runpopnum(ctx);
+            val.runsv.runsvnum = runpopnum(ctx);
+            val.runsv.runsvnum *= runpopnum(ctx);
             runrepush(ctx, &val);
             break;
             
         case OPCBAND:
             val.runstyp = DAT_NUMBER;
-            val.runsv.runsvnum = runpopnum(ctx) & runpopnum(ctx);
+            val.runsv.runsvnum = runpopnum(ctx);
+            val.runsv.runsvnum &= runpopnum(ctx);
             runrepush(ctx, &val);
             break;
             
         case OPCBOR:
             val.runstyp = DAT_NUMBER;
-            val.runsv.runsvnum = runpopnum(ctx) | runpopnum(ctx);
+            val.runsv.runsvnum = runpopnum(ctx);
+            val.runsv.runsvnum |= runpopnum(ctx);
             runrepush(ctx, &val);
             break;
 
@@ -1283,7 +1284,8 @@ resume_from_error:
             {
                 /* numeric value - return binary xor */
                 val.runstyp = DAT_NUMBER;
-                val.runsv.runsvnum = runpopnum(ctx) ^ runpopnum(ctx);
+                val.runsv.runsvnum = runpopnum(ctx);
+                val.runsv.runsvnum ^= runpopnum(ctx);
             }
             runrepush(ctx, &val);
             break;
@@ -1384,6 +1386,11 @@ resume_from_error:
             break;
 
         case OPCGETDBLCL:
+#ifdef DBG_OFF
+            /* non-debug mode - this will always throw an error */
+            dbgfrfind(ctx->runcxdbg, 0, 0);
+#else
+            /* debug mode - look up the local in the stack frame */
             {
                 objnum   frobj;
                 uint     frofs;
@@ -1396,6 +1403,7 @@ resume_from_error:
                 p += 6;
             }
             break;
+#endif
 
         case OPCGETLCL:
             runrepush(ctx, ctx->runcxbp + runrp2s(p) - 1);
@@ -1484,7 +1492,7 @@ resume_from_error:
                 {
                 case OPCPUSHNUM:
                     match = (typmatch
-                             && val.runsv.runsvnum == osrp4(p));
+                             && val.runsv.runsvnum == osrp4s(p));
                     p += 4;
                     break;
                         
@@ -1775,12 +1783,17 @@ resume_from_error:
                 };
                 int        fn;
                 runxdef   *ex;
+
+#if 0 // external functions are obsolete - no need to set up the context
                 runuxdef   ux;
                 
                 /* set up callback context */
                 ux.runuxctx  = ctx;
                 ux.runuxvec  = &uf;
                 ux.runuxargc = *p++;
+#else
+                ++p; // skip argc
+#endif
 
                 fn = osrp2(p);
                 p += 2;
@@ -2235,7 +2248,7 @@ resume_from_error:
                             
                         case DAT_NUMBER:
                             valbuf = outbuf;
-                            oswp4(outbuf, valp->runsv.runsvnum);
+                            oswp4s(outbuf, valp->runsv.runsvnum);
                             break;
                             
                         case DAT_OBJECT:

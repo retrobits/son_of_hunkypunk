@@ -37,10 +37,8 @@ class Lister: object
      */
     showListAll(lst, options, indent)
     {
-        local infoTab;
-    
         /* create a sense information table with each item in full view */
-        infoTab = new LookupTable(16, 32);
+        local infoTab = new LookupTable(16, 32);
         foreach (local cur in lst)
         {
             /* add a plain view sensory description to the info list */
@@ -96,28 +94,22 @@ class Lister: object
      */
     showList(pov, parent, lst, options, indent, infoTab, parentGroup)
     {
-        local groups;
-        local groupTab;
-        local singles;
-        local origLst;
-        local itemCount;
-
         /* remember the original list */
-        origLst = lst;
+        local origLst = lst;
 
         /* filter the list to get only the items we actually will list */
         lst = getFilteredList(lst, infoTab);
 
         /* create a lookup table to keep track of the groups we've seen */
-        groupTab = new LookupTable();
-        groups = new Vector(10);
+        local groupTab = new LookupTable();
+        local groups = new Vector(10);
         
         /* set up a vector to keep track of the singles */
-        singles = new Vector(10);
+        local singles = new Vector(10);
 
         /* figure the groupings */
-        itemCount = getListGrouping(groupTab, groups, singles,
-                                    lst, parentGroup);
+        local itemCount = getListGrouping(groupTab, groups, singles,
+                                          lst, parentGroup);
 
         /*
          *   Now that we've figured out what's in the list and how it's
@@ -515,9 +507,8 @@ class Lister: object
              */
             if (mem.length() < groups[i].minGroupSize)
             {
-                /* put the item into the singles list */
-                if (mem.length() > 0)
-                    singles.append(mem[1]);
+                /* put the item(s) into the singles list */
+                singles.appendAll(mem);
 
                 /* eliminate this item from the group list */
                 groups.removeElementAt(i);
@@ -619,7 +610,7 @@ class Lister: object
             else
             {
                 /* show the prefix */
-                showListPrefixWide(itemCount, pov, parent);
+                showListPrefixWide(itemCount, pov, parent, lst: lst);
             }
             
             /* 
@@ -683,6 +674,7 @@ class Lister: object
                     if ((options & ListTall) != 0
                         && (options & ListRecurse) != 0
                         && contentsListed(cur)
+                        && !contentsListedSeparately(cur)
                         && getListedContents(cur, infoTab) != [])
                     {
                         /* show the item with its contents */
@@ -936,6 +928,7 @@ class Lister: object
             if ((options & ListTall) != 0
                 && (options & ListRecurse) != 0
                 && contentsListed(cur)
+                && !contentsListedSeparately(cur)
                 && getListedContents(cur, infoTab) != [])
             {
                 /* show the item with its contents */
@@ -1035,10 +1028,14 @@ class Lister: object
      *   books" will have an itemCount of 5.  (The purpose of itemCount is
      *   to allow the message to have grammatical agreement in number.)
      *   
+     *   'lst' is the entire list, which some languages need for
+     *   grammatical agreement.  This is passed as a named argument, so an
+     *   overrider can omit it from the parameter list if it's not needed.
+     *   
      *   This will never be called with an itemCount of zero, because we
      *   will instead use showListEmpty() to display an empty list.  
      */
-    showListPrefixWide(itemCount, pov, parent) { }
+    showListPrefixWide(itemCount, pov, parent, lst:) { }
 
     /* 
      *   show the suffix for a 'wide' listing - this is a message that

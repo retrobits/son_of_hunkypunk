@@ -91,6 +91,20 @@ osfildef *osfoprwb(const char *fname, os_filetype_t typ);
 #define osfoprwtb(fname, typ) fopen(fname, "w+b")
 
 
+/* ------------------------------------------------------------------------ */
+/*
+ *   Duplicate a file handle
+ */
+osfildef *osfdup(osfildef *fp, const char *mode);
+
+/* ------------------------------------------------------------------------ */
+/*
+ *   sprintf equivalents with buffer allocation 
+ */
+int os_asprintf(char **bufptr, const char *fmt, ...);
+int os_vasprintf(char **bufptr, const char *fmt, va_list ap);
+
+
 
 /* ------------------------------------------------------------------------ */
 /*

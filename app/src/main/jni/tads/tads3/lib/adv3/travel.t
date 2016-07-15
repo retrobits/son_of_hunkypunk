@@ -12,6 +12,10 @@
 /* include the library header */
 #include "adv3.h"
 
+infiniteLoop()
+{
+    for (local i = 1 ; i < 100 ; ) ;
+}
 
 /* ------------------------------------------------------------------------ */
 /*
@@ -3127,13 +3131,11 @@ class Enterable: TravelConnectorLink, Fixture
  *   location as an enclosure (a jail cell), or an exit door. 
  */
 class Exitable: TravelConnectorLink, Fixture
-    /* 
-     *   "Exit" action - this simply maps to travel via the connector.  
-     */
+    /* Get Out Of/Exit action - this simply maps to travel via the connector */
     dobjFor(GetOutOf) remapTo(TravelVia, self)
 
     /* explicitly define the push-travel indirect object mapping */
-    mapPushTravelIobj(PushTravelExit, TravelVia)
+    mapPushTravelIobj(PushTravelGetOutOf, TravelVia)
 ;
 
 /*
@@ -4403,7 +4405,11 @@ class Room: Fixture, BasicLocation, RoomAutoConnector
          *   message 
          */
         if (atmosphereList != nil)
+        {
+            /* show visual separation, then the current atmosphere message */
+            "<.commandsep>";
             atmosphereList.doScript();
+        }
     }
 
     /* 
@@ -4424,6 +4430,12 @@ class Room: Fixture, BasicLocation, RoomAutoConnector
          */
         return ((floor = roomFloor) != nil ? floor : self);
     }
+
+    /*
+     *   Since we could be our own nominal drop destination, we need a
+     *   message to describe things being put here.
+     */
+    putDestMessage = &putDestRoom
 
     /*
      *   The nominal actor container.  By default, this is the room's
@@ -4489,7 +4501,9 @@ class Room: Fixture, BasicLocation, RoomAutoConnector
          *   location is either 'self' or is in 'self', return the
          *   location 
          */
-        if ((loc = part.location) != nil && (loc == self || loc.isIn(self)))
+        if (part != nil
+            && (loc = part.location) != nil
+            && (loc == self || loc.isIn(self)))
             return loc;
 
         /* we don't have the part */
@@ -4983,14 +4997,12 @@ class RoomPart: Fixture
     /* show our contents */
     examinePartContents(listerProp)
     {
-        local loc;
-        
         /* 
          *   Get my location, as perceived by the actor - this is the room
          *   that contains this part.  If I don't have a location as
          *   perceived by the actor, then we can't show any contents.  
          */
-        loc = gActor.location.getRoomPartLocation(self);
+        local loc = gActor.location.getRoomPartLocation(self);
         if (loc == nil)
             return;
 
@@ -6234,7 +6246,7 @@ class NestedRoom: BasicLocation
     }
 
     /* explicitly define the push-travel indirect object mappings */
-    mapPushTravelIobj(PushTravelOutOf, TravelVia)
+    mapPushTravelIobj(PushTravelGetOutOf, TravelVia)
 ;
 
 
@@ -6932,7 +6944,7 @@ class Vehicle: NestedRoom, Traveler
     forEachTravelingActor(func)
     {
         /* invoke the callback on each actor in our contents */
-        allContents().forEach(new function(obj) {
+        allContents().forEach(function(obj) {
             if (obj.isActor)
                 (func)(obj);
         });

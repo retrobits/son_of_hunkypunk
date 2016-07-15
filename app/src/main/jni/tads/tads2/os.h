@@ -72,20 +72,6 @@ extern "C" {
  *   Include the appropriate hardware-specific header. 
  */
 
-#ifdef __ppc__
-#define _M_PPC
-#else
-#ifdef __arm__
-#define _M_ARM
-#else
-#ifdef __x86_64__
-#define _M_IX86_64
-#else
-#define _M_IX86
-#endif
-#endif
-#endif
-
 /*
  *   Intel x86 processors - 32-bit
  */
@@ -105,13 +91,6 @@ extern "C" {
  */
 #ifdef _M_PPC
 #include "h_ppc.h"
-#endif
-
-/*
- *   ARM CPU's 
- */
-#ifdef _M_ARM
-#include "h_arm.h"
 #endif
 
 /*
@@ -145,15 +124,11 @@ extern "C" {
  *   system-specific definitions.  
  */
 
-#ifdef GARGOYLE
-#include "osansi.h"
-#else
-
 #ifdef _WIN32
 # include "oswin.h"
 #endif
 #ifdef __MSDOS__
-# ifdef __WIN32__
+# ifdef T_WIN32
 /* Windows-specific definitions are in oswin.h */
 #  include "oswin.h"
 # else
@@ -212,7 +187,6 @@ extern "C" {
 #include "osfrobtads.h"
 #endif
 
-#endif /* SPATTERLIGHT */
 
 /* **************** add other systems here **************** */
 

@@ -21,6 +21,38 @@ Modified
 #define VMSTACK_H
 
 #include "vmtype.h"
+#include "vmerr.h"
+#include "vmerrnum.h"
+
+
+/* ------------------------------------------------------------------------ */
+/*
+ *   The stack pointer and a few other VM registers are critical to
+ *   performance, since they're accessed so frequently.  If we're compiling
+ *   in VMGLOB_VARS or VMGLOB_STRUCT mode, pull out the key registers as
+ *   global static variables; this results in smaller and faster code on most
+ *   machines than when it's part of the CVmStack structure.  Don't do this
+ *   when compiling in other global modes, since the local implementation
+ *   must have a reason to keep everything in parameters (probably a shared
+ *   memory situation, such as threads or a shared library).
+ */
+#if defined(VMGLOB_VARS) || defined(VMGLOB_STRUCT)
+/* global variable mode - define registers as separate globals */
+# define VM_IF_REGS_IN_STRUCT(decl)
+# define VM_IF_REGS_IN_GLOBALS(decl) decl
+# define VM_REG_ACCESS static
+# define VM_REG_CONST
+#else
+/* structure mode - define registers as part of CVmStack/CVmRun */
+# define VM_IF_REGS_IN_STRUCT(decl)  decl
+# define VM_IF_REGS_IN_GLOBALS(decl)
+# define VM_REG_ACCESS
+# define VM_REG_CONST const
+#endif
+
+/* declare the stack pointer register as an extern global, if appropriate */
+VM_IF_REGS_IN_GLOBALS(extern vm_val_t *sp_;)
+
 
 /* ------------------------------------------------------------------------ */
 /*
@@ -79,16 +111,18 @@ public:
      *   (i.e., values have been popped since the frame pointer equalled
      *   the stack pointer), the return value will be negative. 
      */
-    int get_depth_rel(vm_val_t *fp) const { return sp_ - fp; }
+    VM_REG_ACCESS int get_depth_rel(vm_val_t *fp) VM_REG_CONST
+        { return sp_ - fp; }
 
     /* get the current stack pointer */
-    vm_val_t *get_sp() const { return sp_; }
+    VM_REG_ACCESS vm_val_t *get_sp() VM_REG_CONST
+        { return sp_; }
 
     /* 
      *   Set the current stack pointer.  The pointer must always be a
      *   value previously returned by get_sp().  
      */
-    void set_sp(vm_val_t *p) { sp_ = p; }
+    VM_REG_ACCESS void set_sp(vm_val_t *p) { sp_ = p; }
 
     /*
      *   Get an element relative to a frame pointer (a frame pointer is a
@@ -101,7 +135,7 @@ public:
         { return (fp + i - 1); }
 
     /* push a value */
-    void push(const vm_val_t *val) { *sp_++ = *val; }
+    VM_REG_ACCESS void push(const vm_val_t *val) { *sp_++ = *val; }
 
     /* 
      *   Push an element, returning a pointer to the element; this can be
@@ -109,7 +143,7 @@ public:
      *   value.  The new element is not filled in yet on return, so the
      *   caller should immediately fill in the element with a valid value.  
      */
-    vm_val_t *push() { return sp_++; }
+    VM_REG_ACCESS vm_val_t *push() { return sp_++; }
 
     /* 
      *   Push a number of elements: this allocates a block of contiguous
@@ -119,7 +153,7 @@ public:
      *   returned; subsequent elements are addressed at the return value
      *   plus 1, plus 2, and so on.  
      */
-    vm_val_t *push(unsigned int n)
+    VM_REG_ACCESS vm_val_t *push(unsigned int n)
     {
         /* remember the current stack pointer, which is what we return */
         vm_val_t *ret = sp_;
@@ -131,21 +165,48 @@ public:
         return ret;
     }
 
+    /* push, checking space */
+    void push_check(const vm_val_t *val) { *push_check() = *val; }
+    vm_val_t *push_check() { check_throw(1); return push(); }
+    vm_val_t *push_check(unsigned int n) { check_throw(n); return push(n); }
+
+    /*
+     *   Insert space for 'num' slots at index 'idx'.  If 'idx' is zero, this
+     *   is the same as pushing 'num' slots.  Returns a pointer to the first
+     *   slot allocated.  
+     */
+    vm_val_t *insert(size_t idx, size_t num)
+    {
+        /* make sure there's room */
+        check_space(num);
+
+        /* add the space */
+        sp_ += num;
+
+        /* if idx is non-zero, move the idx slots by num to make room */
+        if (idx != 0)
+            memmove(sp_ - idx, sp_ - idx - num, idx*sizeof(*sp_));
+
+        /* return the start of the inserted block */
+        return sp_ - idx - num;
+    }
+
     /* 
      *   Get an element.  Elements are numbered from zero to (depth - 1).
      *   Element number zero is the item most recently pushed onto the
      *   stack; element (depth-1) is the oldest element on the stack.  
      */
-    vm_val_t *get(size_t i) const { return (sp_ - i - 1); }
+    VM_REG_ACCESS vm_val_t *get(size_t i) VM_REG_CONST
+        { return (sp_ - i - 1); }
 
     /* pop the top element off the stack */
-    void pop(vm_val_t *val) { *val = *--sp_; }
+    VM_REG_ACCESS void pop(vm_val_t *val) { *val = *--sp_; }
 
     /* discard the top element */
-    void discard() { --sp_; }
+    VM_REG_ACCESS void discard() { --sp_; }
 
     /* discard a given number of elements from the top of the stack */
-    void discard(int n) { sp_ -= n; }
+    VM_REG_ACCESS void discard(int n) { sp_ -= n; }
 
     /*
      *   Probe the stack for a given allocation.  Returns true if the given
@@ -177,8 +238,15 @@ public:
      *   before it crashed the interpreter.  So it's desirable to be
      *   compatible with such files.)  
      */
-    int check_space(int slots) const
-        { return (get_depth() + slots <= max_depth_); }
+    int check_space(int nslots) const
+        { return (get_depth() + nslots <= max_depth_); }
+
+    /* check space for 'nslots' new slots, throwing an error on overflow */
+    void check_throw(int nslots) const
+    {
+        if (!check_space(nslots))
+            err_throw(VMERR_STACK_OVERFLOW);
+    }
 
     /* 
      *   Release the reserve.  Debuggers can use this to allow manual
@@ -229,10 +297,12 @@ private:
     vm_val_t *arr_;
 
     /* 
-     *   next available stack slot - the stack pointer starts out pointing
-     *   at arr_[0], and is incremented after storing each element 
+     *   Next available stack slot - the stack pointer starts out pointing at
+     *   arr_[0], and is incremented after storing each element.  This is
+     *   defined as a member variable only if we're not defining it as a
+     *   separate static global.
      */
-    vm_val_t *sp_;
+    VM_IF_REGS_IN_STRUCT(vm_val_t *sp_;)
 
     /* maximum depth that the stack is capable of holding */
     size_t max_depth_;

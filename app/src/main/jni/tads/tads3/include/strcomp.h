@@ -1,4 +1,5 @@
 #charset "us-ascii"
+#pragma once
 
 /*
  *   Copyright 2000, 2006 Michael J. Roberts.
@@ -7,6 +8,7 @@
  *   
  *   This header defines the StringComparator intrinsic class.  
  */
+
 
 /* include our base class definition */
 #include "systype.h"
