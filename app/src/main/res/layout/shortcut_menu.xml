@@ -15,4 +15,10 @@
         android:icon="@drawable/add"
         android:orderInCategory="100"
         android:showAsAction="always"/>
+    <item
+        android:title="Shortcut Help"
+        android:id="@+id/help_button"
+        android:icon="@drawable/menu_help"
+        android:orderInCategory="100"
+        android:showAsAction="always"/>
      </menu>

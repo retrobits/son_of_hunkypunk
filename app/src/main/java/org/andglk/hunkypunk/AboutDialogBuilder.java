@@ -101,4 +101,48 @@ public class AboutDialogBuilder {
 
 		return d;
 	}
+
+
+	public static AlertDialog showH( Context context ) throws NameNotFoundException {
+
+		String aboutTitle = "Shortcuts Help";
+
+		String aboutText ="\n";
+
+
+		aboutText += "It is important that your commands have the right syntax. \n\n\n";
+		aboutText += "Command with/without auto enter: \n\n";
+		aboutText += "Type in the command line a valid command. \n";
+		aboutText += "It's not allowed to seperate the letters of one command with an space.\n\n";
+		aboutText += "Example: wait is a valid command, w ait is not allowed. \n\n\n";
+		aboutText += "Command with copy 'letter':\n\n";
+		aboutText += "Type in the command line a valid command which action is on an object. \n";
+		aboutText += "Type space and a copy 'letter' = <%>. \n\n";
+		aboutText += "Example: examine <%> \n";
+		aboutText += "Now if u type in the game on an word the copy 'letter' will be replaced by the word.\n\n\n";
+		aboutText += "It's also possible to use multiple copy 'letters': \n\n";
+		aboutText += "Example: ask <%> about <%> \n\n";
+		aboutText += "If there isn't a copy 'letter' the copied word will be written at the end of the input line.\n";
+
+
+		final SpannableString s = new SpannableString(aboutText);
+		Linkify.addLinks(s, Linkify.WEB_URLS);
+
+		AlertDialog d = new AlertDialog.Builder(context)
+				.setPositiveButton(context.getString(android.R.string.ok), null)
+				.setIcon(R.drawable.icon)
+				.setMessage(s)
+				.setCancelable(true)
+				.setTitle(aboutTitle).create();
+
+		d.show();
+
+		TextView tv = ((TextView)d.findViewById(android.R.id.message));
+		TextView tvDefault = new TextView(context);
+
+		tv.setMovementMethod(LinkMovementMethod.getInstance());
+		tv.setTextSize(TypedValue.COMPLEX_UNIT_PX,tvDefault.getTextSize());
+
+		return d;
+	}
 }

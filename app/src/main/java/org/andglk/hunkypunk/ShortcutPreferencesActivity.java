@@ -5,6 +5,7 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Layout;
 import android.view.LayoutInflater;
@@ -299,6 +300,16 @@ public class ShortcutPreferencesActivity extends ListActivity {
                     adapter.add(new ShortcutItem(title, command));
                 }
                 adapter.notifyDataSetChanged();
+                return true;
+
+
+            case R.id.help_button:
+                AlertDialog build;
+                try {
+                    build = AboutDialogBuilder.showH(this);
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
                 return true;
 
             default:
