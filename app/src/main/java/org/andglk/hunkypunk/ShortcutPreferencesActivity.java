@@ -141,7 +141,6 @@ public class ShortcutPreferencesActivity extends ListActivity {
 
                 builder.setPositiveButton("Ok", null);
                 builder.setNegativeButton("Cancel", null);
-                builder.setNeutralButton("Help", null);
                 final AlertDialog dialog = builder.create();
 
                 inputTitle.setText(title);
