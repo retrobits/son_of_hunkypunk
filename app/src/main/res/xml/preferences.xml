@@ -5,7 +5,7 @@
     <PreferenceCategory android:title="Fonts">
         <ListPreference
             android:defaultValue="Droid Serif"
-            android:enabled="false"
+            android:enabled="true"
             android:entries="@array/fontNameArray"
             android:entryValues="@array/fontNameArray"
             android:key="fontFileName"
@@ -18,16 +18,8 @@
             android:key="fontSize"
             android:summary="font size"
             android:title="Font size" />
-        <ListPreference
-            android:defaultValue="Droid Serif"
-            android:enabled="false"
-            android:entries="@array/fontNameArray"
-            android:entryValues="@array/fontNameArray"
-            android:key="fontFileName"
-            android:summary="Custom TTF font file"
-            android:title="Font file name" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Type to copy words">
+    <PreferenceCategory android:title="Copy words and shortcuts">
         <SwitchPreference
             android:id="@+id/enable_list"
             android:defaultValue="true"
@@ -41,6 +33,9 @@
         <Preference
             android:key="manageshortcuts"
             android:title="@string/manageshortcuts" />
+
+    </PreferenceCategory>
+    <PreferenceCategory android:title="FilePath">
         <Preference
             android:key="setIFDir"
             android:summary="Your new IF-Directory"
@@ -49,10 +44,13 @@
             android:key="defaultif"
             android:summary="Your default IF-Directory"
             android:title="@string/ifdef" />
-        <SwitchPreference
-            android:key="day_night"
-            android:title="@string/dayNight"
-            android:defaultValue="false"
-            android:hint="NightOn"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="NightMode">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:hint="NightOn"
+            android:key="day_night"
+            android:title="@string/dayNight" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

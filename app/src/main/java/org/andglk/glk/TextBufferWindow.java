@@ -925,7 +925,6 @@ public class TextBufferWindow extends Window {
 	public int FontSize = 0;
 
 	public static String DefaultFontName = null;
-	public static int DefaultFontSize = 0;
 
 	/*Night Mode Vars*/
 	public static int DefaultBackground = Color.WHITE;
@@ -933,8 +932,7 @@ public class TextBufferWindow extends Window {
 	public static int DefaultInputStyle = Glk.STYLE_INPUT;
 	/*Night Mode Vars*/
 
-	public String FontPath = null;
-	public int FontSize = 0;
+
 	private _ScrollView mScrollView = null;
 	private _CommandView mActiveCommand = null;
 	private _CommandView mCommand1 = null;

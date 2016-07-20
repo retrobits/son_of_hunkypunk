@@ -80,7 +80,7 @@ public class Interpreter extends Activity {
 		if (getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false))
 			setTheme(R.style.theme2);
 		else
-    		setTheme(R.style.theme1);
+    		setTheme(R.style.theme);
 		setFont();
 
         Intent i = getIntent();

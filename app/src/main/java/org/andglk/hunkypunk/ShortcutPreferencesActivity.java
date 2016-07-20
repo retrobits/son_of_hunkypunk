@@ -340,9 +340,15 @@ public class ShortcutPreferencesActivity extends ListActivity {
 
                 final CheckBox checkBox = (CheckBox) promptsView.findViewById(R.id.autoenter);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setView(promptsView);
                 builder.setTitle("Add new shortcut");
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
                 builder.setPositiveButton("OK", null);
                 final AlertDialog dialog = builder.create();
 
