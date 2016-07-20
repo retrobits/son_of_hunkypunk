@@ -34,13 +34,16 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.text.Editable;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -313,22 +316,23 @@ public class GameDetails extends Activity implements OnClickListener {
 		sb.append(terp);
 		sb.append('\n');
 
-        if (terp.compareTo("frotz") == 0 || terp.compareTo("nitfol") == 0) {
-            sb.append("ZCode Version: ");
-            sb.append(getZcodeVersion());
-            sb.append('\n');
-        }
-
-        final int len = sb.length();
-        if (len != 0)
-            sb.replace(len - 1, len, ""); // remove trailing newline
-
-        mDetails.setText(sb);
-
-        File i = HunkyPunk.getCover(mQuery.getString(IFID));
-        if (i.exists()) {
-            // Uri.fromFile doesn't work for some reason
-            mCover.setImageURI(Uri.parse(i.getAbsolutePath()));
+		if (terp.compareTo("frotz")==0 || terp.compareTo("nitfol")==0) {
+			sb.append("ZCode Version: ");
+			sb.append(getZcodeVersion());
+			sb.append('\n');
+		}
+		
+		final int len = sb.length(); 
+		if (len != 0)
+			sb.replace(len - 1, len, ""); // remove trailing newline
+		
+		mDetails.setText(sb);
+		
+		File i = HunkyPunk.getCover(mQuery.getString(IFID));
+		if (i.exists())
+		{
+			// Uri.fromFile doesn't work for some reason
+			mCover.setImageURI(Uri.parse(i.getAbsolutePath()));
 
 			Display display = getWindowManager().getDefaultDisplay(); 
 			int width = (int)(display.getWidth()/1.5);  // deprecated
@@ -396,11 +400,19 @@ public class GameDetails extends Activity implements OnClickListener {
 								   this, 
 								   Interpreter.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
 		intent.putExtra("terp", getTerp());
 		intent.putExtra("ifid", mGameIfid);
 		intent.putExtra("loadBookmark", true);
-		startActivity(intent);
+
+		//System.out.println(getResources().getDisplayMetrics().widthPixels +"|" + getResources().getDisplayMetrics().densityDpi);
+		//TODO Get minimum IFs supported screen size
+		float screen = getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().densityDpi;
+		System.out.println(mGameIfid + "|" + screen);
+		if (mGameIfid.equals("ZCODE-2-951203-A9FD") && screen <= 2.7f && !getBookmark().exists()) {
+			//tested upto 2.54 = 540/213 then jumps to 3.38 = 540/160
+			rotateDialog(intent);
+		} else
+			startActivity(intent);
 	}
 
     private void askRestartGame() {
@@ -471,4 +483,35 @@ public class GameDetails extends Activity implements OnClickListener {
     public boolean onTouchEvent(MotionEvent e) {
         return gestureDetector.onTouchEvent(e);
     }
+
+	private void rotateDialog(final Intent intent) {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+			AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this);
+			setUpAlertTheatre(rotateDialog, intent);
+		} else {
+			AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this,android.R.style.Holo_ButtonBar_AlertDialog);
+			setUpAlertTheatre(rotateDialog, intent);
+		}
+	}
+
+	private void setUpAlertTheatre(AlertDialog.Builder rotateDialog,final Intent intent) {
+		rotateDialog.setTitle("Theatre")
+				.setMessage(R.string.theatre_message)
+				.setPositiveButton("Apply", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+							intent.putExtra("landscape", true);
+							startActivity(intent);
+						} else {
+							Toast.makeText(getBaseContext(), "Sorry, device screen too small to play ''Theatre''.", Toast.LENGTH_SHORT).show();
+						}
+					}
+				})
+				.setNegativeButton("No, thanks", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						startActivity(intent);
+					}
+				})
+				.setIcon(android.R.drawable.ic_dialog_alert).show();
+	}
 }
