@@ -1,38 +1,72 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/layout_root"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="10dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Title"
-        android:id="@+id/textView" />
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <EditText
         android:id="@+id/editTitleDialogUserInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"></EditText>
 
+    <LinearLayout
+        android:id="@+id/titlemessage"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@android:drawable/ic_dialog_alert" />
+
+        <TextView
+            android:id="@+id/titlemessageText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+    </LinearLayout>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Command"
-        android:id="@+id/textView2" />
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <EditText
-        android:id="@+id/editTextDialogUserInput"
+        android:id="@+id/editComandDialogUserInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"></EditText>
 
+    <LinearLayout
+        android:id="@+id/commandmessage"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@android:drawable/ic_dialog_alert" />
+
+        <TextView
+            android:id="@+id/commandmessageText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+    </LinearLayout>
+
     <CheckBox
+        android:id="@+id/autoenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Auto enter"
-        android:id="@+id/autoenter" />
+        android:text="Auto enter" />
 
 </LinearLayout>

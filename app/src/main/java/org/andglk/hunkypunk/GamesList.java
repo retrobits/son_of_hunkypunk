@@ -178,8 +178,8 @@ public class GamesList extends ListActivity implements OnClickListener {
 
 
             for (int i = 0; i < list.size(); i++) {
-                shortcutEditor.putString(list.get(i) + "", list.get(i));
-                shortcutIDEditor.putString(i + "", i + "");
+                shortcutEditor.putString(list.get(i), list.get(i));
+                shortcutIDEditor.putString(i + "", list.get(i));
             }
             prefEditor.putBoolean("firstStart", false);
             shortcutIDEditor.commit();
