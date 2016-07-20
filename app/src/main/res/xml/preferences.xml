@@ -28,14 +28,14 @@
     <PreferenceCategory android:title="Type to copy words">
         <SwitchPreference
             android:id="@+id/enable_list"
+            android:defaultValue="true"
             android:key="enablelist"
-            android:title="Enable shortcuts list"
-            android:defaultValue="true"/>
+            android:title="Shortcuts list" />
         <SwitchPreference
             android:id="@+id/Longpresstocopy"
+            android:defaultValue="true"
             android:key="enablelongpress"
-            android:title="Enable long press to copy"
-            android:defaultValue="true"/>
+            android:title="Long press to copy" />
         <Preference
             android:key="manageshortcuts"
             android:title="@string/manageshortcuts" />

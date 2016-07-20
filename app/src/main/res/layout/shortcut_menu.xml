@@ -1,24 +1,33 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/shortcut_menu"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
+
     <item
-        android:title="Restore default shortcuts"
-        android:id="@+id/restore_button"
-        android:icon="@drawable/restore"
+        android:id="@+id/add_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_menu_add"
         android:orderInCategory="100"
         android:showAsAction="always"
-        />
+        android:title="Add new shortcut" />
+
     <item
-        android:title="Add new shortcut"
-        android:id="@+id/add_button"
-        android:icon="@drawable/add"
+        android:id="@+id/restore_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_menu_revert"
         android:orderInCategory="100"
-        android:showAsAction="always"/>
+        android:showAsAction="always"
+        android:title="Restore default shortcuts" />
+
+
     <item
-        android:title="Shortcut Help"
         android:id="@+id/help_button"
-        android:icon="@drawable/menu_help"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@android:drawable/ic_menu_info_details"
         android:orderInCategory="100"
-        android:showAsAction="always"/>
-     </menu>
+        android:showAsAction="always"
+        android:title="Shortcut Help" />
+</menu>

@@ -514,24 +514,8 @@ public class TextBufferWindow extends Window {
 
                                             }
                                         }
-                                    } else {
-                                        Toast.makeText(mContext, "hui", Toast.LENGTH_LONG);
-                                    /*String selectedText = stringHelper(offset - 1);
-                                    if (selectedText.length() > 0) {
-                                        Toast.makeText(mContext, selectedText, Toast.LENGTH_SHORT).show(); //TESTING
-                                        //putInClipMemory(selectedText);
-                                        SpannableStringBuilder copyText = new SpannableStringBuilder();
-                                        copyText = copyText.append(selectedText);
-                                        copyText.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-                                                , 0, copyText.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                                        TextBufferWindow.this.mActiveCommand.setText(copyText);
-                                        TextBufferWindow.this.mActiveCommand.setSelection(copyText.length());
-                                    }*/
                                     }
                                 }
-                                //Go to input line
-
-
                             }
                             break;
                         case MotionEvent.ACTION_MOVE:

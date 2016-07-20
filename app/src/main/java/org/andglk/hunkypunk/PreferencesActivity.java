@@ -22,9 +22,6 @@ package org.andglk.hunkypunk;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -36,11 +33,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.CheckBox;
-import android.widget.EditText;
 
 public class PreferencesActivity
         extends PreferenceActivity implements OnSharedPreferenceChangeListener {
@@ -49,32 +42,55 @@ public class PreferencesActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
+
+        final SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+        final SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
+
+        SwitchPreference enablelist = (SwitchPreference) findPreference("enablelist");
+        if (enablelist != null)
+            enablelist.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object o) {
+                    boolean isEnable = (boolean) o;
+                    if (isEnable)
+                        sharedPreferencesEditor.putBoolean("enablelist", true);
+                    else
+                        sharedPreferencesEditor.putBoolean("enablelist", false);
+                    sharedPreferencesEditor.commit();
+                    return true;
+                }
+            });
+
+
+        SwitchPreference enablelongpress = (SwitchPreference) findPreference("enablelongpress");
+        if (enablelongpress != null)
+            enablelist.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object o) {
+                    if ((boolean) o)
+                        sharedPreferencesEditor.putBoolean("enablelongpress", true);
+                    else
+                        sharedPreferencesEditor.putBoolean("enablelongpress", false);
+                    return true;
+                }
+            });
+
+        Preference manageShortcuts = findPreference("manageshortcuts");
+        if (manageShortcuts != null)
+            manageShortcuts.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    startActivity(new Intent(getApplicationContext(), ShortcutPreferencesActivity.class));
+                    return true;
+                }
+            });
+
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, final Preference preference) {
-        SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
-        if (preference.getKey().equals("manageshortcuts"))
-            startActivity(new Intent(this, ShortcutPreferencesActivity.class));
-        else if (preference.getKey().equals("enablelist")) {
-            if (((SwitchPreference) preference).isChecked())
-                sharedPreferencesEditor.putBoolean("enablelist", true);
-            else
-                sharedPreferencesEditor.putBoolean("enablelist", false);
-        } else if(preference.getKey().equals("enablelongpress")){
-            if (((SwitchPreference) preference).isChecked())
-                sharedPreferencesEditor.putBoolean("enablelongpress", true);
-            else
-                sharedPreferencesEditor.putBoolean("enablelongpress", false);
-        }
-        sharedPreferencesEditor.commit();
-        return super.onPreferenceTreeClick(preferenceScreen, preference);
     }
 
     @Override
