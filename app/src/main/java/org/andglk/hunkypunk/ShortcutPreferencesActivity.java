@@ -1,12 +1,13 @@
 package org.andglk.hunkypunk;
 
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -27,8 +28,11 @@ import com.mobeta.android.dslv.DragSortListView;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class ShortcutPreferencesActivity extends ListActivity {
+public class ShortcutPreferencesActivity extends AppCompatActivity {
     private ShortcutItemAdapter adapter;
+    private DragSortListView listView;
+    private ArrayList<ShortcutItem> list;
+    private Context mContext;
 
     private DragSortListView.DropListener onDrop =
             new DragSortListView.DropListener() {
@@ -46,17 +50,19 @@ public class ShortcutPreferencesActivity extends ListActivity {
     private DragSortListView.RemoveListener onRemove =
             new DragSortListView.RemoveListener() {
                 @Override
-                public void remove(int which) {
-                    adapter.remove(adapter.getItem(which));
+                public void remove(final int which) {
+                    final ShortcutItem item = adapter.getItem(which);
+                    adapter.remove(item);
 
                     SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
                     SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
                     SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
                     SharedPreferences.Editor shortcutIDEditor = sharedShortcutIDs.edit();
 
-                    String title = sharedShortcutIDs.getString(which + "", "");
+                    final String title = sharedShortcutIDs.getString(which + "", "");
+                    final String command = sharedShortcuts.getString(title, "");
                     shortcutIDEditor.remove(which + "");
-                    shortcutEditor.remove(title);
+                    shortcutEditor.remove(command);
 
 
                     for (int i = which + 1; i < sharedShortcutIDs.getAll().size() + 1; i++) {
@@ -67,6 +73,19 @@ public class ShortcutPreferencesActivity extends ListActivity {
 
                     shortcutEditor.commit();
                     shortcutIDEditor.commit();
+
+                    Snackbar snackbar = Snackbar.make(listView, item.getTitle() + " removed!", Snackbar.LENGTH_INDEFINITE);
+                    snackbar.setAction("UNDO", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            adapter.insert(item, which);
+                            addShortcutToSharedPreferences(title, command);
+                            moveShortcutPreference(adapter.getCount() - 1, which);
+                        }
+                    })
+                            .show();
+
+
                 }
             };
 
@@ -83,19 +102,15 @@ public class ShortcutPreferencesActivity extends ListActivity {
                 }
             };
 
-
-    private ArrayList<ShortcutItem> list;
-    private Context mContext;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         final SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
         SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
         super.onCreate(savedInstanceState);
+        setTheme(R.style.shortcutpreftheme);
         setContentView(R.layout.shortcut_list);
 
         mContext = this;
-        DragSortListView lv = (DragSortListView) getListView();
         list = new ArrayList<ShortcutItem>();
 
         for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
@@ -107,13 +122,14 @@ public class ShortcutPreferencesActivity extends ListActivity {
 
         adapter = new ShortcutItemAdapter(list);
 
-        this.setListAdapter(adapter);
+        listView = (DragSortListView) findViewById(android.R.id.list);
+        listView.setAdapter(adapter);
 
-        lv.setDropListener(onDrop);
-        lv.setRemoveListener(onRemove);
+        listView.setDropListener(onDrop);
+        listView.setRemoveListener(onRemove);
 
 
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
 
@@ -448,7 +464,7 @@ public class ShortcutPreferencesActivity extends ListActivity {
                 return true;
 
             case R.id.restore_button:
-                AlertDialog.Builder restoreBuilder= new AlertDialog.Builder(mContext);
+                AlertDialog.Builder restoreBuilder = new AlertDialog.Builder(mContext);
                 restoreBuilder.setTitle("Restore shortcuts");
                 restoreBuilder.setMessage("Do you want to delete the actual shortcuts and restore predefined shortcuts?");
                 restoreBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
