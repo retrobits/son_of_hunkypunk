@@ -8,6 +8,8 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -28,7 +30,12 @@ import com.mobeta.android.dslv.DragSortListView;
 import java.util.ArrayList;
 import java.util.Collections;
 
+
 public class ShortcutPreferencesActivity extends AppCompatActivity {
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
+
     private ShortcutItemAdapter adapter;
     private DragSortListView listView;
     private ArrayList<ShortcutItem> list;
@@ -74,7 +81,7 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
                     shortcutEditor.commit();
                     shortcutIDEditor.commit();
 
-                    Snackbar snackbar = Snackbar.make(listView, item.getTitle() + " removed!", Snackbar.LENGTH_INDEFINITE);
+                    Snackbar snackbar = Snackbar.make(listView, item.getTitle() + " removed!", Snackbar.LENGTH_LONG);
                     snackbar.setAction("UNDO", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -109,6 +116,7 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setTheme(R.style.shortcutpreftheme);
         setContentView(R.layout.shortcut_list);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         mContext = this;
         list = new ArrayList<ShortcutItem>();
