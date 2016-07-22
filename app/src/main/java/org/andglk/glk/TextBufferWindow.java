@@ -463,7 +463,7 @@ public class TextBufferWindow extends Window {
                                 if (offset != Integer.MIN_VALUE) {
                                     if (x > getLayout().getLineMax(0)) {
                                         String selectedText = stringHelper(offset);
-                                        if (selectedText.length() > 0) {
+
                                             // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
                                             SpannableStringBuilder output = new SpannableStringBuilder();
                                             String userInput = mActiveCommand.getText().toString();
@@ -514,7 +514,6 @@ public class TextBufferWindow extends Window {
 
                                             }
                                         }
-                                    }
                                 }
                             }
                             break;
