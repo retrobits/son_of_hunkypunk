@@ -461,58 +461,59 @@ public class TextBufferWindow extends Window {
                                 float x = mDownX + getScrollX();
                                 int offset = getOffset(event);
                                 if (offset != Integer.MIN_VALUE) {
-                                    String selectedText = stringHelper(offset);
-                                    if (selectedText.length() > 0) {
-                                        // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
-                                        SpannableStringBuilder output = new SpannableStringBuilder();
-                                        String userInput = mActiveCommand.getText().toString();
+                                    if (x > getLayout().getLineMax(0)) {
+                                        String selectedText = stringHelper(offset);
 
-                                        if (userInput.contains("<%>")) {
-                                            if (userInput.endsWith("$")) {
-                                                autoEnterFlag = true;
-                                                userInput = userInput.substring(0, userInput.length() - 1);
-                                            }
-                                            userInput = userInput.replaceFirst("<%>", selectedText);
-                                            output.append(userInput);
+                                            // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                                            SpannableStringBuilder output = new SpannableStringBuilder();
+                                            String userInput = mActiveCommand.getText().toString();
 
-                                        } else if (!userInput.equals("")) {
-                                            output.append(userInput + " ");
-                                            output.append(selectedText);
-                                        } else
-                                            output.append(selectedText);
-                                        output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-                                                , 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                                            if (userInput.contains("<%>")) {
+                                                if (userInput.endsWith("$")) {
+                                                    autoEnterFlag = true;
+                                                    userInput = userInput.substring(0, userInput.length() - 1);
+                                                }
+                                                userInput = userInput.replaceFirst("<%>", selectedText);
+                                                output.append(userInput);
+
+                                            } else if (!userInput.equals("")) {
+                                                output.append(userInput + " ");
+                                                output.append(selectedText);
+                                            } else
+                                                output.append(selectedText);
+                                            output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                                                    , 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
 
-                                        //TextBufferWindow.this.mActiveCommand.setText(output);
-                                        // mActiveCommand.setSelection(copyText.length());
-                                        //  mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
-                                        if (!userInput.contains("<%>") && autoEnterFlag) {
-                                            autoEnterFlag = false;
-                                            mActiveCommand.setText(output);
-                                            mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-                                        } else
-                                            mActiveCommand.setText(output);
+                                            //TextBufferWindow.this.mActiveCommand.setText(output);
+                                            // mActiveCommand.setSelection(copyText.length());
+                                            //  mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                                            if (!userInput.contains("<%>") && autoEnterFlag) {
+                                                autoEnterFlag = false;
+                                                mActiveCommand.setText(output);
+                                                mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                                            } else
+                                                mActiveCommand.setText(output);
 
-                                        selectorCount = 2;
+                                            selectorCount = 2;
 
-                                        TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
-                                        TextBufferWindow.this.mActiveCommand.showKeyboard();
-                                        //Selection.setSelection(toEditable(mActiveCommand), output.length());
-                                        //TextBufferWindow.this.mActiveCommand.setSelection(output.length());
+                                            TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
+                                            TextBufferWindow.this.mActiveCommand.showKeyboard();
+                                            //Selection.setSelection(toEditable(mActiveCommand), output.length());
+                                            //TextBufferWindow.this.mActiveCommand.setSelection(output.length());
 
                                         /* only works for a short time, has to be fixed*/
-                                        if (userInput.contains("<%>")) {
-                                            Toast.makeText(mGlk.getContext(), "Long press on next object", Toast.LENGTH_SHORT).show();
-                                            Pattern p = Pattern.compile("<%>");
-                                            Matcher m = p.matcher(mActiveCommand.getText().toString());
-                                            if (m.find()) {
-                                                Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
-                                                selectorCount = 2;
-                                            }
+                                            if (userInput.contains("<%>")) {
+                                                Toast.makeText(mGlk.getContext(), "Long press on next object", Toast.LENGTH_SHORT).show();
+                                                Pattern p = Pattern.compile("<%>");
+                                                Matcher m = p.matcher(mActiveCommand.getText().toString());
+                                                if (m.find()) {
+                                                    Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
+                                                    selectorCount = 2;
+                                                }
 
+                                            }
                                         }
-                                    }
                                 }
                             }
                             break;
