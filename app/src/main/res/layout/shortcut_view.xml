@@ -9,10 +9,10 @@
         android:id="@+id/cardview"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:minHeight="150px"
-        android:minWidth="150px"
+        android:minHeight="45dp"
+        android:minWidth="50dp"
         card_view:cardBackgroundColor="@color/shortcutsColor"
-        card_view:cardCornerRadius="10dp">
+        card_view:cardCornerRadius="7dp">
         <TextView
             android:id="@+id/shortcuttitle"
             android:layout_width="wrap_content"
