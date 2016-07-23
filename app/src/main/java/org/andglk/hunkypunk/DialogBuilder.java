@@ -118,10 +118,10 @@ public class DialogBuilder {
         aboutText += " * It's not allowed to seperate the\n" + "    letters of one command with an space.\n\n";//2.3
         aboutText += " * Example: wait is a valid command,\n" + "    w ait is not allowed. \n\n\n";
         aboutText += "Command with insertion point:\n";//3.1
-        aboutText += " * Type in the command line a valid\n" + "    command which action is on an object. \n\n";//3.2
-        aboutText += " * Type space and a copy\n" + "    placeholder (<%>). \n\n";//3.3
+        aboutText += " * Type in the command line a valid\n" + "    command which action is\n    on an object. \n\n";//3.2
+        aboutText += " * Type space and a insertion\n" + "    point (<%>). \n\n";//3.3
         aboutText += " * Example: examine <%> \n\n";//3.4
-        aboutText += " * Now if you copy a word the copy\n" + "    placeholder will be replaced\n" + "    by the word.\n\n";//3.5
+        aboutText += " * Now if you copy a word the insertion\n" + "    point will be replaced\n" + "    by the word.\n\n";//3.5
         aboutText += " * It's also possible to use multiple\n" + "    insertion points: \n\n";//3.6
         aboutText += " * Example: ask <%> about <%> \n\n";//3.7
         aboutText += " * Now if you copy a word the first\n" + "    insertion point will be replaced,\n" + "    the second copied word will\n" + "    replace the second insertion point.";
