@@ -28,7 +28,6 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import org.andglk.glk.Glk;
-import org.andglk.glk.Styles;
 import org.andglk.glk.Window;
 import org.andglk.glk.TextBufferWindow;
 
@@ -42,25 +41,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
-import android.support.v7.widget.CardView;
-import android.text.Editable;
-import android.text.Selection;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.EditText;
-import android.widget.HorizontalScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class Interpreter extends Activity {
 	private static final String TAG = "hunkypunk.Interpreter";
@@ -137,7 +121,7 @@ public class Interpreter extends Activity {
 			case '2':
 				AlertDialog builder;
 				try {
-					builder = AboutDialogBuilder.show(this);
+					builder = DialogBuilder.showAboutDialog(this);
 				} catch (NameNotFoundException e) {
 					e.printStackTrace();
 				}
