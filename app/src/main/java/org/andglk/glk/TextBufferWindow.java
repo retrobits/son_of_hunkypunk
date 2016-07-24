@@ -1109,39 +1109,46 @@ public class TextBufferWindow extends Window {
                 animate(v);
                 SpannableStringBuilder userInput = new SpannableStringBuilder(mActiveCommand.getText().toString());
                 String userCommand = tempView.getTag().toString();
+                //hides the autoEnter '$' flag from the input
                 userCommand = userCommand.substring(0, userCommand.length() - 1);
 
-                SpannableStringBuilder output = new SpannableStringBuilder(userInput.toString());
-                output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false), 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-
-                if (!output.toString().equals(""))
-                    output.append(" " + userCommand);
-                else
-                    output.append(userCommand);
-
-                mActiveCommand.setText("");
-                mActiveCommand.append(output);
-
-                if (!userCommand.contains("<%>"))
-                    mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-                else {
-                    autoEnterFlag = true;
-                    Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
-                    Pattern p = Pattern.compile("<%>");
-                    Matcher m = p.matcher(mActiveCommand.getText().toString());
-                    if (m.find())
-                        Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
-
-                    //mActiveCommand.setSelection(m.start(), m.end());
-
-                }
-
-                //mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
+                /*Case for restoring the userInput to save typing*/
                 //TODO: dynamic (user)settable list of commands remembering the last typed in text before click
-                if (mActiveCommand != null && (userCommand.equalsIgnoreCase("Inventory") || userCommand.equalsIgnoreCase("I"))) {
+                if(userCommand.equalsIgnoreCase("Inventory") || userCommand.equalsIgnoreCase("I")) {
+
+                    mActiveCommand.setText("");
+                    mActiveCommand.append(userCommand);
+                    mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+
                     userInput.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
                             0, userInput.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    mActiveCommand.setText(userInput);
+                    mActiveCommand.setText("");
+                    mActiveCommand.append(userInput);
+
+                } else {
+
+                    SpannableStringBuilder output = new SpannableStringBuilder(userInput.toString());
+                    output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
+                            0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+                    if (!userInput.toString().equals(""))
+                        output.append(" " + userCommand);
+                    else
+                        output.append(userCommand);
+
+                    mActiveCommand.setText("");
+                    mActiveCommand.append(output);
+
+                    if (!userCommand.contains("<%>"))
+                        mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                    else {
+                        autoEnterFlag = true;
+                        Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
+                        Pattern p = Pattern.compile("<%>");
+                        Matcher m = p.matcher(mActiveCommand.getText().toString());
+                        if (m.find())
+                            mActiveCommand.setSelection(m.start(), m.end());
+                    }
                 }
                 semaphore = false;
             }
