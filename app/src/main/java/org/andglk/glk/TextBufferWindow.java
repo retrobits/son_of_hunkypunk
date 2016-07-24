@@ -34,7 +34,6 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.inputmethodservice.KeyboardView;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -59,7 +58,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
@@ -294,35 +292,37 @@ public class TextBufferWindow extends Window {
         public _CommandView(Context context) {
             super(context, null, R.attr.textBufferWindowEditStyle);
 
-			//setTextColor(TextBufferWindow.this.DefaultTextColor);
+            //setTextColor(TextBufferWindow.this.DefaultTextColor);
 
-			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
-			setBackgroundResource(0);
-			//setTextSize(DefaultFontSize);
-			setTypeface(TextBufferWindow.this.getDefaultTypeface());
-			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-			addTextChangedListener(mWatcher);
-			setTextStyle(this);
+            setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+            setBackgroundResource(0);
+            //setTextSize(DefaultFontSize);
+            setTypeface(TextBufferWindow.this.getDefaultTypeface());
+            setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+            addTextChangedListener(mWatcher);
+            setTextStyle(this);
 
-		}
+        }
 
-		/** Dont put into the onPreDraw, it crashes the app and destroys game progress */
-		private void setTextStyle(EditText etext) {
-			SpannableStringBuilder temp = new SpannableStringBuilder();
-			temp = temp.append(etext.getText().toString());
-			temp.setSpan(_stylehints.getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-					, 0, temp.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-			etext.setText(temp);
-			Selection.setSelection(etext.getText(), etext.getText().length());
-		}
+        /**
+         * Dont put into the onPreDraw, it crashes the app and destroys game progress
+         */
+        private void setTextStyle(EditText etext) {
+            SpannableStringBuilder temp = new SpannableStringBuilder();
+            temp = temp.append(etext.getText().toString());
+            temp.setSpan(_stylehints.getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
+                    , 0, temp.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            etext.setText(temp);
+            Selection.setSelection(etext.getText(), etext.getText().length());
+        }
 
-		private void updateInput(Editable s) {
-			if (mContext.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
-				SpannableString text = new SpannableString(s.toString());
-				Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
-				s.setSpan(sp, 0, text.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-			}
-		}
+        private void updateInput(Editable s) {
+            if (mContext.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
+                SpannableString text = new SpannableString(s.toString());
+                Object sp = stylehints.getSpan(mContext, TextBufferWindow.this.DefaultInputStyle, false);
+                s.setSpan(sp, 0, text.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            }
+        }
 
 
         /* Hack to fix continuous jumping of the selector to the front
@@ -334,14 +334,14 @@ public class TextBufferWindow extends Window {
 
             Editable text = getText();
             String str = text.toString();
-            if (text != null){
+            if (text != null) {
 
-                if(getSelectionStart() == 0 && getSelectionEnd() == 0) {
-                    if(str.contains("<%>"))
+                if (getSelectionStart() == 0 && getSelectionEnd() == 0) {
+                    if (str.contains("<%>"))
                         setSelection(str.indexOf('<'), str.indexOf('>') + 1);
                     else
                         setSelection(text.length());
-                } else if(getSelectionStart() == str.indexOf('<') && getSelectionEnd() == str.indexOf('<')) {
+                } else if (getSelectionStart() == str.indexOf('<') && getSelectionEnd() == str.indexOf('<')) {
                     setSelection(str.indexOf('<'), str.indexOf('>') + 1);
                 }
             }
@@ -425,17 +425,17 @@ public class TextBufferWindow extends Window {
         public _PromptView(Context context) {
             super(context, null, R.attr.textBufferWindowStyle);
 
-			setTextColor(TextBufferWindow.this.DefaultTextColor);
+            setTextColor(TextBufferWindow.this.DefaultTextColor);
 
-			setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
-			setBackgroundResource(0);
-			//setTextSize(DefaultFontSize);
-			setTypeface(TextBufferWindow.this.getDefaultTypeface());
-			setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+            setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
+            setBackgroundResource(0);
+            //setTextSize(DefaultFontSize);
+            setTypeface(TextBufferWindow.this.getDefaultTypeface());
+            setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 
 			/*DONT DELETE*/
-			/*Not used for now but left as a part of issue #41 - onPreDrawNight*/
-			/*getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            /*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+            /*getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
 				@Override
 				public boolean onPreDraw () {
 					setBackgroundColor(TextBufferWindow.this.DefaultBackground);
@@ -444,8 +444,8 @@ public class TextBufferWindow extends Window {
 				}
 			});*/
 
-		}
-	}
+        }
+    }
 
     private class _HorListView extends HorizontalScrollView {
         public _HorListView(Context context) {
@@ -855,14 +855,16 @@ public class TextBufferWindow extends Window {
          * }
          */
 
-		private CharSequence mLastLine = null;
-		private boolean mTrailingCr = false;
-		public void setTextEx(CharSequence t){
-			setText("");
-			appendEx(t);
-		}
-		public void appendEx(CharSequence t){
-			if (t == null || t.length() == 0) return;
+        private CharSequence mLastLine = null;
+        private boolean mTrailingCr = false;
+
+        public void setTextEx(CharSequence t) {
+            setText("");
+            appendEx(t);
+        }
+
+        public void appendEx(CharSequence t) {
+            if (t == null || t.length() == 0) return;
 
             if (mTrailingCr) {
                 mTrailingCr = false;
@@ -951,32 +953,32 @@ public class TextBufferWindow extends Window {
     public String FontPath = null;
     public int FontSize = 0;
 
-	public static String DefaultFontName = null;
+    public static String DefaultFontName = null;
 
+    /*Night Mode Vars*/
+    public static int DefaultBackground = Color.WHITE;
+    public static int DefaultTextColor = Color.BLACK;
+    public static int DefaultInputStyle = Glk.STYLE_INPUT;
 	/*Night Mode Vars*/
-	public static int DefaultBackground = Color.WHITE;
-	public static int DefaultTextColor = Color.BLACK;
-	public static int DefaultInputStyle = Glk.STYLE_INPUT;
-	/*Night Mode Vars*/
 
 
-	private _ScrollView mScrollView = null;
-	private _CommandView mActiveCommand = null;
-	private _CommandView mCommand1 = null;
-	private _CommandView mCommand2 = null;
-	private _PromptView mPrompt = null;
-	private LinearLayout mLayout = null;
-	private LinearLayout hl = null;
-	private _HorListView mHLView = null;
-	private CharSequence mCommandText = null;
-	private EditText mCommandView = null;
-	private Object mLineInputSpan;
-	private int selectorCount = 0;
+    private _ScrollView mScrollView = null;
+    private _CommandView mActiveCommand = null;
+    private _CommandView mCommand1 = null;
+    private _CommandView mCommand2 = null;
+    private _PromptView mPrompt = null;
+    private LinearLayout mLayout = null;
+    private LinearLayout hl = null;
+    private _HorListView mHLView = null;
+    private CharSequence mCommandText = null;
+    private EditText mCommandView = null;
+    private Object mLineInputSpan;
+    private int selectorCount = 0;
 
-	/*Every window has a rock. This is a value you provide when the window is created; you can use it however you want.*/
+    /*Every window has a rock. This is a value you provide when the window is created; you can use it however you want.*/
 	/*If you don't know what to use the rocks for, provide 0 and forget about it.*/
-	public TextBufferWindow(Glk glk, int rock) {
-		super(rock);
+    public TextBufferWindow(Glk glk, int rock) {
+        super(rock);
 
         mGlk = glk;
         mContext = glk.getContext();
@@ -1017,10 +1019,10 @@ public class TextBufferWindow extends Window {
                         paramsPrompt.setMargins(0, -margin, 0, 0);
                         paramsCommand.setMargins(0, -margin, 0, 0);
 
-					mLayout = new LinearLayout(mContext);
-					mLayout.setOrientation(LinearLayout.VERTICAL);
-					mLayout.setPadding(0, 0, 0, 0);
-					mLayout.setBackgroundColor(DefaultBackground);
+                        mLayout = new LinearLayout(mContext);
+                        mLayout.setOrientation(LinearLayout.VERTICAL);
+                        mLayout.setPadding(0, 0, 0, 0);
+                        mLayout.setBackgroundColor(DefaultBackground);
 
                         LinearLayout hl = new LinearLayout(mContext);
                         hl.setPadding(0, 0, 0, 0);
@@ -1096,9 +1098,9 @@ public class TextBufferWindow extends Window {
                         mLayout.addView(hl, paramsHLayout);
                         mLayout.addView(hll, paramsLLayout);
 
-					mScrollView.setBackgroundColor(DefaultBackground);
-					mScrollView.addView(mLayout);
-					mStream = new _Stream();
+                        mScrollView.setBackgroundColor(DefaultBackground);
+                        mScrollView.addView(mLayout);
+                        mStream = new _Stream();
 
 
 					/*DONT DELETE*/
@@ -1113,9 +1115,9 @@ public class TextBufferWindow extends Window {
 							return true;
 						}
 					});*/
-				}
-			});
-	}
+                    }
+                });
+    }
 
     /* Simulate a click on the cardView. */
     private void animate(View v) {
@@ -1148,7 +1150,7 @@ public class TextBufferWindow extends Window {
 
                 /*Case for restoring the userInput to save typing*/
                 //TODO: dynamic (user)settable list of commands remembering the last typed in text before click
-                if(userCommand.equalsIgnoreCase("Inventory") || userCommand.equalsIgnoreCase("I")) {
+                if (userCommand.equalsIgnoreCase("Inventory") || userCommand.equalsIgnoreCase("I")) {
 
                     mActiveCommand.setText("");
                     mActiveCommand.append(userCommand);
@@ -1254,156 +1256,176 @@ public class TextBufferWindow extends Window {
         }
     }
 
-	public static Typeface mTypeface = Typeface.SERIF;
-	public Typeface getDefaultTypeface() {
-		//if (mTypeface == null) {
-			Typeface tf = null;
+    public static Typeface mTypeface = Typeface.SERIF;
 
-			//TODO: this is broken & disabled for now |:fixed:|
-		    //see documentation
-			 switch(DefaultFontName) {
-				 case"Droid Serif":
-					 //	|| DefaultFontName.endsWith("otf"))
-					 tf = Typeface.SERIF;
-					 break;
-				 case "Droid Sans":
-					 tf = Typeface.SANS_SERIF;
-					 break;
-				 case "Droid Mono" :
-					 tf = Typeface.MONOSPACE;
-					 break;
-				 case "Daniel":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Daniel.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "256 BYTES":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/256BYTES.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Adventure":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Adventure.otf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Coda Regular":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Coda-Regular.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "CODE Bold":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Bold.otf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "CODE Light":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Light.otf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Crimson Roman":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Crimson-Roman.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Data Control":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/data-unifon.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Keep Calm":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/KeepCalm.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Marlboro":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Marlboro.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "MKOCR":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/MKOCR.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Old Game Fatty":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/OldGameFatty.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Pokemon Hollow":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Hollow.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Pokemon Solid":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Solid.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Roboto Regular":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Regular.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Roboto Thin":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Thin.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Star Jedi":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Starjedi.ttf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "TeX Regular":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/tex-regular.otf");
-					 } catch (Exception ex) {}
-					 break;
-				 case "Traveling Typewriter":
-					 try {
-						 tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/TravelingTypewriter.otf");
-					 } catch (Exception ex) {}
-					 break;
-				 default:
-					 tf = Typeface.SERIF;
-			 }
+    public Typeface getDefaultTypeface() {
+        //if (mTypeface == null) {
+        Typeface tf = null;
 
-			mTypeface = tf;
-	//	}
+        //TODO: this is broken & disabled for now |:fixed:|
+        //see documentation
+        switch (DefaultFontName) {
+            case "Droid Serif":
+                //	|| DefaultFontName.endsWith("otf"))
+                tf = Typeface.SERIF;
+                break;
+            case "Droid Sans":
+                tf = Typeface.SANS_SERIF;
+                break;
+            case "Droid Mono":
+                tf = Typeface.MONOSPACE;
+                break;
+            case "Daniel":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Daniel.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "256 BYTES":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/256BYTES.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Adventure":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Adventure.otf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Coda Regular":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Coda-Regular.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "CODE Bold":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Bold.otf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "CODE Light":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Light.otf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Crimson Roman":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Crimson-Roman.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Data Control":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/data-unifon.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Keep Calm":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/KeepCalm.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Marlboro":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Marlboro.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "MKOCR":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/MKOCR.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Old Game Fatty":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/OldGameFatty.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Pokemon Hollow":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Hollow.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Pokemon Solid":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Solid.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Roboto Regular":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Regular.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Roboto Thin":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Thin.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Star Jedi":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Starjedi.ttf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "TeX Regular":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/tex-regular.otf");
+                } catch (Exception ex) {
+                }
+                break;
+            case "Traveling Typewriter":
+                try {
+                    tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/TravelingTypewriter.otf");
+                } catch (Exception ex) {
+                }
+                break;
+            default:
+                tf = Typeface.SERIF;
+        }
 
-		return mTypeface;
-	}
+        mTypeface = tf;
+        //	}
 
-	public void setPrompt(CharSequence p){
-		mPrompt.setText(p);
-	}
+        return mTypeface;
+    }
 
-	public Object makeInputSpan() {
-		return stylehints.getSpan(mContext, TextBufferWindow.DefaultInputStyle, false);
-	}
+    public void setPrompt(CharSequence p) {
+        mPrompt.setText(p);
+    }
 
-	public void lineInputAccepted(Spannable s) {
-		String result = s.toString().trim();
+    public Object makeInputSpan() {
+        return stylehints.getSpan(mContext, TextBufferWindow.DefaultInputStyle, false);
+    }
 
-		mCommandText = s;
-		mPrompt.setText("");
+    public void lineInputAccepted(Spannable s) {
+        String result = s.toString().trim();
 
-		final org.andglk.glk.Stream echo = mStream.mEchoStream;
-		if (echo != null) {
-			echo.putString(result);
-			echo.putChar('\n');
-		}
+        mCommandText = s;
+        mPrompt.setText("");
 
-		//Log.d("Glk/TextBufferWindow", "lineInputAccepted:"+result);
+        final org.andglk.glk.Stream echo = mStream.mEchoStream;
+        if (echo != null) {
+            echo.putString(result);
+            echo.putChar('\n');
+        }
 
-		LineInputEvent lie = new LineInputEvent(this, result, mLineEventBuffer,
-												mLineEventBufferLength, mLineEventBufferRock, mUnicodeEvent);
-		mLineEventBufferLength = mLineEventBuffer = mLineEventBufferRock = 0;
-		mGlk.postEvent(lie);
-	}
+        //Log.d("Glk/TextBufferWindow", "lineInputAccepted:"+result);
+
+        LineInputEvent lie = new LineInputEvent(this, result, mLineEventBuffer,
+                mLineEventBufferLength, mLineEventBufferRock, mUnicodeEvent);
+        mLineEventBufferLength = mLineEventBuffer = mLineEventBufferRock = 0;
+        mGlk.postEvent(lie);
+    }
 
     @Override
     public void cancelCharEvent() {
@@ -1499,25 +1521,25 @@ public class TextBufferWindow extends Window {
                 });
     }
 
-	@Override
-	boolean styleDistinguish(int style1, int style2) {
-		if (style1 == style2)
-			return false;
+    @Override
+    boolean styleDistinguish(int style1, int style2) {
+        if (style1 == style2)
+            return false;
 
-		int res1, res2;
-		res1 = getTextAppearanceId(style1);
-		res2 = getTextAppearanceId(style2);
-		final int[] fields = { android.R.attr.textSize, android.R.attr.textColor,
-							   android.R.attr.typeface, android.R.attr.textStyle };
-		TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
-		TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);
+        int res1, res2;
+        res1 = getTextAppearanceId(style1);
+        res2 = getTextAppearanceId(style2);
+        final int[] fields = {android.R.attr.textSize, android.R.attr.textColor,
+                android.R.attr.typeface, android.R.attr.textStyle};
+        TypedArray ta1 = mContext.obtainStyledAttributes(res1, fields);
+        TypedArray ta2 = mContext.obtainStyledAttributes(res2, fields);
 
-		return (ta1.getDimension(0, 0) != ta2.getDimension(0, 0)) ||
-			(ta1.getColor(1, 0) != ta2.getColor(1, 0)) ||
-			(ta1.getString(2) != ta2.getString(2)) ||
-			(ta1.getString(3) != ta2.getString(3));
-	}
+        return (ta1.getDimension(0, 0) != ta2.getDimension(0, 0)) ||
+                (ta1.getColor(1, 0) != ta2.getColor(1, 0)) ||
+                (ta1.getString(2) != ta2.getString(2)) ||
+                (ta1.getString(3) != ta2.getString(3));
+    }
 
-	public static Styles _stylehints = new Styles();
-	public Styles stylehints;
+    public static Styles _stylehints = new Styles();
+    public Styles stylehints;
 }

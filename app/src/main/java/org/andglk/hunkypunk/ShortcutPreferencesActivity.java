@@ -1,11 +1,9 @@
 package org.andglk.hunkypunk;
 
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -110,9 +108,6 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
                 }
             };
 
-
-    private ArrayList<ShortcutItem> list;
-    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -447,19 +442,19 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
                     if (inputCommand.getText().length() != 0)
                         dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(true);
 
-                        }
-                    }
+                }
+            }
 
-                    @Override
-                    public void afterTextChanged(Editable editable) {
-                    }
-                });
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
 
-                inputCommand.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        inputCommand.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-                    }
+            }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
