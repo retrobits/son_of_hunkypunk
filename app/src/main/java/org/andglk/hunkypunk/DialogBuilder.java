@@ -107,24 +107,24 @@ public class DialogBuilder {
 
         String aboutText = "\n";
         aboutText += " * It is important that your commands\n" + "    have the right syntax. \n\n";//1.2
-        aboutText += " * You can use normal commands or\n" + "    commands with insertion points. \n\n";//1.3
-        aboutText += " * The insertion point (<%>) \n" + "    is a placeholder which will be\n" + "    replaced by your copied word.\n\n";//1.4
+        aboutText += " * You can use normal commands as\n" + "    well as commands with insertion\n" + "    points. \n\n";//1.3
+        aboutText += " * The insertion point (<%>) is \n" + "    a placeholder which will be\n" + "    replaced with your copied word.\n\n";//1.4
         aboutText += " * Insertion points are only useful,\n" + "    if copy is activated.\n\n";//1.5
         aboutText += " * If you have used auto enter,\n" + "    the command would be confirmed\n" + "    with enter.\n\n";//1.6
-        aboutText += " * If you have used auto enter and\n" + "    insertion point, the command will be\n" + "    confirmed with enter when all\n" + "    insertion points are replaced\n" + "    by a copied word.\n\n";//1.7
-        aboutText += " * If you copy a word and there isn't a\n" + "    insertion point, the copied word will\n" + "    written to the end of the input line.\n\n\n";
+        aboutText += " * If you have used auto enter and\n" + "    an insertion point, the command\n" + "    would be confirmed with enter\n" + "    when all insertion points are\n" + "    replaced with a copied word.\n\n";//1.7
+        aboutText += " * If you copy a word and there is no\n" + "    insertion point, the copied word will\n" + "    be written to the end of the input line.\n\n\n";
         aboutText += "Command with/without auto enter: \n";//2.1
         aboutText += " * Type in the command line a valid\n" + "    command. \n\n";//2.2
-        aboutText += " * It's not allowed to seperate the\n" + "    letters of one command with an space.\n\n";//2.3
-        aboutText += " * Example: wait is a valid command,\n" + "    w ait is not allowed. \n\n\n";
+        aboutText += " * It's not allowed to seperate the\n" + "    letters of any command with spaces.\n\n";//2.3
+        aboutText += " * Example: 'wait' is a valid command,\n" + "    'w ait' is not allowed. \n\n\n";
         aboutText += "Command with insertion point:\n";//3.1
-        aboutText += " * Type in the command line a valid\n" + "    command which action is\n    on an object. \n\n";//3.2
-        aboutText += " * Type space and a insertion\n" + "    point (<%>). \n\n";//3.3
+        aboutText += " * Type in the command line a valid\n" + "    command whose action is\n    on an object. \n\n";//3.2
+        aboutText += " * Type space and an insertion\n" + "    point (<%>). \n\n";//3.3
         aboutText += " * Example: examine <%> \n\n";//3.4
-        aboutText += " * Now if you copy a word the insertion\n" + "    point will be replaced\n" + "    by the word.\n\n";//3.5
+        aboutText += " * Now, if you copy a word, the insertion\n" + "    point will be replaced\n" + "    with it.\n\n";//3.5
         aboutText += " * It's also possible to use multiple\n" + "    insertion points: \n\n";//3.6
         aboutText += " * Example: ask <%> about <%> \n\n";//3.7
-        aboutText += " * Now if you copy a word the first\n" + "    insertion point will be replaced,\n" + "    the second copied word will\n" + "    replace the second insertion point.";
+        aboutText += " * Now if you copy a word the first\n" + "    insertion point will be replaced,\n" + "    the second '<%>' will be \n" + "    selected to be replaced.";
 
         final SpannableString s = new SpannableString(aboutText);
         Linkify.addLinks(s, Linkify.WEB_URLS);
