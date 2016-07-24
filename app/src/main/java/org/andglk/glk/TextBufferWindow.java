@@ -48,7 +48,7 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.TypedValue;;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -299,6 +299,29 @@ public class TextBufferWindow extends Window {
             addTextChangedListener(mWatcher);
         }
 
+        @Override
+        protected void onSelectionChanged(int selStart, int selEnd) {
+            super.onSelectionChanged(selStart, selEnd);
+
+            Editable text = getText();
+            String str = text.toString();
+            if (text != null){
+
+                if(getSelectionStart() == 0 && getSelectionEnd() == 0) {
+                    if(str.contains("<%>"))
+                        setSelection(str.indexOf('<'), str.indexOf('>')+1);
+                    else
+                        setSelection(text.length());
+                } else if(getSelectionStart() == str.indexOf('<') && getSelectionEnd() == str.indexOf('<')) {
+                    setSelection(str.indexOf('<'), str.indexOf('>')+1);
+                }
+            }
+        }
+
+        public TextWatcher getmWatcher(){
+            return mWatcher;
+        }
+
         public void clear() {
             setText("");
             Object sp = stylehints.getSpan(mContext, Glk.STYLE_INPUT, false);
@@ -373,10 +396,9 @@ public class TextBufferWindow extends Window {
 
             //Better to set it even if not needed (already set at end),
             //instead of using 2 more instructions + if to check if needed to
-            if (!this.getText().toString().contains("<%>") && selectorCount > 0) {
-                setSelection(this.getText().length());
-                selectorCount--;
-            }
+           // if (!this.getText().toString().contains("<%>") && selectorCount > 0) {
+            //    setSelection(this.getText().length());
+            //}
 
 
             return true;
@@ -464,7 +486,7 @@ public class TextBufferWindow extends Window {
                                     String selectedText = stringHelper(offset);
                                     if (selectedText.length() > 0) {
                                         // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
-                                        SpannableStringBuilder output = new SpannableStringBuilder();
+                                        final SpannableStringBuilder output = new SpannableStringBuilder();
                                         String userInput = mActiveCommand.getText().toString();
 
                                         if (userInput.contains("<%>")) {
@@ -489,12 +511,15 @@ public class TextBufferWindow extends Window {
                                         //  mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
                                         if (!userInput.contains("<%>") && autoEnterFlag) {
                                             autoEnterFlag = false;
-                                            mActiveCommand.setText(output);
+                                            mActiveCommand.setText(output, BufferType.SPANNABLE);
+                                            Selection.setSelection(mActiveCommand.getText(), output.length());
                                             mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-                                        } else
-                                            mActiveCommand.setText(output);
-
-                                        selectorCount = 2;
+                                        } else {
+                                           // mActiveCommand.setText("");
+                                           // mActiveCommand.append(output);//here
+                                            mActiveCommand.setText(output, BufferType.SPANNABLE);
+                                            Selection.setSelection(mActiveCommand.getText(), output.length());
+                                        }
 
                                         TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
                                         TextBufferWindow.this.mActiveCommand.showKeyboard();
@@ -508,7 +533,6 @@ public class TextBufferWindow extends Window {
                                             Matcher m = p.matcher(mActiveCommand.getText().toString());
                                             if (m.find()) {
                                                 Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
-                                                selectorCount = 2;
                                             }
 
                                         }
@@ -899,7 +923,6 @@ public class TextBufferWindow extends Window {
     private CharSequence mCommandText = null;
     private EditText mCommandView = null;
     private Object mLineInputSpan;
-    private int selectorCount = 0;
 
     public TextBufferWindow(Glk glk, int rock) {
         super(rock);
@@ -1096,7 +1119,8 @@ public class TextBufferWindow extends Window {
                 else
                     output.append(userCommand);
 
-                mActiveCommand.setText(output);
+                mActiveCommand.setText("");
+                mActiveCommand.append(output);
 
                 if (!userCommand.contains("<%>"))
                     mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
@@ -1147,7 +1171,8 @@ public class TextBufferWindow extends Window {
             } else
                 shortcutCommand.append(tempView.getTag().toString());
 
-            mActiveCommand.setText(shortcutCommand);
+            mActiveCommand.setText("");
+            mActiveCommand.append(shortcutCommand);
             if (userInput.contains("<%>")) {
                 autoEnterFlag = true;
                 Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
@@ -1156,7 +1181,6 @@ public class TextBufferWindow extends Window {
                 if (m.find())
                     Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
             }
-            selectorCount = 2;
         } else {
             //Of course not really (reachable)
             Toast.makeText(mGlk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
