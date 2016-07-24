@@ -436,7 +436,7 @@ public class TextBufferWindow extends Window {
 			/*DONT DELETE*/
             /*Not used for now but left as a part of issue #41 - onPreDrawNight*/
             /*getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-				@Override
+                @Override
 				public boolean onPreDraw () {
 					setBackgroundColor(TextBufferWindow.this.DefaultBackground);
 					setTextColor(TextBufferWindow.this.DefaultTextColor);
@@ -954,7 +954,7 @@ public class TextBufferWindow extends Window {
     public static int DefaultBackground = Color.WHITE;
     public static int DefaultTextColor = Color.BLACK;
     public static int DefaultInputStyle = Glk.STYLE_INPUT;
-	/*Night Mode Vars*/
+    /*Night Mode Vars*/
 
 
     private _ScrollView mScrollView = null;
@@ -1128,7 +1128,7 @@ public class TextBufferWindow extends Window {
     }
 
     /*To spare code space, refactor to avoid using of them over and over again.*/
-    public void output(SpannableStringBuilder ssb){
+    public void output(SpannableStringBuilder ssb) {
         ssb.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
                 0, ssb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         mActiveCommand.setText("");

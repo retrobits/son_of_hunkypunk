@@ -63,8 +63,6 @@ import org.andglk.glk.TextBufferWindow;
 public class PreferencesActivity
         extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
-    private static final String[] extension = new String[]{".z1", ".z2", ".z3", ".z4", ".z5", ".z6", ".z7", ".z8", ".zblorb", ".zlb", ".t2", ".t3", ".gam"};
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,17 +72,14 @@ public class PreferencesActivity
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.preferences);
 
-
-        final SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
-        final SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
-
         SwitchPreference enablelist = (SwitchPreference) findPreference("enablelist");
         if (enablelist != null)
             enablelist.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object o) {
-                    boolean isEnable = (boolean) o;
-                    if (isEnable)
+                    SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
+                    if ((boolean) o)
                         sharedPreferencesEditor.putBoolean("enablelist", true);
                     else
                         sharedPreferencesEditor.putBoolean("enablelist", false);
@@ -96,13 +91,16 @@ public class PreferencesActivity
 
         SwitchPreference enablelongpress = (SwitchPreference) findPreference("enablelongpress");
         if (enablelongpress != null)
-            enablelist.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            enablelongpress.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object o) {
+                    SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
                     if ((boolean) o)
                         sharedPreferencesEditor.putBoolean("enablelongpress", true);
                     else
                         sharedPreferencesEditor.putBoolean("enablelongpress", false);
+                    sharedPreferencesEditor.commit();
                     return true;
                 }
             });
@@ -196,7 +194,6 @@ public class PreferencesActivity
                 return true;
             }
         });
-
     }
 
 
