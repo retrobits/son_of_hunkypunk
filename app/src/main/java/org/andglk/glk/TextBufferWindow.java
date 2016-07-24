@@ -501,17 +501,12 @@ public class TextBufferWindow extends Window {
                                         } else
                                             output.append(selectedText);
 
-                                        output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
-                                                , 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-
                                         if (!userInput.contains("<%>") && autoEnterFlag) {
                                             autoEnterFlag = false;
-                                            mActiveCommand.setText(output, BufferType.SPANNABLE);
-                                            Selection.setSelection(mActiveCommand.getText(), output.length());
+                                            output(output);
                                             mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                                         } else {
-                                            mActiveCommand.setText(output, BufferType.SPANNABLE);
-                                            Selection.setSelection(mActiveCommand.getText(), output.length());
+                                            output(output);
                                         }
 
                                         TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
@@ -1065,6 +1060,14 @@ public class TextBufferWindow extends Window {
         return etext;
     }
 
+    /*To spare code space, refactor to avoid using of them over and over again.*/
+    public void output(SpannableStringBuilder ssb){
+        ssb.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
+                0, ssb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        mActiveCommand.setText("");
+        mActiveCommand.append(ssb);
+    }
+
     /**
      * Directly inputs text onto Glk.select through TextWatcher
      */
@@ -1089,24 +1092,18 @@ public class TextBufferWindow extends Window {
                     mActiveCommand.append(userCommand);
                     mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
 
-                    userInput.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
-                            0, userInput.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    mActiveCommand.setText("");
-                    mActiveCommand.append(userInput);
+                    output(userInput);
 
                 } else {
 
                     SpannableStringBuilder output = new SpannableStringBuilder(userInput.toString());
-                    output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
-                            0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
                     if (!userInput.toString().equals(""))
                         output.append(" " + userCommand);
                     else
                         output.append(userCommand);
 
-                    mActiveCommand.setText("");
-                    mActiveCommand.append(output);
+                    output(output);
 
                     if (!userCommand.contains("<%>"))
                         mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
@@ -1137,18 +1134,14 @@ public class TextBufferWindow extends Window {
             String userInput = mActiveCommand.getText().toString();
             SpannableStringBuilder shortcutCommand = new SpannableStringBuilder();
 
-
-            shortcutCommand.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
-                    0, shortcutCommand.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             if (!userInput.equals("")) {
                 shortcutCommand.append(userInput + " " + tempView.getTag().toString());
             } else
                 shortcutCommand.append(tempView.getTag().toString());
 
-            mActiveCommand.setText("");
-            mActiveCommand.append(shortcutCommand);
+            output(shortcutCommand);
+
             if (shortcutCommand.toString().contains("<%>")) {
-                autoEnterFlag = true;
                 Toast.makeText(mGlk.getContext(), "Long-press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
                 Pattern p = Pattern.compile("<%>");
                 Matcher m = p.matcher(mActiveCommand.getText().toString());
