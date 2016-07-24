@@ -43,7 +43,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		final String query =
 			"CREATE TABLE " + GAMES_TABLE_NAME + " ("
 			+ Games._ID + " INTEGER PRIMARY KEY, "
-			+ Games.IFID + " TEXT UNIQUE NOT NULL, "
+			+ Games.IFID + " TEXT UNIQUE ON CONFLICT REPLACE NOT NULL, "
 
 			+ Games.TITLE + " TEXT, "
 			+ Games.AUTHOR + " TEXT, "
