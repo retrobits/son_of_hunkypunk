@@ -19,7 +19,7 @@
 -->
 
 <resources>
-    <string name="app_name">The Son of Hunky Punk</string>
+    <string name="app_name">Son of Hunky Punk</string>
     <string name="new_saved_game">New saved game</string>
     <string name="pick_saved_game">Pick saved game</string>
     <string name="replace_warning">This file already exists. Do you want to replace it?</string>
@@ -37,7 +37,7 @@
     <string name="examining_file">Examining file %s...</string>
     <string name="install_success">Successfully installed a new story.</string>
     <string name="install_failure">Could not read the story file.</string>
-    <string name="hunky_punk">The Son of Hunky Punk</string>
+    <string name="hunky_punk">Son of Hunky Punk</string>
     <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string>
 
 
