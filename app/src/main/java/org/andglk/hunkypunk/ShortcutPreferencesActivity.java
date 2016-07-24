@@ -7,6 +7,10 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -27,8 +31,16 @@ import com.mobeta.android.dslv.DragSortListView;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class ShortcutPreferencesActivity extends ListActivity {
+
+public class ShortcutPreferencesActivity extends AppCompatActivity {
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
+
     private ShortcutItemAdapter adapter;
+    private DragSortListView listView;
+    private ArrayList<ShortcutItem> list;
+    private Context mContext;
 
     private DragSortListView.DropListener onDrop =
             new DragSortListView.DropListener() {
@@ -46,17 +58,19 @@ public class ShortcutPreferencesActivity extends ListActivity {
     private DragSortListView.RemoveListener onRemove =
             new DragSortListView.RemoveListener() {
                 @Override
-                public void remove(int which) {
-                    adapter.remove(adapter.getItem(which));
+                public void remove(final int which) {
+                    final ShortcutItem item = adapter.getItem(which);
+                    adapter.remove(item);
 
                     SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
                     SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
                     SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
                     SharedPreferences.Editor shortcutIDEditor = sharedShortcutIDs.edit();
 
-                    String title = sharedShortcutIDs.getString(which + "", "");
+                    final String title = sharedShortcutIDs.getString(which + "", "");
+                    final String command = sharedShortcuts.getString(title, "");
                     shortcutIDEditor.remove(which + "");
-                    shortcutEditor.remove(title);
+                    shortcutEditor.remove(command);
 
 
                     for (int i = which + 1; i < sharedShortcutIDs.getAll().size() + 1; i++) {
@@ -67,6 +81,19 @@ public class ShortcutPreferencesActivity extends ListActivity {
 
                     shortcutEditor.commit();
                     shortcutIDEditor.commit();
+
+                    Snackbar snackbar = Snackbar.make(listView, item.getTitle() + " removed!", Snackbar.LENGTH_LONG);
+                    snackbar.setAction("UNDO", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            adapter.insert(item, which);
+                            addShortcutToSharedPreferences(title, command);
+                            moveShortcutPreference(adapter.getCount() - 1, which);
+                        }
+                    })
+                            .show();
+
+
                 }
             };
 
@@ -92,10 +119,11 @@ public class ShortcutPreferencesActivity extends ListActivity {
         final SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
         SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
         super.onCreate(savedInstanceState);
+        setTheme(R.style.shortcutpreftheme);
         setContentView(R.layout.shortcut_list);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         mContext = this;
-        DragSortListView lv = (DragSortListView) getListView();
         list = new ArrayList<ShortcutItem>();
 
         for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
@@ -107,13 +135,13 @@ public class ShortcutPreferencesActivity extends ListActivity {
 
         adapter = new ShortcutItemAdapter(list);
 
-        this.setListAdapter(adapter);
+        listView = (DragSortListView) findViewById(android.R.id.list);
+        listView.setAdapter(adapter);
 
-        lv.setDropListener(onDrop);
-        lv.setRemoveListener(onRemove);
+        listView.setDropListener(onDrop);
+        listView.setRemoveListener(onRemove);
 
-
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
 
@@ -310,7 +338,6 @@ public class ShortcutPreferencesActivity extends ListActivity {
             list.add(defaults[i]);
         Collections.sort(list);
 
-
         for (int i = 0; i < list.size(); i++) {
             shortcutEditor.putString(list.get(i) + "", list.get(i));
             shortcutIDEditor.putString(i + "", list.get(i));
@@ -333,128 +360,11 @@ public class ShortcutPreferencesActivity extends ListActivity {
         final SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
         switch (item.getItemId()) {
             case R.id.add_button:
-                final View promptsView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_preferences_prompt, null);
-
-                final EditText inputTitle = (EditText) promptsView.findViewById(R.id.editTitleDialogUserInput);
-                final EditText inputCommand = (EditText) promptsView.findViewById(R.id.editComandDialogUserInput);
-
-                final CheckBox checkBox = (CheckBox) promptsView.findViewById(R.id.autoenter);
-
-                final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setView(promptsView);
-                builder.setTitle("Add new shortcut");
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                builder.setPositiveButton("OK", null);
-                final AlertDialog dialog = builder.create();
-
-                final LinearLayout titleMessageLayout = (LinearLayout) promptsView.findViewById(R.id.titlemessage);
-                final TextView titleMessage = (TextView) promptsView.findViewById(R.id.titlemessageText);
-
-                final LinearLayout commandMessageLayout = (LinearLayout) promptsView.findViewById(R.id.commandmessage);
-                final TextView commandMessage = (TextView) promptsView.findViewById(R.id.commandmessageText);
-
-                inputTitle.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                        if (charSequence.length() == 0) {
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                            params.setMargins(0, 0, 0, 50);
-                            titleMessageLayout.setLayoutParams(params);
-                            titleMessage.setText("Title may not be empty!");
-                            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(false);
-                        } else {
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
-                            titleMessageLayout.setLayoutParams(params);
-
-                            if (inputCommand.getText().length() != 0)
-                                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(true);
-
-                        }
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable editable) {
-                    }
-                });
-
-                inputCommand.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                        if (charSequence.length() == 0) {
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                            params.setMargins(0, 0, 0, 50);
-                            commandMessageLayout.setLayoutParams(params);
-                            commandMessage.setText("Command may not be empty!");
-                            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(false);
-
-                        } else {
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
-                            commandMessageLayout.setLayoutParams(params);
-                            if (inputTitle.getText().length() != 0)
-                                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(true);
-
-                        }
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable editable) {
-
-                    }
-                });
-
-                dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-                    @Override
-                    public void onShow(DialogInterface dialogInterface) {
-                        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                String nTitle = inputTitle.getText().toString();
-                                String nCommand = inputCommand.getText().toString();
-                                inputTitle.setText(nTitle);
-                                inputCommand.setText(nCommand);
-                                ShortcutItem shortcutItem = new ShortcutItem();
-
-                                if (!nTitle.equals("") && !nCommand.equals("")) {
-                                    if (checkBox.isChecked()) {
-                                        if (!nCommand.endsWith("$"))
-                                            nCommand += "$";
-                                        shortcutItem.setCommand(nCommand);
-                                    } else if (nCommand.endsWith("$")) {
-                                        nCommand = nCommand.substring(0, nCommand.length() - 1);
-                                        shortcutItem.setCommand(nCommand);
-                                    } else
-                                        shortcutItem.setCommand(nCommand);
-
-                                    shortcutItem.setTitle(nTitle);
-                                    addShortcutToSharedPreferences(nTitle, nCommand);
-                                    adapter.add(shortcutItem);
-                                    adapter.notifyDataSetChanged();
-                                    dialog.dismiss();
-                                }
-                            }
-                        });
-                    }
-                });
-                dialog.show();
+                showAddShortcutDialog();
                 return true;
 
             case R.id.restore_button:
-                AlertDialog.Builder restoreBuilder= new AlertDialog.Builder(mContext);
+                AlertDialog.Builder restoreBuilder = new AlertDialog.Builder(mContext);
                 restoreBuilder.setTitle("Restore shortcuts");
                 restoreBuilder.setMessage("Do you want to delete the actual shortcuts and restore predefined shortcuts?");
                 restoreBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -479,25 +389,134 @@ public class ShortcutPreferencesActivity extends ListActivity {
                     }
                 });
                 restoreBuilder.create().show();
-
-
                 return true;
 
-
             case R.id.help_button:
-                AlertDialog build;
-                try {
-                    build = AboutDialogBuilder.showH(this);
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
+                DialogBuilder.showShortcutHelpDialog(this);
                 return true;
 
             default:
-
                 return super.onOptionsItemSelected(item);
-
         }
+    }
+
+    public void showAddShortcutDialog() {
+        final View promptsView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_preferences_prompt, null);
+
+        final EditText inputTitle = (EditText) promptsView.findViewById(R.id.editTitleDialogUserInput);
+        final EditText inputCommand = (EditText) promptsView.findViewById(R.id.editComandDialogUserInput);
+
+        final CheckBox checkBox = (CheckBox) promptsView.findViewById(R.id.autoenter);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setView(promptsView);
+        builder.setTitle("Add new shortcut");
+        builder.setPositiveButton("OK", null);
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        final AlertDialog dialog = builder.create();
+
+        final LinearLayout titleMessageLayout = (LinearLayout) promptsView.findViewById(R.id.titlemessage);
+        final TextView titleMessage = (TextView) promptsView.findViewById(R.id.titlemessageText);
+
+        final LinearLayout commandMessageLayout = (LinearLayout) promptsView.findViewById(R.id.commandmessage);
+        final TextView commandMessage = (TextView) promptsView.findViewById(R.id.commandmessageText);
+
+        inputTitle.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.length() == 0) {
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    params.setMargins(0, 0, 0, 50);
+                    titleMessageLayout.setLayoutParams(params);
+                    titleMessage.setText("Title may not be empty!");
+                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(false);
+                } else {
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
+                    titleMessageLayout.setLayoutParams(params);
+
+                    if (inputCommand.getText().length() != 0)
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(true);
+
+                        }
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                    }
+                });
+
+                inputCommand.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.length() == 0) {
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    params.setMargins(0, 0, 0, 50);
+                    commandMessageLayout.setLayoutParams(params);
+                    commandMessage.setText("Command may not be empty!");
+                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(false);
+
+                } else {
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0);
+                    commandMessageLayout.setLayoutParams(params);
+                    if (inputTitle.getText().length() != 0)
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setClickable(true);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String nTitle = inputTitle.getText().toString();
+                        String nCommand = inputCommand.getText().toString();
+                        inputTitle.setText(nTitle);
+                        inputCommand.setText(nCommand);
+                        ShortcutItem shortcutItem = new ShortcutItem();
+
+                        if (!nTitle.equals("") && !nCommand.equals("")) {
+                            if (checkBox.isChecked()) {
+                                if (!nCommand.endsWith("$"))
+                                    nCommand += "$";
+                                shortcutItem.setCommand(nCommand);
+                            } else if (nCommand.endsWith("$")) {
+                                nCommand = nCommand.substring(0, nCommand.length() - 1);
+                                shortcutItem.setCommand(nCommand);
+                            } else
+                                shortcutItem.setCommand(nCommand);
+
+                            shortcutItem.setTitle(nTitle);
+                            addShortcutToSharedPreferences(nTitle, nCommand);
+                            adapter.add(shortcutItem);
+                            adapter.notifyDataSetChanged();
+                            dialog.dismiss();
+                        }
+                    }
+                });
+            }
+        });
+        dialog.show();
     }
 
     public class ShortcutItem {

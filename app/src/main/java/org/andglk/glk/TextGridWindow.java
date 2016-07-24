@@ -34,7 +34,6 @@ import android.graphics.Typeface;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextPaint;
-import android.util.FloatMath;
 import android.view.KeyEvent;
 import android.view.ViewTreeObserver;
 
@@ -385,7 +384,7 @@ public class TextGridWindow extends Window {
 			Paint bgpaint = new Paint();
 			bgpaint.setColor(p.bgColor);
 			bgpaint.setStyle(Style.FILL);
-			canvas.drawRect(FloatMath.floor(px + chw*start), FloatMath.floor(py+chh*y), FloatMath.ceil(px + chw*end), FloatMath.ceil(py+chh*(y+1)), bgpaint);
+			canvas.drawRect((float) Math.floor(px + chw*start), (float) Math.floor(py+chh*y), (float) Math.ceil(px + chw*end), (float) Math.ceil(py+chh*(y+1)), bgpaint);
 			canvas.drawText(mFrameBufTemp, y * mWidth + start, end-start, px + chw*start, py + chh * (y + 1) - p.descent(), p);
 		}
 
@@ -598,14 +597,14 @@ public class TextGridWindow extends Window {
 	@Override
 	public int measureHeight(int size) {
 		if (mView == null) return 0;
-		return ((int) FloatMath.ceil(mView.measureCharacterHeight())) * size 
-			+ mView.getPaddingBottom() + mView.getPaddingTop() + ((int) FloatMath.floor(mView.getDescent()));
+		return ((int) (float) Math.ceil(mView.measureCharacterHeight())) * size
+			+ mView.getPaddingBottom() + mView.getPaddingTop() + ((int) (float) Math.floor(mView.getDescent()));
 	}
 
 	@Override
 	public int measureWidth(int size) {
 		if (mView == null) return 0;
-		return ((int) FloatMath.ceil(mView.measureCharacterWidth())) * size + mView.getPaddingLeft() + mView.getPaddingRight();
+		return ((int) (float) Math.ceil(mView.measureCharacterWidth())) * size + mView.getPaddingLeft() + mView.getPaddingRight();
 	}
 
 	@Override

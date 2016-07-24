@@ -213,7 +213,7 @@ public class GameDetails extends Activity implements OnClickListener {
 		case '4':
 			AlertDialog builder;
 			try {
-				builder = AboutDialogBuilder.show(this);
+				builder = DialogBuilder.showAboutDialog(this);
 			} catch (NameNotFoundException e) {
 				e.printStackTrace();
 			}

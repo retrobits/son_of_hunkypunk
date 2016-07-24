@@ -113,6 +113,8 @@
 		<item name="android:textColor">#e5fff6</item>
 	</style>
 
+	<style name="shortcutpreftheme" parent="Theme.AppCompat.NoActionBar" >
+	</style>
 
 	<color name="shortcutsColor">#52A6B8</color>
 </resources>

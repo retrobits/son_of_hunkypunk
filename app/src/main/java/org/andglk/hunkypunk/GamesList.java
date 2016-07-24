@@ -207,7 +207,7 @@ public class GamesList extends ListActivity implements OnClickListener {
             case '2':
                 AlertDialog builder;
                 try {
-                    builder = AboutDialogBuilder.show(this);
+                    builder = DialogBuilder.showAboutDialog(this);
                 } catch (NameNotFoundException e) {
                     e.printStackTrace();
                 }
