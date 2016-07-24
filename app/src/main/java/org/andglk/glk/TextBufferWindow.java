@@ -971,7 +971,7 @@ public class TextBufferWindow extends Window {
     private int selectorCount = 0;
 
     /*Every window has a rock. This is a value you provide when the window is created; you can use it however you want.*/
-	/*If you don't know what to use the rocks for, provide 0 and forget about it.*/
+    /*If you don't know what to use the rocks for, provide 0 and forget about it.*/
     public TextBufferWindow(Glk glk, int rock) {
         super(rock);
 
@@ -1090,8 +1090,13 @@ public class TextBufferWindow extends Window {
                         mView.setFocusable(false);
 
                         mLayout.addView(mView, paramsDefault);
-                        mLayout.addView(hl, paramsHLayout);
-                        mLayout.addView(hll, paramsLLayout);
+                        if (mContext.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
+                            mLayout.addView(hll, paramsLLayout);
+                            mLayout.addView(hl, paramsHLayout);
+                        } else {
+                            mLayout.addView(hl, paramsHLayout);
+                            mLayout.addView(hll, paramsLLayout);
+                        }
 
                         mScrollView.setBackgroundColor(DefaultBackground);
                         mScrollView.addView(mLayout);
@@ -1099,9 +1104,9 @@ public class TextBufferWindow extends Window {
 
 
 					/*DONT DELETE*/
-					/*Not used for now but left for compatibility as part of issue #41 - onPreDrawNight*/
-					/*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-						@Override
+                    /*Not used for now but left for compatibility as part of issue #41 - onPreDrawNight*/
+                    /*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                        @Override
 						public boolean onPreDraw () {
 							mScrollView.setBackgroundColor(DefaultBackground);
 							mLayout.setBackgroundColor(DefaultBackground);
