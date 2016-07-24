@@ -299,6 +299,10 @@ public class TextBufferWindow extends Window {
             addTextChangedListener(mWatcher);
         }
 
+
+        /* Hack to fix continuous jumping of the selector to the front
+         * and keep selected the '<%>'-placeholder and allow
+         * user input/off-selection. */
         @Override
         protected void onSelectionChanged(int selStart, int selEnd) {
             super.onSelectionChanged(selStart, selEnd);
@@ -309,17 +313,13 @@ public class TextBufferWindow extends Window {
 
                 if(getSelectionStart() == 0 && getSelectionEnd() == 0) {
                     if(str.contains("<%>"))
-                        setSelection(str.indexOf('<'), str.indexOf('>')+1);
+                        setSelection(str.indexOf('<'), str.indexOf('>') + 1);
                     else
                         setSelection(text.length());
                 } else if(getSelectionStart() == str.indexOf('<') && getSelectionEnd() == str.indexOf('<')) {
-                    setSelection(str.indexOf('<'), str.indexOf('>')+1);
+                    setSelection(str.indexOf('<'), str.indexOf('>') + 1);
                 }
             }
-        }
-
-        public TextWatcher getmWatcher(){
-            return mWatcher;
         }
 
         public void clear() {
@@ -392,15 +392,6 @@ public class TextBufferWindow extends Window {
                 mPrompt.setTextSize(FontSize);
             }
 
-            /* Fix for selectorBug sporadically when setting Text to View */
-
-            //Better to set it even if not needed (already set at end),
-            //instead of using 2 more instructions + if to check if needed to
-           // if (!this.getText().toString().contains("<%>") && selectorCount > 0) {
-            //    setSelection(this.getText().length());
-            //}
-
-
             return true;
         }
     }
@@ -465,6 +456,13 @@ public class TextBufferWindow extends Window {
             public void onTakeFocus(TextView widget, Spannable text, int direction) {
             }
 
+            /* Here is handled the copying of text. On ACTION_DOWN the coordinates and down-time
+            *  are being measured. Then on ACTION_UP the copy is triggered. Down-time needs to be
+            *  greater than 100ms. getOffset()-method transforms x,y-coordinates to a String
+            *  selection position, or just offset from head. stringHelper(offset) makes a whole
+            *  word-selection from the stand alone selection-click. From then on follows the
+            *  filling of the placeholders with the copied text or appending to input word/s.
+            *  More cases are handled below. ACTION_MOVE disables the copying on UP. */
             @Override
             public boolean onTouchEvent(final TextView widget, Spannable text, MotionEvent event) {
                 SharedPreferences sharedShortcutPrefs = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
@@ -480,13 +478,13 @@ public class TextBufferWindow extends Window {
                         case MotionEvent.ACTION_UP:
                             long time = event.getEventTime() - downTime;
                             if (isOnClick && time > 100) {
-                                float x = mDownX + getScrollX();
+                                //float x = mDownX + getScrollX();
                                 int offset = getOffset(event);
                                 if (offset != Integer.MIN_VALUE) {
                                     String selectedText = stringHelper(offset);
                                     if (selectedText.length() > 0) {
-                                        // mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
-                                        final SpannableStringBuilder output = new SpannableStringBuilder();
+
+                                        SpannableStringBuilder output = new SpannableStringBuilder();
                                         String userInput = mActiveCommand.getText().toString();
 
                                         if (userInput.contains("<%>")) {
@@ -502,33 +500,25 @@ public class TextBufferWindow extends Window {
                                             output.append(selectedText);
                                         } else
                                             output.append(selectedText);
+
                                         output.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false)
                                                 , 0, output.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
 
-
-                                        //TextBufferWindow.this.mActiveCommand.setText(output);
-                                        // mActiveCommand.setSelection(copyText.length());
-                                        //  mActiveCommand = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
                                         if (!userInput.contains("<%>") && autoEnterFlag) {
                                             autoEnterFlag = false;
                                             mActiveCommand.setText(output, BufferType.SPANNABLE);
                                             Selection.setSelection(mActiveCommand.getText(), output.length());
                                             mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                                         } else {
-                                           // mActiveCommand.setText("");
-                                           // mActiveCommand.append(output);//here
                                             mActiveCommand.setText(output, BufferType.SPANNABLE);
                                             Selection.setSelection(mActiveCommand.getText(), output.length());
                                         }
 
                                         TextBufferWindow.this.mScrollView.fullScroll(View.FOCUS_DOWN);
                                         TextBufferWindow.this.mActiveCommand.showKeyboard();
-                                        //Selection.setSelection(toEditable(mActiveCommand), output.length());
-                                        //TextBufferWindow.this.mActiveCommand.setSelection(output.length());
 
-                                        /* only works for a short time, has to be fixed*/
                                         if (userInput.contains("<%>")) {
-                                            Toast.makeText(mGlk.getContext(), "Long press on the next object", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(mGlk.getContext(), "Long-press on the next object", Toast.LENGTH_SHORT).show();
                                             Pattern p = Pattern.compile("<%>");
                                             Matcher m = p.matcher(mActiveCommand.getText().toString());
                                             if (m.find()) {
@@ -540,6 +530,7 @@ public class TextBufferWindow extends Window {
                                 }
                             }
                             break;
+                        /*Differentiates between LongPress and (LongPress +) scroll*/
                         case MotionEvent.ACTION_MOVE:
                             if (isOnClick && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
                                     || Math.abs(mDownY - event.getY()) > SCROLL_THRESHOLD)) {
@@ -716,11 +707,12 @@ public class TextBufferWindow extends Window {
             setTypeface(TextBufferWindow.this.getDefaultTypeface());
             setReadOnly(this, true);
 
-            /* Typeface NOT to be set here, since if other than text's results in TextOverflow */
+            /* Typeface NOT to be set here, since if other than text's one, it results in TextOverflow */
             /* Typeface set in org.andglk.glk.Styles.updatePaint() */
 
         }
 
+        /* Fixes a bug in version 0.8. Enabling/Disabling read-only use of a view.*/
         private void setReadOnly(final TextView view, final boolean readOnly) {
             view.setFocusable(!readOnly);
             view.setFocusableInTouchMode(!readOnly);
@@ -729,8 +721,9 @@ public class TextBufferWindow extends Window {
             view.setCursorVisible(!readOnly);
         }
 
+        /* Handles multiple new-line characters on after the other and acts accordingly. */
         private String stringHelper(int offset) {
-            setSelection(offset); // touch was at end of text
+            setSelection(offset);
             int maxEnd = getText().toString().length() - 1;
 
             /*Firstly, beatify the selection clearing multiple whitespaces*/
@@ -742,7 +735,7 @@ public class TextBufferWindow extends Window {
                 selection = maxEnd;
 
             if (selection > 1 && Character.isWhitespace(getText().toString().charAt(selection - 1)) && !Character.isWhitespace(getText().toString().charAt(selection)))
-                ;
+                ;//do nothing
             else
                 while (selection > 0 && Character.isWhitespace(getText().toString().charAt(selection - 1)))
                     selection--;
@@ -779,14 +772,23 @@ public class TextBufferWindow extends Window {
                 }
             }
 
-            /*Lastly, beatify selected text wiping off everything that is not alphanumeric*/
+            /* Lastly, beatify selected text wiping off everything that is not alphanumeric
+             * from the device's input set or ['],[`],[-] in the word inside. */
             String selectedText = getText().toString()
-                    .substring(selectionStart, selectionEnd).replaceAll("[^\\p{L}\\p{N}]+", "");
+                    .substring(selectionStart, selectionEnd).replaceAll("[^\\p{L}\\p{N}'`-]+", "");
+
+            while (selectedText.startsWith("'") || selectedText.startsWith("`") || selectedText.startsWith("-")) {
+                selectedText = selectedText.substring(1, selectedText.length());
+            }
+
+            while (selectedText.endsWith("'") || selectedText.endsWith("`") || selectedText.endsWith("-")) {
+                selectedText = selectedText.substring(0, selectedText.length() - 1);
+            }
 
             return selectedText;
         }
 
-
+        /* Click-postion to TextView's text offset. */
         private int getOffset(MotionEvent event) {
             Layout layout = getLayout();
             if (layout == null)
@@ -798,7 +800,7 @@ public class TextBufferWindow extends Window {
             return offset;
         }
 
-
+        // left off as a posibility to pass it through Clip-Board memory instead of directly setting it.
         /**
          * private void putInClipMemory(String str) {
          * if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
@@ -921,7 +923,6 @@ public class TextBufferWindow extends Window {
     private _HorListView mHLView = null;
     private LinearLayout mLayout = null;
     private CharSequence mCommandText = null;
-    private EditText mCommandView = null;
     private Object mLineInputSpan;
 
     public TextBufferWindow(Glk glk, int rock) {
@@ -1051,38 +1052,7 @@ public class TextBufferWindow extends Window {
                 });
     }
 
-    /**
-     * A method for recursively finding a view given a tag. If there
-     * is no view with such tag, then the parameter is not set and
-     * keeps its previous value unchanged.
-     *
-     * @param vg  parent ViewGroup from which the iteration starts
-     * @param tag Tag Object to identify the needed View
-     */
-
-    public View findViewByTag(ViewGroup vg, Object tag) {
-
-        View result = null;
-
-        if (vg == null)
-            return null;
-
-        for (int i = 0; i < vg.getChildCount(); i++) {
-            //because some are not set and we don't like NullPtrs
-            if (vg.getChildAt(i).getTag() != null) {
-                if (vg.getChildAt(i).getTag().toString().equals(tag))
-                    result = vg.getChildAt(i);
-            }
-        }
-        for (int i = 0; i < vg.getChildCount(); i++) {
-            if (vg.getChildAt(i) instanceof ViewGroup) {
-                result = findViewByTag((ViewGroup) vg.getChildAt(i), tag);
-                if (result != null) break;
-            }
-        }
-        return result;
-    }
-
+    /* Simulate a click on the cardView. */
     private void animate(View v) {
         Animation animation1 = AnimationUtils.loadAnimation(mContext, R.anim.press);
         v.startAnimation(animation1);
@@ -1101,7 +1071,6 @@ public class TextBufferWindow extends Window {
     private TextView tempView = null;
 
     public void shortcutCommandEnter(View v) {
-        //mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
         tempView = (TextView) v;
         if (mActiveCommand != null) {
             boolean semaphore = true;
@@ -1143,7 +1112,7 @@ public class TextBufferWindow extends Window {
                         mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                     else {
                         autoEnterFlag = true;
-                        Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mGlk.getContext(), "Long-press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
                         Pattern p = Pattern.compile("<%>");
                         Matcher m = p.matcher(mActiveCommand.getText().toString());
                         if (m.find())
@@ -1154,15 +1123,14 @@ public class TextBufferWindow extends Window {
             }
         } else {
             //Of course not really (reachable)
-            Toast.makeText(mGlk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mGlk.getContext(), "Interpreter.mActiveCommand is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
         }
     }
 
     /**
-     * Sets the text in the CommandView, enabling the user to proceed typing the rest
+     * Sets the text in the CommandView, enabling the user to proceed typing/copying the rest
      */
     public void shortcutCommand(View v) {
-        // mCommandView = (EditText) findViewByTag(mGlk.getView(), "_ActiveCommandViewTAG");
         tempView = (TextView) v;
         if (mActiveCommand != null) {
             animate(v);
@@ -1181,7 +1149,7 @@ public class TextBufferWindow extends Window {
             mActiveCommand.append(shortcutCommand);
             if (shortcutCommand.toString().contains("<%>")) {
                 autoEnterFlag = true;
-                Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mGlk.getContext(), "Long-press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
                 Pattern p = Pattern.compile("<%>");
                 Matcher m = p.matcher(mActiveCommand.getText().toString());
                 if (m.find())
@@ -1189,7 +1157,7 @@ public class TextBufferWindow extends Window {
             }
         } else {
             //Of course not really (reachable)
-            Toast.makeText(mGlk.getContext(), "Interpreter.mCommandView is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mGlk.getContext(), "Interpreter.mActiveCommand is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
         }
     }
 

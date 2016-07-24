@@ -45,6 +45,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 public class Interpreter extends Activity {
 	private static final String TAG = "hunkypunk.Interpreter";
@@ -281,5 +283,38 @@ public class Interpreter extends Activity {
 			states.add(w.saveInstanceState());
 
 		outState.putParcelableArrayList("windowStates", states);
+	}
+
+
+	/**
+	 * A method for recursively finding a view given a tag. If there
+	 * is no view with such tag, then the parameter is not set and
+	 * keeps its previous value unchanged.
+	 *
+	 * @param vg  parent ViewGroup from which the iteration starts
+	 * @param tag Tag Object to identify the needed View
+	 */
+
+	public View findViewByTag(ViewGroup vg, Object tag) {
+
+		View result = null;
+
+		if (vg == null)
+			return null;
+
+		for (int i = 0; i < vg.getChildCount(); i++) {
+			//because some are not set and we don't like NullPtrs
+			if (vg.getChildAt(i).getTag() != null) {
+				if (vg.getChildAt(i).getTag().toString().equals(tag))
+					result = vg.getChildAt(i);
+			}
+		}
+		for (int i = 0; i < vg.getChildCount(); i++) {
+			if (vg.getChildAt(i) instanceof ViewGroup) {
+				result = findViewByTag((ViewGroup) vg.getChildAt(i), tag);
+				if (result != null) break;
+			}
+		}
+		return result;
 	}
 }
