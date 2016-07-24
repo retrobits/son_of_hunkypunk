@@ -528,7 +528,7 @@ public class TextBufferWindow extends Window {
 
                                         /* only works for a short time, has to be fixed*/
                                         if (userInput.contains("<%>")) {
-                                            Toast.makeText(mGlk.getContext(), "Long press on next object", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(mGlk.getContext(), "Long press on the next object", Toast.LENGTH_SHORT).show();
                                             Pattern p = Pattern.compile("<%>");
                                             Matcher m = p.matcher(mActiveCommand.getText().toString());
                                             if (m.find()) {
@@ -1173,14 +1173,13 @@ public class TextBufferWindow extends Window {
             shortcutCommand.setSpan(new Styles().getSpan(mGlk.getContext(), TextBufferWindow.DefaultInputStyle, false),
                     0, shortcutCommand.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             if (!userInput.equals("")) {
-                shortcutCommand.append(userInput + " ");
-                shortcutCommand.append(tempView.getTag().toString());
+                shortcutCommand.append(userInput + " " + tempView.getTag().toString());
             } else
                 shortcutCommand.append(tempView.getTag().toString());
 
             mActiveCommand.setText("");
             mActiveCommand.append(shortcutCommand);
-            if (userInput.contains("<%>")) {
+            if (shortcutCommand.toString().contains("<%>")) {
                 autoEnterFlag = true;
                 Toast.makeText(mGlk.getContext(), "Long press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
                 Pattern p = Pattern.compile("<%>");
