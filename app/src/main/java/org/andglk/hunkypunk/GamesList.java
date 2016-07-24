@@ -126,7 +126,7 @@ public class GamesList extends ListActivity implements OnClickListener {
         }
 
         /** helps to refresh the View, when come back from preferences */
-        startScan();
+       // startScan(); //!!!crashes the app and doubles the first game!!!
     }
 
     @Override
