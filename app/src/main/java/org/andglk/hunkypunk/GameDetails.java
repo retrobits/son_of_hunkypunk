@@ -408,7 +408,7 @@ public class GameDetails extends Activity implements OnClickListener {
         //System.out.println(getResources().getDisplayMetrics().widthPixels +"|" + getResources().getDisplayMetrics().densityDpi);
         //TODO Get minimum IFs supported screen size
         float screen = getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().densityDpi;
-        System.out.println(mGameIfid + "|" + screen);
+        //System.out.println(mGameIfid + "|" + screen);
         if (mGameIfid.equals("ZCODE-2-951203-A9FD") && screen <= 2.7f && !getBookmark().exists()) {
             //tested upto 2.54 = 540/213 then jumps to 3.38 = 540/160
             rotateDialog(intent);

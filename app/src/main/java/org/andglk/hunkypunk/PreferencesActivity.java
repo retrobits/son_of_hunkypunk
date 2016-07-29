@@ -243,6 +243,8 @@ public class PreferencesActivity
             ListPreference lPref = (ListPreference) pref;
             String desc = lPref.getValue();
             pref.setSummary(desc);
+            if(desc.equals("Droid Serif (default)"))
+                pref.setSummary("Droid Serif");
         } else if (pref instanceof PreferenceScreen) {
             setSummaryAll((PreferenceScreen) pref);
         }
@@ -268,7 +270,7 @@ public class PreferencesActivity
             ff.add("Data Control");
             ff.add("Droid Mono");
             ff.add("Droid Sans");
-            ff.add("Droid Serif");
+            ff.add("Droid Serif   (default)");
             ff.add("Keep Calm");
             ff.add("Marlboro");
             ff.add("MKOCR");

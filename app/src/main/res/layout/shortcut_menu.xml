@@ -4,13 +4,71 @@
     android:layout_height="match_parent">
 
     <item
+        android:id="@+id/change_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:icon="@drawable/blue_big"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="Shortcuts color">
+        <menu>
+            <item
+                android:id="@+id/blue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/blue_big"
+                android:title=""
+                android:titleCondensed="#52A6B8"
+                android:showAsAction="always">
+            </item>
+            <item
+                android:id="@+id/grey"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/grey_big"
+                android:title=""
+                android:titleCondensed="#918e8e"
+                android:showAsAction="always">
+            </item>
+            <item
+                android:id="@+id/green"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/green_big"
+                android:title=""
+                android:titleCondensed="#2ba907"
+                android:showAsAction="always">
+            </item>
+            <item
+                android:id="@+id/red"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/red_big"
+                android:title=""
+                android:titleCondensed="#f10707"
+                android:showAsAction="always">
+            </item>
+            <item
+                android:id="@+id/yellow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:icon="@drawable/yellow_big"
+                android:title=""
+                android:titleCondensed="#ffe100"
+                android:showAsAction="always">
+            </item>
+        </menu>
+    </item>
+
+
+    <item
         android:id="@+id/add_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:icon="@android:drawable/ic_menu_add"
         android:orderInCategory="100"
         android:showAsAction="always"
-        android:title="Add new shortcut" />
+        android:title="Add new shortcut"/>
 
     <item
         android:id="@+id/restore_button"
@@ -19,7 +77,7 @@
         android:icon="@android:drawable/ic_menu_revert"
         android:orderInCategory="100"
         android:showAsAction="always"
-        android:title="Restore default shortcuts" />
+        android:title="Restore default shortcuts"/>
 
 
     <item
@@ -29,5 +87,5 @@
         android:icon="@android:drawable/ic_menu_info_details"
         android:orderInCategory="100"
         android:showAsAction="always"
-        android:title="Shortcut Help" />
+        android:title="Shortcuts Help"/>
 </menu>

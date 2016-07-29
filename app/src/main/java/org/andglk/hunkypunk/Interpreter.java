@@ -259,7 +259,7 @@ public class Interpreter extends Activity {
         } catch (Exception e) {
         }
 
-        String fontName = prefs.getString("fontFileName", "Droid Serif"); //returns the Svalue in "fontfileName"-preference and otherwise "DSerif"
+        String fontName = prefs.getString("fontFileName", "Droid Serif (default)"); //returns the Svalue in "fontfileName"-preference and otherwise "DSerif"
         //debugging msg
         //if (TextBufferWindow.DefaultFontName == null)
         //			Toast.makeText(getApplicationContext(), "Font " + fontName + " set.",Toast.LENGTH_LONG).show();

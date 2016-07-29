@@ -35,7 +35,7 @@
             android:title="@string/manageshortcuts" />
 
     </PreferenceCategory>
-    <PreferenceCategory android:title="FilePath">
+    <PreferenceCategory android:title="File Path">
         <Preference
             android:key="setIFDir"
             android:summary="Your new IF-Directory"
@@ -45,7 +45,7 @@
             android:summary="Your default IF-Directory"
             android:title="@string/ifdef" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="NightMode">
+    <PreferenceCategory android:title="Night Mode">
         <SwitchPreference
             android:defaultValue="false"
             android:hint="NightOn"

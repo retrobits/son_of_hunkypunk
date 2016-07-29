@@ -1058,6 +1058,10 @@ public class TextBufferWindow extends Window {
                         SharedPreferences sharedShortcuts = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
                         SharedPreferences sharedShortcutIDs = mContext.getSharedPreferences("shortcutIDs", Context.MODE_PRIVATE);
                         SharedPreferences sharedShortcutPrefs = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
+                        String shortcutsColor = mContext.getSharedPreferences("Color", Context.MODE_PRIVATE)
+                                .getString("newColor", "#52A6B8");
+                        int bg = Color.parseColor(shortcutsColor);
+
                         if (sharedShortcutPrefs.getBoolean("enablelist", true))
                             for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
                                 String title = sharedShortcutIDs.getString(i + "", "");
@@ -1067,6 +1071,15 @@ public class TextBufferWindow extends Window {
                                 CardView cardView = (CardView) shorcutView.findViewById(R.id.cardview);
                                 final TextView textView = (TextView) shorcutView.findViewById(R.id.shortcuttitle);
                                 textView.setText(title);
+
+                                textView.setTextColor(Color.BLACK);
+
+                                if(shortcutsColor.equals("#2ba907"))/*if(green)*/ {
+                                    textView.setTextColor(Color.WHITE);
+                                }
+
+                                cardView.setCardBackgroundColor(bg);
+
 
                                 textView.setTag(command);
                                 cardView.setOnClickListener(new View.OnClickListener() {
@@ -1104,7 +1117,7 @@ public class TextBufferWindow extends Window {
 
 
 					/*DONT DELETE*/
-                    /*Not used for now but left for compatibility as part of issue #41 - onPreDrawNight*/
+                    /*Not used for now but left for compatibility as part of issue - onPreDrawNight*/
                     /*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                         @Override
 						public boolean onPreDraw () {
@@ -1181,7 +1194,7 @@ public class TextBufferWindow extends Window {
                         mActiveCommand.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                     else {
                         autoEnterFlag = true;
-                        Toast.makeText(mGlk.getContext(), "Long-press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mGlk.getContext(), R.string.placeholder, Toast.LENGTH_SHORT).show();
                         Pattern p = Pattern.compile("<%>");
                         Matcher m = p.matcher(mActiveCommand.getText().toString());
                         if (m.find())
@@ -1214,7 +1227,7 @@ public class TextBufferWindow extends Window {
             output(shortcutCommand);
 
             if (shortcutCommand.toString().contains("<%>")) {
-                Toast.makeText(mGlk.getContext(), "Long-press any object to fill the placeholder", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mGlk.getContext(), R.string.placeholder, Toast.LENGTH_SHORT).show();
                 Pattern p = Pattern.compile("<%>");
                 Matcher m = p.matcher(mActiveCommand.getText().toString());
                 if (m.find())
@@ -1263,7 +1276,7 @@ public class TextBufferWindow extends Window {
         //TODO: this is broken & disabled for now |:fixed:|
         //see documentation
         switch (DefaultFontName) {
-            case "Droid Serif":
+            case "Droid Serif (default)":
                 //	|| DefaultFontName.endsWith("otf"))
                 tf = Typeface.SERIF;
                 break;

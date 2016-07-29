@@ -41,8 +41,8 @@
     <string name="ifdb_connection_error">Could not connect to IFDb to lookup details about your stories. Please try again another time.</string>
 
 
-    <string name="ifdef">Set default If folder path</string>
-    <string name="add">If folder path</string>
+    <string name="ifdef">Set default IF folder path</string>
+    <string name="add">IF folder path</string>
     <string name="about">About</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
@@ -88,6 +88,7 @@
     <string name="theatre_message">This game needs a wider screen. Please rotate your screen
         manually or press Apply to start it first time in landscape mode. From then on it will work
         like a charm in any mode. Good luck playing!</string>
-
     <string name="dayNight">Night Mode</string>
+    <string name="deleteShortcuts">Do you want to delete the current shortcuts and restore the predefined shortcuts?</string>
+    <string name="placeholder">Long-press any object to fill the placeholder</string>
 </resources>

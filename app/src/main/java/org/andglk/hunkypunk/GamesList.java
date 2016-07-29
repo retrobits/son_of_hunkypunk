@@ -127,6 +127,10 @@ public class GamesList extends ListActivity implements OnClickListener {
 
         /** helps to refresh the View, when come back from preferences */
        // startScan(); //!!!crashes the app and doubles the first game!!!
+
+        //closing cursors locks start screen + crash
+
+        db.close();//not closing db locks it and results in an exception onResume
     }
 
     @Override
@@ -176,6 +180,8 @@ public class GamesList extends ListActivity implements OnClickListener {
             prefEditor.commit();
         }
         startScan();
+
+        //closing cursors locks start screen + crash
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -215,7 +221,7 @@ public class GamesList extends ListActivity implements OnClickListener {
         /** matching id of each IF to the position in ListView*/
         for (int j = 0; j < getListAdapter().getCount(); j++) {
             ifIDs[j] = getListView().getItemIdAtPosition(j);
-            System.out.println(ifIDs[j]);
+            //System.out.println(ifIDs[j]);
         }
 
         Intent i = new Intent(Intent.ACTION_VIEW, Games.uriOfId(id), this, GameDetails.class);

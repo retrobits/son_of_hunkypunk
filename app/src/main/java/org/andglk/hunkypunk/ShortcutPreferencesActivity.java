@@ -23,6 +23,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mobeta.android.dslv.DragSortListView;
 
@@ -39,6 +40,7 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
     private DragSortListView listView;
     private ArrayList<ShortcutItem> list;
     private Context mContext;
+    private Menu mMenu;
 
     private DragSortListView.DropListener onDrop =
             new DragSortListView.DropListener() {
@@ -276,11 +278,15 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
         SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
         SharedPreferences.Editor shortcutEditor = sharedShortcuts.edit();
         SharedPreferences.Editor shortcutIDEditor = sharedShortcutIDs.edit();
-
-        shortcutEditor.putString(title, command);
-        shortcutIDEditor.putString(sharedShortcutIDs.getAll().size() + "", title);
-        shortcutEditor.commit();
-        shortcutIDEditor.commit();
+        try {
+            shortcutEditor.putString(title, command);
+            shortcutIDEditor.putString(sharedShortcutIDs.getAll().size() + "", title);
+            shortcutEditor.apply();
+            shortcutIDEditor.apply();
+        } catch(Exception e){
+            Toast.makeText(this, "Adding failed. Storage exception.", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
     }
 
     public void editShortcutSharedPreference(int position, String oldTitle, String newTitle, String command) {
@@ -294,8 +300,8 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
 
         shortcutIDEditor.putString(position + "", newTitle);
 
-        shortcutEditor.commit();
-        shortcutIDEditor.commit();
+        shortcutEditor.apply();
+        shortcutIDEditor.apply();
     }
 
     private void moveShortcutPreference(int from, int to) {
@@ -338,15 +344,33 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
             shortcutIDEditor.putString(i + "", list.get(i));
         }
 
-        shortcutEditor.commit();
-        shortcutIDEditor.commit();
+        shortcutEditor.apply();
+        shortcutIDEditor.apply();
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         MenuInflater inflater = new MenuInflater(getApplication());
         inflater.inflate(R.layout.shortcut_menu, menu);
+
+        //restore set color item
+        restoreIcon(menu);
+
+        mMenu = menu; //save to update color later
         return true;
+    }
+
+    @Override
+    public void onOptionsMenuClosed(Menu menu) {
+        super.onOptionsMenuClosed(menu);
+
+        restoreIcon(menu);
+    }
+
+    private void restoreIcon(Menu menu){
+        int old = getSharedPreferences("Color",MODE_PRIVATE).getInt("ID", R.id.blue);
+        MenuItem oldItem = menu.findItem(old);
+        menu.findItem(R.id.change_color).setIcon(oldItem.getIcon());
     }
 
     @Override
@@ -361,7 +385,7 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
             case R.id.restore_button:
                 AlertDialog.Builder restoreBuilder = new AlertDialog.Builder(mContext);
                 restoreBuilder.setTitle("Restore shortcuts");
-                restoreBuilder.setMessage("Do you want to delete the actual shortcuts and restore predefined shortcuts?");
+                restoreBuilder.setMessage(R.string.deleteShortcuts);
                 restoreBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -388,6 +412,24 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
 
             case R.id.help_button:
                 DialogBuilder.showShortcutHelpDialog(this);
+                return true;
+            case R.id.change_color:
+                restoreIcon(mMenu); //in case nothing is selected
+                return true;
+            case R.id.blue:
+                setColor(item);
+                return true;
+            case R.id.grey:
+                setColor(item);
+                return true;
+            case R.id.green:
+                setColor(item);
+                return true;
+            case R.id.red:
+                setColor(item);
+                return true;
+            case R.id.yellow:
+                setColor(item);
                 return true;
 
             default:
@@ -581,5 +623,18 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
     public class ViewHolder {
         public TextView title;
         public TextView command;
+    }
+
+    private void setColor(MenuItem item){
+
+        MenuItem current = mMenu.findItem(R.id.change_color);
+        current.setIcon(item.getIcon());
+
+        //save color icon
+        getSharedPreferences("Color",MODE_PRIVATE).edit().putInt("ID", item.getItemId()).commit();
+
+        //to set color on ext draw
+        getSharedPreferences("Color",MODE_PRIVATE).edit().putString("newColor", (String) item.getTitleCondensed()).apply();
+
     }
 }

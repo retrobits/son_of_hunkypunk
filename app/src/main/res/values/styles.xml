@@ -114,7 +114,14 @@
 	</style>
 
 	<style name="shortcutpreftheme" parent="Theme.AppCompat.NoActionBar" >
+		<item name="actionButtonStyle">@style/MyActionButtonStyle</item>
+		<item name="android:actionButtonStyle">@style/MyActionButtonStyle</item>
 	</style>
 
 	<color name="shortcutsColor">#52A6B8</color>
+
+	<style name="MyActionButtonStyle" parent="Theme.AppCompat.NoActionBar">
+		<item name="android:minWidth">32dip</item>
+		<item name="android:padding">7dip</item>
+	</style>
 </resources>
