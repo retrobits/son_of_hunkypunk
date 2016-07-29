@@ -490,7 +490,7 @@ public class GameDetails extends Activity implements OnClickListener {
             AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this);
             setUpAlertTheatre(rotateDialog, intent);
         } else {
-            AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this, android.R.style.Holo_ButtonBar_AlertDialog);
+            AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this, android.R.style.Theme_Dialog);
             setUpAlertTheatre(rotateDialog, intent);
         }
     }

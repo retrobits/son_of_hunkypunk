@@ -360,13 +360,6 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    public void onOptionsMenuClosed(Menu menu) {
-        super.onOptionsMenuClosed(menu);
-
-        restoreIcon(menu);
-    }
-
     private void restoreIcon(Menu menu){
         int old = getSharedPreferences("Color",MODE_PRIVATE).getInt("ID", R.id.blue);
         MenuItem oldItem = menu.findItem(old);
