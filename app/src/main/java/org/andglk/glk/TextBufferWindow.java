@@ -24,6 +24,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.Inflater;
 
 import org.andglk.glk.Styles.StyleSpan;
 import org.andglk.hunkypunk.R;
@@ -47,6 +48,7 @@ import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -203,9 +205,21 @@ public class TextBufferWindow extends Window {
         }
     }
 
-    private class _ScrollView extends ScrollView {
+    public class _ScrollView extends ScrollView {
         public _ScrollView(Context context) {
             super(context);
+        }
+
+        public _ScrollView(Context context, AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        public _ScrollView(Context context, AttributeSet attrs, int defStyleAttr) {
+            super(context, attrs, defStyleAttr);
+        }
+
+        public _ScrollView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+            super(context, attrs, defStyleAttr, defStyleRes);
         }
 
         @Override
@@ -225,7 +239,7 @@ public class TextBufferWindow extends Window {
     private boolean mUnicodeEvent = false;
     private boolean autoEnterFlag = false;
 
-    private class _CommandView extends EditText {
+    public class _CommandView extends EditText {
 
         public boolean mCharInputEnabled;
         public boolean mLineInputEnabled;
@@ -309,14 +323,14 @@ public class TextBufferWindow extends Window {
 
             Editable text = getText();
             String str = text.toString();
-            if (text != null){
+            if (text != null) {
 
-                if(getSelectionStart() == 0 && getSelectionEnd() == 0) {
-                    if(str.contains("<%>"))
+                if (getSelectionStart() == 0 && getSelectionEnd() == 0) {
+                    if (str.contains("<%>"))
                         setSelection(str.indexOf('<'), str.indexOf('>') + 1);
                     else
                         setSelection(text.length());
-                } else if(getSelectionStart() == str.indexOf('<') && getSelectionEnd() == str.indexOf('<')) {
+                } else if (getSelectionStart() == str.indexOf('<') && getSelectionEnd() == str.indexOf('<')) {
                     setSelection(str.indexOf('<'), str.indexOf('>') + 1);
                 }
             }
@@ -396,7 +410,7 @@ public class TextBufferWindow extends Window {
         }
     }
 
-    private class _PromptView extends TextView {
+    public class _PromptView extends TextView {
         public _PromptView(Context context) {
             super(context, null, R.attr.textBufferWindowStyle);
 
@@ -407,14 +421,14 @@ public class TextBufferWindow extends Window {
         }
     }
 
-    private class _HorListView extends HorizontalScrollView {
+    public class _HorListView extends HorizontalScrollView {
         public _HorListView(Context context) {
             super(context, null, R.attr.textBufferWindowStyle);
             setTag("_HorListViewTAG");
         }
     }
 
-    private class _View extends EditText {
+    public class _View extends EditText {
 
         public class _MovementMethod implements MovementMethod {
 
@@ -927,7 +941,6 @@ public class TextBufferWindow extends Window {
         mContext = glk.getContext();
         mHandler = mGlk.getUiHandler();
 
-
         Glk.getInstance().waitForUi(
                 new Runnable() {
                     @Override
@@ -943,11 +956,14 @@ public class TextBufferWindow extends Window {
                         // when window is created, style hints are fixed
                         stylehints = new Styles(_stylehints);
 
-                        mScrollView = new _ScrollView(mContext);
-                        mScrollView.setPadding(0, 0, 0, 0);
-                        mScrollView.setFocusable(false);
+                        mScrollView = (_ScrollView) LayoutInflater.from(mContext).inflate(R.layout.textbufferwindow, null);
+                        //mScrollView = (_ScrollView) v.findViewById(R.id.mScrollView);
 
-                        LinearLayout.LayoutParams paramsDefault = new
+                        /*mScrollView = new _ScrollView(mContext);
+                        mScrollView.setPadding(0, 0, 0, 0);
+                        mScrollView.setFocusable(false);*/
+
+                        /*LinearLayout.LayoutParams paramsDefault = new
                                 LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
                         LinearLayout.LayoutParams paramsHLayout = new
                                 LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -959,48 +975,54 @@ public class TextBufferWindow extends Window {
                                 LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
                         LinearLayout.LayoutParams paramsLLayout = new
                                 LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-                        paramsPrompt.setMargins(0, -margin, 0, 0);
-                        paramsCommand.setMargins(0, -margin, 0, 0);
+                         paramsPrompt.setMargins(0, -margin, 0, 0);
+                        paramsCommand.setMargins(0, -margin, 0, 0);*/
 
 
-                        mLayout = new LinearLayout(mContext);
+                        mLayout = (LinearLayout) mScrollView.findViewById(R.id.mLayout);
+                        /*mLayout = new LinearLayout(mContext);
                         mLayout.setOrientation(LinearLayout.VERTICAL);
-                        mLayout.setPadding(0, 0, 0, 0);
+                        mLayout.setPadding(0, 0, 0, 0);*/
 
-                        LinearLayout hl = new LinearLayout(mContext);
+                        LinearLayout hl = (LinearLayout) mScrollView.findViewById(R.id.hl);
+                        /*LinearLayout hl = new LinearLayout(mContext);
                         hl.setPadding(0, 0, 0, 0);
-                        hl.setOrientation(LinearLayout.HORIZONTAL);
+                        hl.setOrientation(LinearLayout.HORIZONTAL);*/
 
-                        LinearLayout hll = new LinearLayout(mContext);
+                        LinearLayout hll = (LinearLayout) mScrollView.findViewById(R.id.hll);
+                        /*LinearLayout hll = new LinearLayout(mContext);
                         hll.setPadding(0, 0, 0, 0);
-                        hll.setOrientation(LinearLayout.HORIZONTAL);
+                        hll.setOrientation(LinearLayout.HORIZONTAL);*/
 
-
-                        mCommand1 = new _CommandView(mContext);
-                        mCommand1.setPadding(pad, 0, pad, pad);
+                        mCommand1 = (_CommandView) mScrollView.findViewById(R.id.mCommand1);
+                        /*mCommand1 = new _CommandView(mContext);
+                        mCommand1.setPadding(pad, 0, pad, pad);*/
                         mCommand1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                         mCommand1.clear();
                         mCommand1.disableInput();
                         //mCommand1.setBackgroundColor(Color.YELLOW);
-                        mCommand2 = new _CommandView(mContext);
-                        mCommand2.setPadding(pad, 0, pad, pad);
+
+                        mCommand2 = (_CommandView) mScrollView.findViewById(R.id.mCommand2);
+                        /*mCommand2 = new _CommandView(mContext);
+                        mCommand2.setPadding(pad, 0, pad, pad);*/
                         mCommand2.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                         mCommand2.clear();
                         mCommand2.disableInput();
                         //mCommand2.setBackgroundColor(Color.LTGRAY);
                         ToggleCommandView();
 
-                        mPrompt = new _PromptView(mContext);
+                        mPrompt = (_PromptView) mScrollView.findViewById(R.id.mPrompt);
+                        /*mPrompt = new _PromptView(mContext);
                         mPrompt.setPadding(pad, 0, pad, pad);
-                        mPrompt.setFocusable(false);
+                        mPrompt.setFocusable(false);*/
 
-                        hl.addView(mPrompt, paramsPrompt);
+                        /*hl.addView(mPrompt, paramsPrompt);
                         hl.addView(mCommand1, paramsCommand);
-                        hl.addView(mCommand2, paramsCommand);
+                        hl.addView(mCommand2, paramsCommand);*/
 
-
-                        mHLView = new _HorListView(mContext);
-                        mHLView.setPadding(0, 0, 0, 0);
+                        mHLView = (_HorListView) mScrollView.findViewById(R.id.mHLView);
+                        /*mHLView = new _HorListView(mContext);
+                        mHLView.setPadding(0, 0, 0, 0);*/
                         final ViewGroup viewGroup = new LinearLayout(mContext);
 
                         SharedPreferences sharedShortcuts = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
@@ -1031,17 +1053,18 @@ public class TextBufferWindow extends Window {
                             }
 
                         mHLView.addView(viewGroup);
-                        hll.addView(mHLView, paramsLView);
+                        //hll.addView(mHLView, paramsLView);
 
-                        mView = new _View(mContext);
+                        mView = (_View) mScrollView.findViewById(R.id.mView);
+                        /*mView = new _View(mContext);
                         mView.setPadding(pad, pad, pad, 0);
-                        mView.setFocusable(false);
+                        mView.setFocusable(false);*/
 
-                        mLayout.addView(mView, paramsDefault);
-                        mLayout.addView(hl, paramsHLayout);
-                        mLayout.addView(hll, paramsLLayout);
+                        /*mLayout.addView(mView, paramsDefault);
+                        mLayout.addView(hl, paramsHLayout);*/
+                        //mLayout.addView(hll, paramsLLayout);
 
-                        mScrollView.addView(mLayout);
+                        //mScrollView.addView(mLayout);
                         mStream = new _Stream();
                     }
                 });
@@ -1086,7 +1109,7 @@ public class TextBufferWindow extends Window {
 
                 /*Case for restoring the userInput to save typing*/
                 //TODO: dynamic (user)settable list of commands remembering the last typed in text before click
-                if(userCommand.equalsIgnoreCase("Inventory") || userCommand.equalsIgnoreCase("I")) {
+                if (userCommand.equalsIgnoreCase("Inventory") || userCommand.equalsIgnoreCase("I")) {
 
                     mActiveCommand.setText("");
                     mActiveCommand.append(userCommand);
