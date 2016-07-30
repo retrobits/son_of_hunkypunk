@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<org.andglk.glk.TextBufferWindow._ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<view class = "org.andglk.glk.TextBufferWindow$_ScrollView" xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/mScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <org.andglk.glk.TextBufferWindow._View
+        <view class = "org.andglk.glk.TextBufferWindow$_View"
             android:id="@+id/mView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -24,18 +24,18 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <org.andglk.glk.TextBufferWindow._PromptView
+            <view class = "org.andglk.glk.TextBufferWindow$_PromptView"
                 android:id="@+id/mPrompt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:focusable="false" />
 
-            <org.andglk.glk.TextBufferWindow._CommandView
+            <view class = "org.andglk.glk.TextBufferWindow$_CommandView"
                 android:id="@+id/mCommand1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <org.andglk.glk.TextBufferWindow._CommandView
+            <view class = "org.andglk.glk.TextBufferWindow$_CommandView"
                 android:id="@+id/mCommand2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
@@ -46,10 +46,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <org.andglk.glk.TextBufferWindow._HorListView
+            <view class = "org.andglk.glk.TextBufferWindow$_HorListView"
                 android:id="@+id/mHLView"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"></org.andglk.glk.TextBufferWindow._HorListView>
+                android:layout_height="wrap_content"></view>
         </LinearLayout>
     </LinearLayout>
-</org.andglk.glk.TextBufferWindow._ScrollView>
+</view>

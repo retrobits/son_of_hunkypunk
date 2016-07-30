@@ -205,7 +205,7 @@ public class TextBufferWindow extends Window {
         }
     }
 
-    public class _ScrollView extends ScrollView {
+    public static class _ScrollView extends ScrollView {
         public _ScrollView(Context context) {
             super(context);
         }
@@ -421,7 +421,7 @@ public class TextBufferWindow extends Window {
         }
     }
 
-    public class _HorListView extends HorizontalScrollView {
+    public static class _HorListView extends HorizontalScrollView {
         public _HorListView(Context context) {
             super(context, null, R.attr.textBufferWindowStyle);
             setTag("_HorListViewTAG");
@@ -809,7 +809,7 @@ public class TextBufferWindow extends Window {
             return offset;
         }
 
-        // left off as a posibility to pass it through Clip-Board memory instead of directly setting it.
+        // left off as a possibility to pass it through Clip-Board memory instead of directly setting it.
         /**
          * private void putInClipMemory(String str) {
          * if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
