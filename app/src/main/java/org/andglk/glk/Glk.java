@@ -60,10 +60,12 @@ public class Glk extends Thread {
 	public final static int STYLE_INPUT = 8;
 	public final static int STYLE_USER1 = 9;
 	public final static int STYLE_USER2 = 10;
+	//Night Constants
 	public final static int STYLE_NIGHT = 11;
 	public final static int STYLE_NIGHT_HEADER = 12;
 	public final static int STYLE_NIGHT_SUBHEADER = 13;
 	public final static int STYLE_NIGHT_FORMAT = 14;
+	//Night Constants
 	public final static int STYLE_NUMSTYLES = 15;
 	
 	public final static int STYLEHINT_INDENTATION = 0;

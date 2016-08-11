@@ -202,7 +202,7 @@ public class TextGridWindow extends Window {
             mWidth = mHeight = 0;
 
 
-			/*DONT DELETE*/
+			/*DO NOT DELETE*/
             /*Not used for now but left as a part of issue #41 - onPreDrawNight*/
 			/*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
 				@Override

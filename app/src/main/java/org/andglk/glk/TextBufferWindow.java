@@ -228,6 +228,7 @@ public class TextBufferWindow extends Window {
     private class _CommandView extends EditText {
 
         public boolean mCharInputEnabled;
+        @SuppressWarnings("unused")
         public boolean mLineInputEnabled;
         private TextWatcher mWatcher =
                 new TextWatcher() {
@@ -304,9 +305,8 @@ public class TextBufferWindow extends Window {
 
         }
 
-        /**
-         * Dont put into the onPreDraw, it crashes the app and destroys game progress
-         */
+        /* Don't put into the onPreDraw, it crashes the app and destroys game progress */
+        /* It updates the command view text style and selection */
         private void setTextStyle(EditText etext) {
             SpannableStringBuilder temp = new SpannableStringBuilder();
             temp = temp.append(etext.getText().toString());
@@ -316,6 +316,7 @@ public class TextBufferWindow extends Window {
             Selection.setSelection(etext.getText(), etext.getText().length());
         }
 
+        //Left for easier onPreDraw transition later, for now it is used setTextStyle instead
         private void updateInput(Editable s) {
             if (mContext.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
                 SpannableString text = new SpannableString(s.toString());
@@ -425,16 +426,16 @@ public class TextBufferWindow extends Window {
         public _PromptView(Context context) {
             super(context, null, R.attr.textBufferWindowStyle);
 
-            setTextColor(TextBufferWindow.this.DefaultTextColor);
+            setTextColor(TextBufferWindow.DefaultTextColor);
 
             setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
             setBackgroundResource(0);
             //setTextSize(DefaultFontSize);
             setTypeface(TextBufferWindow.this.getDefaultTypeface());
-            setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+            setBackgroundColor(TextBufferWindow.DefaultBackground);
 
-			/*DONT DELETE*/
-            /*Not used for now but left as a part of issue #41 - onPreDrawNight*/
+			/*DO NOT DELETE*/
+            /* Not used for now but left for onPreDrawNight */
             /*getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                 @Override
 				public boolean onPreDraw () {
@@ -536,7 +537,9 @@ public class TextBufferWindow extends Window {
                                             output.append(userInput);
 
                                         } else if (!userInput.equals("")) {
-                                            output.append(userInput + " ");
+                                            //new append call to remove append String concatenation warning
+                                            output.append(userInput);
+                                            output.append(" ");
                                             output.append(selectedText);
                                         } else
                                             output.append(selectedText);
@@ -739,10 +742,16 @@ public class TextBufferWindow extends Window {
             setPaintFlags(Paint.SUBPIXEL_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG);
             setBackgroundResource(0);
             //setTextSize(DefaultFontSize);
+
+			/* In Styles.class the typeface of the text is firstly set, here it is only measured
+			   onto the view.
+			   Setting it only here results in wrong measuring (when actual and here set typeface
+			   differ in size) and text overflow bug/issue too.
+			 */
             setTypeface(TextBufferWindow.this.getDefaultTypeface());
             setReadOnly(this, true);
 
-            /* Typeface NOT to be set here, since if other than text's one, it results in TextOverflow */
+            /* Typeface NOT ONLY! to be set here, since if other than text's one, it results in TextOverflow */
             /* Typeface set in org.andglk.glk.Styles.updatePaint() */
 
         }
@@ -768,6 +777,7 @@ public class TextBufferWindow extends Window {
                 selection = getSelectionStart();
             else
                 selection = maxEnd;
+
 
             if (selection > 1 && Character.isWhitespace(getText().toString().charAt(selection - 1)) && !Character.isWhitespace(getText().toString().charAt(selection)))
                 ;//do nothing
@@ -831,6 +841,7 @@ public class TextBufferWindow extends Window {
             float x = event.getX() + getScrollX();
             float y = event.getY() + getScrollY();
             int line = layout.getLineForVertical((int) y);
+            @SuppressWarnings("redundant")
             int offset = layout.getOffsetForHorizontal(line, x);
             return offset;
         }
@@ -968,9 +979,9 @@ public class TextBufferWindow extends Window {
     private CharSequence mCommandText = null;
     private EditText mCommandView = null;
     private Object mLineInputSpan;
-    private int selectorCount = 0;
 
-    /*Every window has a rock. This is a value you provide when the window is created; you can use it however you want.*/
+    /*Every window has a rock. This is a value you provide when the window is created;
+      you can use it however you want.*/
     /*If you don't know what to use the rocks for, provide 0 and forget about it.*/
     public TextBufferWindow(Glk glk, int rock) {
         super(rock);
@@ -1067,9 +1078,9 @@ public class TextBufferWindow extends Window {
                                 String title = sharedShortcutIDs.getString(i + "", "");
                                 final String command = sharedShortcuts.getString(title, "");
 
-                                View shorcutView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_view, null);
-                                CardView cardView = (CardView) shorcutView.findViewById(R.id.cardview);
-                                final TextView textView = (TextView) shorcutView.findViewById(R.id.shortcuttitle);
+                                View shortcutView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_view, null);
+                                CardView cardView = (CardView) shortcutView.findViewById(R.id.cardview);
+                                final TextView textView = (TextView) shortcutView.findViewById(R.id.shortcuttitle);
                                 textView.setText(title);
 
                                 textView.setTextColor(Color.BLACK);
@@ -1092,7 +1103,7 @@ public class TextBufferWindow extends Window {
                                     }
                                 });
 
-                                viewGroup.addView(shorcutView);
+                                viewGroup.addView(shortcutView);
                             }
 
                         mHLView.addView(viewGroup);
@@ -1116,7 +1127,7 @@ public class TextBufferWindow extends Window {
                         mStream = new _Stream();
 
 
-					/*DONT DELETE*/
+					/*DO NOT DELETE*/
                     /*Not used for now but left for compatibility as part of issue - onPreDrawNight*/
                     /*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                         @Override
@@ -1183,9 +1194,10 @@ public class TextBufferWindow extends Window {
 
                     SpannableStringBuilder output = new SpannableStringBuilder(userInput.toString());
 
-                    if (!userInput.toString().equals(""))
-                        output.append(" " + userCommand);
-                    else
+                    if (!userInput.toString().equals("")) {
+                        output.append(" ");
+                        output.append(userCommand);
+                    } else
                         output.append(userCommand);
 
                     output(output);
@@ -1220,7 +1232,9 @@ public class TextBufferWindow extends Window {
             SpannableStringBuilder shortcutCommand = new SpannableStringBuilder();
 
             if (!userInput.equals("")) {
-                shortcutCommand.append(userInput + " " + tempView.getTag().toString());
+                shortcutCommand.append(userInput);
+                shortcutCommand.append(" ");
+                shortcutCommand.append(tempView.getTag().toString());
             } else
                 shortcutCommand.append(tempView.getTag().toString());
 
@@ -1233,7 +1247,6 @@ public class TextBufferWindow extends Window {
                 if (m.find())
                     Selection.setSelection(toEditable(mActiveCommand), m.start(), m.end());
             }
-            selectorCount = 2;
         } else {
             //Of course not really (reachable)
             Toast.makeText(mGlk.getContext(), "Interpreter.mActiveCommand is null. Please, contact JPDOB.", Toast.LENGTH_SHORT).show();
@@ -1269,11 +1282,16 @@ public class TextBufferWindow extends Window {
 
     public static Typeface mTypeface = Typeface.SERIF;
 
+    /**
+     * DefaultFontName is set in Interpreter.class and here the is updated the actual typeface value
+     *
+     * @return new typeface value
+     */
     public Typeface getDefaultTypeface() {
         //if (mTypeface == null) {
         Typeface tf = null;
 
-        //TODO: this is broken & disabled for now |:fixed:|
+        //TO DO: this is broken & disabled for now |:fixed:|
         //see documentation
         switch (DefaultFontName) {
             case "Droid Serif (default)":
@@ -1289,115 +1307,153 @@ public class TextBufferWindow extends Window {
             case "Daniel":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Daniel.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "256 BYTES":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/256BYTES.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Adventure":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Adventure.otf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Coda Regular":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Coda-Regular.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "CODE Bold":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Bold.otf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "CODE Light":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/CODE Light.otf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Crimson Roman":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Crimson-Roman.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Data Control":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/data-unifon.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Keep Calm":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/KeepCalm.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Marlboro":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Marlboro.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "MKOCR":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/MKOCR.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Old Game Fatty":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/OldGameFatty.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Pokemon Hollow":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Hollow.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Pokemon Solid":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Pokemon Solid.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Roboto Regular":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Regular.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Roboto Thin":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Roboto-Thin.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Star Jedi":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/Starjedi.ttf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "TeX Regular":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/tex-regular.otf");
-                } catch (Exception ex) {
+                } catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             case "Traveling Typewriter":
                 try {
                     tf = Typeface.createFromAsset(mContext.getAssets(), "Fonts/TravelingTypewriter.otf");
-                } catch (Exception ex) {
+                }catch (RuntimeException ex) {
+                    Toast.makeText(mContext, "An exception occurred while loading typefaces from assets.", Toast.LENGTH_LONG).show();
+                    ex.printStackTrace();
                 }
                 break;
             default:
@@ -1414,6 +1470,8 @@ public class TextBufferWindow extends Window {
         mPrompt.setText(p);
     }
 
+    //not used
+    @SuppressWarnings("unused")
     public Object makeInputSpan() {
         return stylehints.getSpan(mContext, TextBufferWindow.DefaultInputStyle, false);
     }

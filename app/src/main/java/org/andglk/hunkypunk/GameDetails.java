@@ -405,12 +405,16 @@ public class GameDetails extends Activity implements OnClickListener {
         intent.putExtra("ifid", mGameIfid);
         intent.putExtra("loadBookmark", true);
 
+        /*Fix of Theatre screen issue,
+		  it prompts the user with a dialog to the automatically rotate the screen.
+		  Once rotated it is loadable in any mode.*/
+
         //System.out.println(getResources().getDisplayMetrics().widthPixels +"|" + getResources().getDisplayMetrics().densityDpi);
-        //TODO Get minimum IFs supported screen size
+        //TODO Get minimum IFs supported screen size from game file
         float screen = getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().densityDpi;
         //System.out.println(mGameIfid + "|" + screen);
         if (mGameIfid.equals("ZCODE-2-951203-A9FD") && screen <= 2.7f && !getBookmark().exists()) {
-            //tested upto 2.54 = 540/213 then jumps to 3.38 = 540/160
+            //tested up to 2.54 = 540/213 then jumps to 3.38 = 540/160
             rotateDialog(intent);
         } else
             startActivity(intent);

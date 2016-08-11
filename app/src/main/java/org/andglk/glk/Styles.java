@@ -135,7 +135,7 @@ public class Styles {
 				ds.setTypeface(Typeface.SERIF);
 			}*/
 			if (TextBufferWindow.mTypeface != null) {
-				ds.setTypeface(TextBufferWindow.mTypeface);
+				ds.setTypeface(TextBufferWindow.mTypeface); //sets Typeface chosen from Preferences
 			}else {
 				if (Integer.valueOf(0).equals(hints[Glk.STYLEHINT_PROPORTIONAL])) {
 					ds.setTypeface(Typeface.MONOSPACE);
