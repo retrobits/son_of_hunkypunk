@@ -18,9 +18,9 @@
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.andglk.hunkypunk"
-    android:versionCode="6"
-    android:versionName="0.8">
+    package="org.andglkmod.hunkypunk"
+    android:versionCode="7"
+    android:versionName="0.9">
 
     <supports-screens
         android:anyDensity="true"
@@ -36,7 +36,7 @@
         android:label="@string/app_name">
         <!-- android:debuggable="true" -->
         <activity
-            android:name="org.andglk.hunkypunk.Interpreter"
+            android:name="org.andglkmod.hunkypunk.Interpreter"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:label="@string/app_name"
             android:launchMode="singleTask">
@@ -47,11 +47,11 @@
             </intent-filter>
         </activity>
         <provider
-            android:name="org.andglk.hunkypunk.HunkyPunkProvider"
-            android:authorities="org.andglk.hunkypunk.HunkyPunk" />
+            android:name="org.andglkmod.hunkypunk.HunkyPunkProvider"
+            android:authorities="org.andglkmod.hunkypunk.HunkyPunk" />
 
         <activity
-            android:name="org.andglk.hunkypunk.GamesList"
+            android:name="org.andglkmod.hunkypunk.GamesList"
             android:label="@string/hunky_punk">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -59,7 +59,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="org.andglk.hunkypunk.GameDetails"
+            android:name="org.andglkmod.hunkypunk.GameDetails"
             android:label="@string/game_details">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -74,7 +74,7 @@
             android:name=".InstallGame"
             android:excludeFromRecents="true"
             android:label="@string/hunky_punk"
-            android:targetActivity="org.andglk.hunkypunk.GameDetails">
+            android:targetActivity="org.andglkmod.hunkypunk.GameDetails">
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -190,7 +190,7 @@
         </activity-alias>
 
         <activity
-            android:name="org.andglk.hunkypunk.PreferencesActivity"
+            android:name="org.andglkmod.hunkypunk.PreferencesActivity"
             android:label="@string/preferences">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -199,7 +199,7 @@
         </activity>
 
         <activity
-            android:name="org.andglk.hunkypunk.ShortcutPreferencesActivity"
+            android:name="org.andglkmod.hunkypunk.ShortcutPreferencesActivity"
             android:label="@string/preferences">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
