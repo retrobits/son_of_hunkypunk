@@ -23,6 +23,13 @@
 	android:layout_height="fill_parent"
 	android:gravity="center"
 >
+	<android.support.v7.widget.Toolbar
+		android:id="@+id/appbar"
+		android:layout_height="@dimen/abc_action_bar_default_height_material"
+		android:layout_width="match_parent"
+		android:minHeight="@dimen/abc_action_bar_default_height_material"
+		android:background="?attr/colorPrimary"
+		/>
 	<ListView android:id="@id/android:list"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
@@ -36,7 +43,18 @@
 		android:layout_weight="1"
 		android:gravity="center"
 	>
-		<TextView
+		<TextView android:id="@+id/go_to_prefs_msg"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center"
+			android:text="@string/invalid_if_dir"
+			/>
+		<Button android:id="@+id/go_to_prefs"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Go to Preferences"
+			/>
+		<TextView android:id="@+id/go_to_ifdb_msg"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:gravity="center"

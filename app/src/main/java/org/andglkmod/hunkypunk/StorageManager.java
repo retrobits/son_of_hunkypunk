@@ -59,10 +59,12 @@ public class StorageManager {
 	private final ContentResolver mContentResolver;
 	private Handler mHandler;
 	private DatabaseHelper mOpenHelper;
+	private Context mContext;
 	
 	private StorageManager(Context context) {
-		mContentResolver = context.getContentResolver();
-		mOpenHelper = new DatabaseHelper(context);
+		mContext = context;
+		mContentResolver = mContext.getContentResolver();
+		mOpenHelper = new DatabaseHelper(mContext);
 	}
 	
 	private static StorageManager sInstance;
@@ -231,12 +233,15 @@ public class StorageManager {
 		}.run();
 	}
 
+	public boolean alreadyScanning = false;
 	public void startScan() {
+		alreadyScanning = true;
 		new Thread() {
 			@Override
 			public void run() {
 				scan(Paths.ifDirectory());
 				Message.obtain(mHandler, DONE).sendToTarget();
+				alreadyScanning = false;
 			}
 		}.start();
 	}
@@ -253,7 +258,7 @@ public class StorageManager {
 
 				try {
 					if (scheme.equals(ContentResolver.SCHEME_CONTENT)) {
-						ftemp = File.createTempFile(unknownContent,null,Paths.tempDirectory());
+						ftemp = File.createTempFile(unknownContent,null,Paths.tempDirectory(mContext));
 						InputStream in = mContentResolver.openInputStream(game);
 						OutputStream out = new FileOutputStream(ftemp);
 						Utils.copyStream(in, out);
@@ -265,7 +270,7 @@ public class StorageManager {
 						String ext = "zcode";					
 						if (ifid.indexOf("TADS")==0) ext="gam";
 
-						fgame = new File(Paths.tempDirectory().getAbsolutePath() 
+						fgame = new File(Paths.tempDirectory(mContext).getAbsolutePath()
 												 + "/" + unknownContent + ifid + "." + ext);
 						ftemp.renameTo(fgame);
 					}

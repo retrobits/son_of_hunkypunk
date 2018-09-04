@@ -39,6 +39,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Handler;
 import android.os.Message;
@@ -271,12 +272,12 @@ public class IFDb {
 		return sInstance;
 	}
 
-	public void startLookup(final Handler errorHandler) {
+	public void startLookup(final Context c, final Handler errorHandler) {
 		new Thread() {
 			@Override
 			public void run() {
 				try {
-					lookupGames();
+					lookupGames(c);
 				} catch (IOException e) {
 					Message.obtain(errorHandler).sendToTarget();
 				}
@@ -284,14 +285,14 @@ public class IFDb {
 		}.start();
 	}
 
-	public void lookupGames() throws IOException {
+	public void lookupGames(Context c) throws IOException {
 		Cursor query = mContentResolver.query(Games.CONTENT_URI, PROJECTION, 
 				Games.LOOKED_UP + " IS NULL", null, null);
 		
 		try {
 			while (query.moveToNext())
 				try {
-					lookup(query.getString(IFID));
+					lookup(c, query.getString(IFID));
 				} catch (MalformedIFIDException e) {
 					Log.e(TAG, "malformed ifid", e);
 				} catch (IOException e) {
@@ -305,7 +306,7 @@ public class IFDb {
 	
 	private static SAXParserFactory factory = SAXParserFactory.newInstance(); 
 
-	public void lookup(String ifid) throws MalformedIFIDException, IOException {
+	private void lookup(Context c, String ifid) throws MalformedIFIDException, IOException {
 		URL url;
 		try {
 			url = urlOfIfid(ifid);
@@ -339,7 +340,7 @@ public class IFDb {
 		final String coverArt = handler.getCoverArt();
 		if (coverArt != null)
 			try {
-				fetchCover(ifid, coverArt);
+				fetchCover(c, ifid, coverArt);
 			} catch (IOException e) {
 				Log.e(TAG, "IO error when fetching cover for " + ifid, e);
 			}
@@ -349,11 +350,11 @@ public class IFDb {
 		mContentResolver.update(Games.uriOfIfid(ifid), values, null, null);
 	}
 
-	private static void fetchCover(String ifid, String coverArt) throws IOException {
+	private static void fetchCover(Context c, String ifid, String coverArt) throws IOException {
 		if (coverArt == null || coverArt.length() == 0) return;
 
 		URL source = new URL(coverArt);
-		File destination = HunkyPunk.getCover(ifid);
+		File destination = HunkyPunk.getCover(c, ifid);
 
 		FileOutputStream fos = new FileOutputStream(destination);
 		Utils.copyStream(source.openStream(), fos);
@@ -371,12 +372,12 @@ public class IFDb {
 		return new URL(BASE_URL + hack_ifid);
 	}
 
-	public void startLookup(final String ifid, final Handler lookupHandler) {
+	public void startLookup(final Context c, final String ifid, final Handler lookupHandler) {
 		new Thread() {
 			@Override
 			public void run() {
 				try {
-					lookup(ifid);
+					lookup(c, ifid);
 					Message.obtain(lookupHandler, SUCCESS).sendToTarget();
 				} catch (Exception e) {
 					Message.obtain(lookupHandler, FAILURE).sendToTarget();

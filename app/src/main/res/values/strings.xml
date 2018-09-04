@@ -71,10 +71,13 @@
     <string name="delete_title">Delete Game?</string>
     <string name="edit_title">Edit Game Title</string>
     <string name="delete_confirm">Really delete this game?</string>
-    
+
+    <string name="invalid_if_dir">I\'m unable to use the current storage location.
+        Please go to Preferences and update the "IF folder path" to a valid location.
+   	</string>
     <string name="empty_list">You seem to have no stories installed.
-    	To install one, just put it in the Interactive Fiction directory of the SD card.
-        Alternatively you can define another directory in preferences.
+    	To install one, just put it in the Interactive Fiction directory.
+        Alternatively you can choose another directory in preferences.
     	You may find many stories at IFDb, or you can just
     	let me download a handful to get you started.
 		Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and

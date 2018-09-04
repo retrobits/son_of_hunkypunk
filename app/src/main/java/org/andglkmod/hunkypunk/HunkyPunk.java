@@ -21,6 +21,7 @@ package org.andglkmod.hunkypunk;
 
 import java.io.File;
 
+import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -65,25 +66,7 @@ public final class HunkyPunk {
 		}
 	}
 
-	public static File getCover(String ifid) {
-		return new File(Paths.coverDirectory(), ifid);
-	}
-	
-	public static File getGameDataDir(Uri uri, String ifid) {
-		File fGame = new File(uri.getPath());
-
-		File fData = Paths.dataDirectory();
-
-		//search
-		String dirName = fGame.getName()+"."+ifid;
-		GameDataDirFilter filter = new GameDataDirFilter(ifid);		
-		File[] fs = fData.listFiles(filter);
-		if (fs != null && fs.length>0)
-			dirName = fs[0].getName();
-
-		File f = new File(fData, dirName);
-		if (!f.exists()) f.mkdir();
-		
-		return f;
+	public static File getCover(Context c, String ifid) {
+		return new File(Paths.coverDirectory(c), ifid);
 	}
 }

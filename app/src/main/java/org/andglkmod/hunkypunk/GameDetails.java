@@ -52,7 +52,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
@@ -61,8 +60,13 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.support.annotation.Nullable;
+import android.support.v7.view.ActionMode;
+import android.support.v7.app.AppCompatCallback;
+import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.widget.Toolbar;
 
-public class GameDetails extends Activity implements OnClickListener {
+public class GameDetails extends Activity implements OnClickListener,AppCompatCallback {
     private static final String TAG = "hunkypunk.GameDetails";
 
     private static final String[] PROJECTION = {
@@ -125,7 +129,7 @@ public class GameDetails extends Activity implements OnClickListener {
                 case StorageManager.INSTALLED:
                     mProgressDialog.dismiss();
                     mGameIfid = (String) msg.obj;
-                    show(HunkyPunk.Games.uriOfIfid(mGameIfid));
+                    show(HunkyPunk.Games.uriOfIfid(mGameIfid), null);
                     break;
                 case StorageManager.INSTALL_FAILED:
                     mProgressDialog.dismiss();
@@ -144,14 +148,14 @@ public class GameDetails extends Activity implements OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        //requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
         Uri game = getIntent().getData();
         String scheme = game.getScheme();
 
         if (scheme.equals(ContentResolver.SCHEME_CONTENT)
                 && game.toString().indexOf("HunkyPunk/games") > 0)
-            show(game);
+            show(game, savedInstanceState);
         else
             install(game, scheme);
         gestureDetector = new GestureDetector(new SwipeDetector());
@@ -159,11 +163,20 @@ public class GameDetails extends Activity implements OnClickListener {
         getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false);
     }
 
+    public void onSupportActionModeStarted(android.support.v7.view.ActionMode mode) {}
+
+    public void onSupportActionModeFinished(android.support.v7.view.ActionMode mode) {}
+
+    @Nullable
+    public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback)
+    {
+        return null;
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        MenuInflater inflater = new MenuInflater(getApplication());
-        //noinspection ResourceType
-        inflater.inflate(R.layout.menu_game_details, menu);
+        new MenuInflater(getApplication()).inflate(R.layout.menu_game_details, menu);
         return true;
     }
 
@@ -190,7 +203,7 @@ public class GameDetails extends Activity implements OnClickListener {
                                         Editable value = input.getText();
                                         StorageManager.getInstance(GameDetails.this)
                                                 .updateGame(mGameIfid, value.toString());
-                                        show(HunkyPunk.Games.uriOfIfid(mGameIfid));
+                                        show(HunkyPunk.Games.uriOfIfid(mGameIfid), null);
                                     }
                                 })
                         .setNegativeButton(this.getString(android.R.string.cancel), null).show();
@@ -236,8 +249,14 @@ public class GameDetails extends Activity implements OnClickListener {
         mediaScanner.startInstall(game, scheme);
     }
 
-    private void show(Uri game) {
-        setContentView(R.layout.game_details);
+    private void show(Uri game, Bundle savedInstanceState) {
+
+        AppCompatDelegate delegate = AppCompatDelegate.create(this, this);
+        if (savedInstanceState != null) delegate.onCreate(savedInstanceState);
+        delegate.setContentView(R.layout.game_details);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
+        delegate.setSupportActionBar(toolbar);
+
         mTitle = (TextView) findViewById(R.id.title);
         mHeadline = (TextView) findViewById(R.id.headline);
         mAuthor = (TextView) findViewById(R.id.author);
@@ -265,7 +284,7 @@ public class GameDetails extends Activity implements OnClickListener {
         if (mQuery.isNull(LOOKED_UP)) {
             Toast.makeText(this, R.string.looking_up, Toast.LENGTH_SHORT).show();
             setProgressBarIndeterminateVisibility(true);
-            IFDb.getInstance(getContentResolver()).startLookup(mGameIfid, mLookupHandler);
+            IFDb.getInstance(getContentResolver()).startLookup(this, mGameIfid, mLookupHandler);
         }
 
         mTitle.setText(mQuery.getString(TITLE));
@@ -330,7 +349,7 @@ public class GameDetails extends Activity implements OnClickListener {
 
         mDetails.setText(sb);
 
-        File i = HunkyPunk.getCover(mQuery.getString(IFID));
+        File i = HunkyPunk.getCover(this,mQuery.getString(IFID));
         if (i.exists()) {
             // Uri.fromFile doesn't work for some reason
             mCover.setImageURI(Uri.parse(i.getAbsolutePath()));
@@ -350,7 +369,7 @@ public class GameDetails extends Activity implements OnClickListener {
 
     private File getBookmark() {
         return new File(
-                HunkyPunk.getGameDataDir(Uri.parse(mGameFile.getAbsolutePath()), mGameIfid), "bookmark");
+                Paths.gameStateDir(this,Uri.parse(mGameFile.getAbsolutePath()), mGameIfid), "bookmark");
     }
 
     @Override

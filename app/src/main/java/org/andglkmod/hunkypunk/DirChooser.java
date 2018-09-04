@@ -99,7 +99,7 @@ public class DirChooser extends DialogFragment {
             File[] dirs = path.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File file) {
-                    return (file.isDirectory() && file.canRead());
+                    return (file.isDirectory() && file.canRead() && !file.getName().startsWith("."));
                 }
             });
 
@@ -108,7 +108,7 @@ public class DirChooser extends DialogFragment {
                 @Override
                 public boolean accept(File file) {
                     if (!file.isDirectory()) {
-                        if (!file.canRead()) {
+                        if (!file.canRead() || file.getName().startsWith(".")) {
                             return false;
                         } else if (extension == null) {
                             return true;
@@ -128,7 +128,7 @@ public class DirChooser extends DialogFragment {
             // convert to an array
             int i = 0;
             String[] fileList;
-            if (path.getParentFile() == null) {
+            if (path.getParentFile() == null || path.compareTo(Paths.cardDirectory())==0) {
                 fileList = new String[dirs.length + files.length];
             } else {
                 fileList = new String[dirs.length + files.length + 1];
@@ -145,7 +145,7 @@ public class DirChooser extends DialogFragment {
 
             // refresh the user interface
             builder.setTitle(currentPath.getPath());
-            list.setAdapter(new ArrayAdapter(getActivity(),
+            list.setAdapter(new ArrayAdapter<String>(getActivity(),
                     android.R.layout.simple_list_item_1, fileList) {
                 @Override
                 public View getView(int pos, View view, ViewGroup parent) {

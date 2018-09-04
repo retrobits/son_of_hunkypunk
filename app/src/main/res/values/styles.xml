@@ -45,7 +45,7 @@
 	</style>
 
 	<!-- Night Theme-->
-	<style name="theme2" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+	<style name="theme2" parent="@android:style/Theme.Black.NoTitleBar">
 		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
 		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
 		<item name="textGridWindowStyle">@style/TextGridWindow</item>
@@ -68,7 +68,7 @@
 	<style name="subheader" parent="@android:style/TextAppearance.Small">
 		<item name="android:textStyle">bold</item>
 	</style>
-	
+
 	<style name="alert">
 		<item name="android:textStyle">bold</item>
 		<item name="android:textColor">#600</item>
@@ -96,7 +96,8 @@
 	</style>
 	<style name="night">
 		<item name="android:textStyle">bold</item>
-		<item name="android:textColor">#f6020e</item>
+		<item name="android:textColor">#5ff602</item>
+		<!-- <item name="android:textColor">#f6020e</item> -->
 	</style>
 
 	<style name="night_header" parent="@android:style/TextAppearance.Medium">
@@ -123,5 +124,10 @@
 	<style name="MyActionButtonStyle" parent="Theme.AppCompat.NoActionBar">
 		<item name="android:minWidth">32dip</item>
 		<item name="android:padding">7dip</item>
+	</style>
+
+	<style name="prefstheme" parent="Theme.AppCompat">
+	</style>
+	<style name="compatbartheme" parent="Theme.AppCompat.NoActionBar">
 	</style>
 </resources>

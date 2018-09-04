@@ -535,14 +535,22 @@ public class TextBufferWindow extends Window {
                                             }
                                             userInput = userInput.replaceFirst("<%>", selectedText);
                                             output.append(userInput);
-
-                                        } else if (!userInput.equals("")) {
-                                            //new append call to remove append String concatenation warning
-                                            output.append(userInput);
-                                            output.append(" ");
+                                            if (!userInput.endsWith(" ")) {
+                                                output.append(" ");
+                                            }
+                                        } else {
+                                            if (!userInput.equals("")) {
+                                                //new append call to remove append String concatenation warning
+                                                output.append(userInput);
+                                                if (!userInput.endsWith(" ")) {
+                                                    output.append(" ");
+                                                }
+                                            }
                                             output.append(selectedText);
-                                        } else
-                                            output.append(selectedText);
+                                            if (!selectedText.endsWith(" ")) {
+                                                output.append(" ");
+                                            }
+                                        }
 
                                         if (!userInput.contains("<%>") && autoEnterFlag) {
                                             autoEnterFlag = false;
@@ -1114,13 +1122,8 @@ public class TextBufferWindow extends Window {
                         mView.setFocusable(false);
 
                         mLayout.addView(mView, paramsDefault);
-                        if (mContext.getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
-                            mLayout.addView(hll, paramsLLayout);
-                            mLayout.addView(hl, paramsHLayout);
-                        } else {
-                            mLayout.addView(hl, paramsHLayout);
-                            mLayout.addView(hll, paramsLLayout);
-                        }
+                        mLayout.addView(hl, paramsHLayout);
+                        mLayout.addView(hll, paramsLLayout);
 
                         mScrollView.setBackgroundColor(DefaultBackground);
                         mScrollView.addView(mLayout);
@@ -1195,10 +1198,14 @@ public class TextBufferWindow extends Window {
                     SpannableStringBuilder output = new SpannableStringBuilder(userInput.toString());
 
                     if (!userInput.toString().equals("")) {
+                        if (!userInput.toString().endsWith(" ")) {
+                            output.append(" ");
+                        }
+                    }
+                    output.append(userCommand);
+                    if (!userCommand.endsWith(" ")) {
                         output.append(" ");
-                        output.append(userCommand);
-                    } else
-                        output.append(userCommand);
+                    }
 
                     output(output);
 
@@ -1233,10 +1240,11 @@ public class TextBufferWindow extends Window {
 
             if (!userInput.equals("")) {
                 shortcutCommand.append(userInput);
-                shortcutCommand.append(" ");
-                shortcutCommand.append(tempView.getTag().toString());
-            } else
-                shortcutCommand.append(tempView.getTag().toString());
+                if (!userInput.endsWith(" ")) {
+                    shortcutCommand.append(" ");
+                }
+            }
+            shortcutCommand.append(tempView.getTag().toString());
 
             output(shortcutCommand);
 

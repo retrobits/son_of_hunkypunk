@@ -73,7 +73,7 @@ public class Interpreter extends Activity {
         Uri uri = i.getData();
         String terp = i.getStringExtra("terp");
         String ifid = i.getStringExtra("ifid");
-        mDataDir = HunkyPunk.getGameDataDir(uri, ifid);
+        mDataDir = Paths.gameStateDir(this, uri, ifid);
         File saveDir = new File(mDataDir, "savegames");
         saveDir.mkdir();
 
@@ -312,23 +312,6 @@ public class Interpreter extends Activity {
         super.onDestroy();
         glk.postExitEvent();
     }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        if (!glk.isAlive())
-            return;
-
-        ArrayList<Parcelable> states = new ArrayList<Parcelable>();
-
-        Window w = null;
-        while ((w = Window.iterate(w)) != null)
-            states.add(w.saveInstanceState());
-
-        outState.putParcelableArrayList("windowStates", states);
-    }
-
 
     /**
      * A method for recursively finding a view given a tag. If there

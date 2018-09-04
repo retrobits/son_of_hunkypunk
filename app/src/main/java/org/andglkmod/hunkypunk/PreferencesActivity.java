@@ -149,12 +149,12 @@ public class PreferencesActivity
         }
 
         final Preference dpref = findPreference("defaultif");
-        dpref.setSummary(Paths.cardDirectory().getPath() + "/Interactive Fiction");
+        dpref.setSummary(Paths.defaultIfDirectory().getPath());
         if (dpref != null) {
             dpref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    Paths.setIfDirectory(new File(Paths.cardDirectory().getPath() + "/Interactive Fiction")); //set Path as default
+                    Paths.setIfDirectory(Paths.defaultIfDirectory()); //set Path as default
 
                     Toast.makeText(PreferencesActivity.this, "You have set the default directory.", Toast.LENGTH_SHORT).show();
 

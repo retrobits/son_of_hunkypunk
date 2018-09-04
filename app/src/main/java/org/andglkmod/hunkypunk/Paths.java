@@ -19,7 +19,10 @@
 
 package org.andglkmod.hunkypunk;
 
+import android.net.Uri;
 import android.os.Environment;
+import android.content.Context;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -29,21 +32,29 @@ public abstract class Paths {
     public static File cardDirectory() {
         return new File(Environment.getExternalStorageDirectory().getPath());
     }
+    public static File appDirectory(Context c) {
+        return c.getExternalFilesDir(null);
+    }
 
-    public static File dataDirectory() {
+    public static File oldAppDirectory() {
         File f = new File(cardDirectory(), "Android/data/org.andglkmod.hunkypunk");
+        return f;
+    }
+
+    public static File gameStateRootDirectory(Context c) {
+        File f = new File(appDirectory(c), "gamestate");
         if (!f.exists()) f.mkdir();
         return f;
     }
 
-    public static File coverDirectory() {
-        File f = new File(dataDirectory(), "covers");
+    public static File coverDirectory(Context c) {
+        File f = new File(appDirectory(c), "covers");
         if (!f.exists()) f.mkdir();
         return f;
     }
 
-    public static File tempDirectory() {
-        File f = new File(dataDirectory(), "temp");
+    public static File tempDirectory(Context c) {
+        File f = new File(appDirectory(c), "temp");
         if (!f.exists()) f.mkdir();
         return f;
     }
@@ -54,11 +65,65 @@ public abstract class Paths {
         return f;
     }
 
-    public static File ifDirectory() {
-        if (ifDirectory != null)
-            return ifDirectory;
-        File f = new File(cardDirectory(), "Interactive Fiction");
+    public static File gameStateDir(Context c, Uri uri, String ifid) {
+        return gameStateDir(c,uri.getPath(),ifid);
+    }
+    public static File gameStateDir(Context c, String path, String ifid) {
+        File fGame = new File(path);
+
+        File fData = Paths.gameStateRootDirectory(c);
+
+        //search
+        String dirName = fGame.getName()+"."+ifid;
+        GameDataDirFilter filter = new GameDataDirFilter(ifid);
+        File[] fs = fData.listFiles(filter);
+        if (fs != null && fs.length>0)
+            dirName = fs[0].getName();
+
+        File f = new File(fData, dirName);
         if (!f.exists()) f.mkdir();
+
+        return f;
+    }
+
+    public static File oldGameStateDir(Uri uri, String ifid) {
+        return oldGameStateDir(uri.getPath(),ifid);
+    }
+    public static File oldGameStateDir(String path, String ifid) {
+        File fGame = new File(path);
+
+        File fData = Paths.oldAppDirectory();
+
+        //search
+        String dirName = fGame.getName()+"."+ifid;
+        GameDataDirFilter filter = new GameDataDirFilter(ifid);
+        File[] fs = fData.listFiles(filter);
+        if (fs != null && fs.length>0)
+            dirName = fs[0].getName();
+
+        return new File(fData, dirName);
+    }
+
+    public static boolean isIfDirectoryValid() {
+        String state = Environment.getExternalStorageState();
+        return state.equals(Environment.MEDIA_MOUNTED)
+            && ifDirectory().exists();
+    }
+
+    public static File ifDirectory() {
+        File f;
+        if (ifDirectory != null)
+            f = ifDirectory;
+        else
+            f = defaultIfDirectory();
+        if (!f.exists()) f.mkdir();
+        return f;
+    }
+
+    public static File defaultIfDirectory()
+    {
+        File c = cardDirectory();
+        File f = new File(c, "Interactive Fiction");
         return f;
     }
 

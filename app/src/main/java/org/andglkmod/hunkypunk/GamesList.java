@@ -20,11 +20,13 @@
 package org.andglkmod.hunkypunk;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -43,6 +45,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -57,10 +61,14 @@ import android.view.View.OnClickListener;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
-
+import android.support.annotation.Nullable;
+import android.support.v7.view.ActionMode;
+import android.support.v7.app.AppCompatCallback;
+import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.widget.Toolbar;
 import java.util.regex.Pattern;
 
-public class GamesList extends ListActivity implements OnClickListener {
+public class GamesList extends ListActivity implements OnClickListener, AppCompatCallback {
     private static final String[] PROJECTION = {
             Games._ID,
             Games.IFID,
@@ -80,7 +88,7 @@ public class GamesList extends ListActivity implements OnClickListener {
             "http://www.ifarchive.org/if-archive/games/competition98/tads/plant/plant.gam",
             "http://www.ifarchive.org/if-archive/games/zcode/Bronze.zblorb",
             "http://www.ifarchive.org/if-archive/games/zcode/theatre.z5",
-            "http://hunkypunk.googlecode.com/files/uu1.gam"
+            "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/hunkypunk/uu1.gam"
     };
 
     protected static final String TAG = "HunkyPunk";
@@ -106,9 +114,23 @@ public class GamesList extends ListActivity implements OnClickListener {
 
     private SimpleCursorAdapter adapter;
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+
+    private void verifyIfDirectory()
+    {
+        if (Paths.isIfDirectoryValid()){
+            findViewById(R.id.go_to_prefs).setVisibility(View.INVISIBLE);
+            findViewById(R.id.go_to_prefs_msg).setVisibility(View.INVISIBLE);
+            findViewById(R.id.go_to_ifdb).setVisibility(View.VISIBLE);
+            findViewById(R.id.go_to_ifdb_msg).setVisibility(View.VISIBLE);
+            findViewById(R.id.download_preselected).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.go_to_prefs).setVisibility(View.VISIBLE);
+            findViewById(R.id.go_to_prefs_msg).setVisibility(View.VISIBLE);
+            findViewById(R.id.go_to_ifdb).setVisibility(View.INVISIBLE);
+            findViewById(R.id.go_to_ifdb_msg).setVisibility(View.INVISIBLE);
+            findViewById(R.id.download_preselected).setVisibility(View.INVISIBLE);
+        }
+
         /** gets the If-Path from SharedPrefences, which could be changed at the last session */
         String path = getSharedPreferences("ifPath", Context.MODE_PRIVATE).getString("ifPath", "");
         if (!path.equals(""))
@@ -124,13 +146,16 @@ public class GamesList extends ListActivity implements OnClickListener {
                 db.execSQL("delete from games where ifid = '" + c.getString(1) + "'");
             }
         }
+        db.close();
 
         /** helps to refresh the View, when come back from preferences */
-       // startScan(); //!!!crashes the app and doubles the first game!!!
+        startScan();
+    }
 
-        //closing cursors locks start screen + crash
-
-        db.close();//not closing db locks it and results in an exception onResume
+    @Override
+    protected void onResume() {
+        super.onResume();
+        verifyIfDirectory();
     }
 
     @Override
@@ -150,8 +175,15 @@ public class GamesList extends ListActivity implements OnClickListener {
                 new String[]{Games.TITLE, Games.AUTHOR}, new int[]{android.R.id.text1, android.R.id.text2});
         setListAdapter(adapter);
 
-        setContentView(R.layout.games_list);
+        AppCompatDelegate delegate = AppCompatDelegate.create(this, this);
+        delegate.onCreate(savedInstanceState);
+        delegate.setContentView(R.layout.games_list);
+        //setContentView(R.layout.games_list);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
+        delegate.setSupportActionBar(toolbar);
+
         findViewById(R.id.go_to_ifdb).setOnClickListener(this);
+        findViewById(R.id.go_to_prefs).setOnClickListener(this);
         findViewById(R.id.download_preselected).setOnClickListener(this);
 
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
@@ -179,16 +211,102 @@ public class GamesList extends ListActivity implements OnClickListener {
             shortcutEditor.commit();
             prefEditor.commit();
         }
-        startScan();
+        else if (sharedPreferences.getBoolean("performUpgrade", true)) {
+            SharedPreferences.Editor prefEditor = sharedPreferences.edit();
 
-        //closing cursors locks start screen + crash
+            File old = Paths.oldAppDirectory();
+            if (old.exists() && old.getPath() != Paths.appDirectory(this).getPath())
+            {
+                //copy covers
+                String oldCovers = new File(old,"covers").getPath();
+                copyFileOrDirectory(oldCovers, Paths.coverDirectory(this).getParentFile().getPath());
+
+                //copy existing games with state data
+                DatabaseHelper mOpenHelper = new DatabaseHelper(this);
+                SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+                for (int i = 0; i < adapter.getCount(); i++) {
+                    Cursor c = (Cursor) adapter.getItem(i);
+                    String ifid = c.getString(1);
+                    String gamepath = c.getString(4);
+                    File oldgame = Paths.oldGameStateDir(gamepath, ifid);
+                    File newgame = Paths.gameStateDir(this, gamepath, ifid);
+                    File newsavegames = new File(newgame, "savegames");
+                    if (oldgame.exists() && !newsavegames.exists()) {
+                        copyFileOrDirectory(oldgame.getPath(), newgame.getParentFile().getPath());
+                    }
+                }
+            }
+
+            prefEditor.putBoolean("performUpgrade", false);
+            prefEditor.commit();
+        }
+
+        verifyIfDirectory();
     }
 
+    public void onSupportActionModeStarted(android.support.v7.view.ActionMode mode) {}
+
+    public void onSupportActionModeFinished(android.support.v7.view.ActionMode mode) {}
+
+    @Nullable
+    public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback)
+    {
+        return null;
+    }
+
+    public static void copyFileOrDirectory(String srcDir, String dstDir) {
+
+        try {
+            File src = new File(srcDir);
+            File dst = new File(dstDir, src.getName());
+
+            if (src.isDirectory()) {
+
+                String files[] = src.list();
+                int filesLength = files.length;
+                for (int i = 0; i < filesLength; i++) {
+                    String src1 = (new File(src, files[i]).getPath());
+                    String dst1 = dst.getPath();
+                    copyFileOrDirectory(src1, dst1);
+
+                }
+            } else {
+                copyFile(src, dst);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void copyFile(File sourceFile, File destFile) throws IOException {
+        if (!destFile.getParentFile().exists())
+            destFile.getParentFile().mkdirs();
+
+        if (!destFile.exists()) {
+            destFile.createNewFile();
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+
+        try {
+            source = new FileInputStream(sourceFile).getChannel();
+            destination = new FileOutputStream(destFile).getChannel();
+            destination.transferFrom(source, 0, source.size());
+        } finally {
+            if (source != null) {
+                source.close();
+            }
+            if (destination != null) {
+                destination.close();
+            }
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        MenuInflater inflater = new MenuInflater(getApplication());
-        //noinspection ResourceType
-        inflater.inflate(R.layout.menu_main, menu);
+        new MenuInflater(getApplication()).inflate(R.layout.menu_main, menu);
         return true;
     }
 
@@ -232,13 +350,15 @@ public class GamesList extends ListActivity implements OnClickListener {
     }
 
     private void startScan() {
-        setProgressBarIndeterminateVisibility(true);
-        mScanner.startScan();
+        if (!mScanner.alreadyScanning) {
+            setProgressBarIndeterminateVisibility(true);
+            mScanner.startScan();
+        }
     }
 
     private void startLookup() {
         IFDb ifdb = IFDb.getInstance(getContentResolver());
-        ifdb.startLookup(new Handler() {
+        ifdb.startLookup(this, new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 Toast.makeText(GamesList.this, R.string.ifdb_connection_error, Toast.LENGTH_LONG).show();
@@ -254,6 +374,9 @@ public class GamesList extends ListActivity implements OnClickListener {
                 break;
             case R.id.download_preselected:
                 downloadPreselected();
+                break;
+            case R.id.go_to_prefs:
+                startActivity(new Intent(this, PreferencesActivity.class));
                 break;
         }
     }
@@ -280,6 +403,7 @@ public class GamesList extends ListActivity implements OnClickListener {
         progressDialog.setMax(BEGINNER_GAMES.length);
         progressDialog.show();
 
+        final Context c = this;
         downloadThread = new Thread() {
             @Override
             public void run() {
@@ -305,7 +429,7 @@ public class GamesList extends ListActivity implements OnClickListener {
 
                 try {
                     mScanner.scan(Paths.ifDirectory());
-                    IFDb.getInstance(getContentResolver()).lookupGames();
+                    IFDb.getInstance(getContentResolver()).lookupGames(c);
                 } catch (IOException e) {
                     Log.e(TAG, "I/O error when fetching metadata", e);
                 }
