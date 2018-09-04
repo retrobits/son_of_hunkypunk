@@ -11,13 +11,13 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 24
+    compileSdkVersion 26
     buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "org.andglkmod.hunkypunk"
         minSdkVersion 14
-        targetSdkVersion 24
+        targetSdkVersion 26
         vectorDrawables.useSupportLibrary = true
     }
     sourceSets.main {

@@ -19,7 +19,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.andglkmod.hunkypunk"
-    android:versionCode="8"
+    android:versionCode="9"
     android:versionName="1.0">
 
     <supports-screens
