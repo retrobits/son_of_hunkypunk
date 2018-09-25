@@ -128,19 +128,28 @@ public class DirChooser extends DialogFragment {
             // convert to an array
             int i = 0;
             String[] fileList;
+            int filesCount = 0;
+            int dirsCount = 0;
+            if (files != null) filesCount = files.length;
+            if (dirs != null) dirsCount = dirs.length;
+
             if (path.getParentFile() == null || path.compareTo(Paths.cardDirectory())==0) {
-                fileList = new String[dirs.length + files.length];
+                fileList = new String[filesCount + dirsCount];
             } else {
-                fileList = new String[dirs.length + files.length + 1];
+                fileList = new String[filesCount + dirsCount + 1];
                 fileList[i++] = PARENT_DIR;
             }
-            Arrays.sort(dirs);
-            Arrays.sort(files);
-            for (File dir : dirs) {
-                fileList[i++] = dir.getName();
+            if (dirs != null) {
+                Arrays.sort(dirs);
+                for (File dir : dirs) {
+                    fileList[i++] = dir.getName();
+                }
             }
-            for (File file : files) {
-                fileList[i++] = file.getName();
+            if (files != null) {
+                Arrays.sort(files);
+                for (File file : files) {
+                    fileList[i++] = file.getName();
+                }
             }
 
             // refresh the user interface
