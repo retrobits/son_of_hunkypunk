@@ -19,8 +19,8 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.andglkmod.hunkypunk"
-    android:versionCode="10"
-    android:versionName="1.1">
+    android:versionCode="11"
+    android:versionName="1.2">
 
     <supports-screens
         android:anyDensity="true"
