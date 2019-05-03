@@ -249,7 +249,7 @@ public class IFDb {
 	private static final String[] PROJECTION = { Games._ID, Games.IFID };
 	private static final int IFID = 1;
 
-	private static final String BASE_URL = "http://ifdb.tads.org/viewgame?ifiction&ifid=";
+	private static final String BASE_URL = "https://ifdb.tads.org/viewgame?ifiction&ifid=";
 
 	private static final String TAG = "IFDb";
 	public static final int FAILURE = 0;
@@ -352,6 +352,8 @@ public class IFDb {
 
 	private static void fetchCover(Context c, String ifid, String coverArt) throws IOException {
 		if (coverArt == null || coverArt.length() == 0) return;
+
+		coverArt = coverArt.replaceAll("http:","https:");
 
 		URL source = new URL(coverArt);
 		File destination = HunkyPunk.getCover(c, ifid);
