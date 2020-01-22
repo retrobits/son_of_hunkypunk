@@ -24,6 +24,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -309,7 +311,17 @@ public class IFDb {
 	private void lookup(Context c, String ifid) throws MalformedIFIDException, IOException {
 		URL url;
 		try {
-			url = urlOfIfid(ifid);
+			//translate some ifids here
+			HashMap<String,String> ifidXlate = new HashMap<String,String>();
+			ifidXlate.put("ZCODE-1-120724-3A94","ZCODE-1-000210-5CCA"); //905
+			ifidXlate.put("ZCODE-37-861308","ZCODE-37-861215"); //Hollywood Hijinx
+
+
+			String ifdbkey = ifid;
+			if (ifidXlate.containsKey(ifid))
+				ifdbkey = ifidXlate.get(ifid);
+
+			url = urlOfIfid(ifdbkey);
 		} catch (MalformedURLException e) {
 			throw new MalformedIFIDException(ifid);
 		}

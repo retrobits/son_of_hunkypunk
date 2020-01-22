@@ -58,6 +58,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
@@ -219,7 +220,7 @@ public class TextBufferWindow extends Window {
     protected _View mView;
     protected Handler mHandler;
     protected Context mContext;
-    private int mLineEventBuffer;
+    private long mLineEventBuffer;
     private long mLineEventBufferLength;
     private int mLineEventBufferRock;
     private boolean mUnicodeEvent = false;
@@ -376,8 +377,10 @@ public class TextBufferWindow extends Window {
 
         public void enableInput() {
             setFocusableInTouchMode(true);
-            requestFocus();
-            showKeyboard();
+            if (requestFocus())
+            {
+                showKeyboard();
+            }
         }
 
         public void disableInput() {
@@ -385,27 +388,33 @@ public class TextBufferWindow extends Window {
         }
 
         private void showKeyboard() {
-            (new Handler()).postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            _CommandView.this.dispatchTouchEvent(
-                                    MotionEvent.obtain(
-                                            SystemClock.uptimeMillis(),
-                                            SystemClock.uptimeMillis(),
-                                            MotionEvent.ACTION_DOWN,
-                                            0, 0, 0
-                                    )
-                            );
-                            _CommandView.this.dispatchTouchEvent(
-                                    MotionEvent.obtain(
-                                            SystemClock.uptimeMillis(),
-                                            SystemClock.uptimeMillis(),
-                                            MotionEvent.ACTION_UP,
-                                            0, 0, 0
-                                    )
-                            );
-                        }
-                    }, 100);
+            //if (mCharInputEnabled) {
+            //    InputMethodManager imm = (InputMethodManager) mGlk.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            //    imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT);
+            //}
+            //else {
+                (new Handler()).postDelayed(
+                        new Runnable() {
+                            public void run() {
+                                _CommandView.this.dispatchTouchEvent(
+                                        MotionEvent.obtain(
+                                                SystemClock.uptimeMillis(),
+                                                SystemClock.uptimeMillis(),
+                                                MotionEvent.ACTION_DOWN,
+                                                0, 0, 0
+                                        )
+                                );
+                                _CommandView.this.dispatchTouchEvent(
+                                        MotionEvent.obtain(
+                                                SystemClock.uptimeMillis(),
+                                                SystemClock.uptimeMillis(),
+                                                MotionEvent.ACTION_UP,
+                                                0, 0, 0
+                                        )
+                                );
+                            }
+                        }, 100);
+            //}
         }
 
         private int FontSize = 0;
@@ -880,16 +889,25 @@ public class TextBufferWindow extends Window {
         public void appendEx(CharSequence t) {
             if (t == null || t.length() == 0) return;
 
+            /*
+            trailing newline
+             */
             if (mTrailingCr) {
                 mTrailingCr = false;
                 append("\n");
             }
 
+            /*
+            write prev last line (prompt text)
+             */
             if (mLastLine != null) {
                 append(mLastLine);
                 mLastLine = null;
             }
 
+            /*
+            append user entered command, if any
+             */
             CharSequence ct = TextBufferWindow.this.mCommandText;
             if (ct != null) {
                 append(" ");
@@ -906,9 +924,11 @@ public class TextBufferWindow extends Window {
                 TextBufferWindow.this.mCommandText = null;
             }
 
+            /*
+            calculate last line
+             */
             CharSequence buf = null;
             int i = TextUtils.lastIndexOf(t, '\n');
-
             if (i > -1) {
                 if (mTrailingCr) {
                     mTrailingCr = false;
@@ -921,14 +941,41 @@ public class TextBufferWindow extends Window {
                 mLastLine = t;
             }
 
-            if (mLastLine.charAt(0) == '\n') {
-                if (mLastLine.length() == 1)
-                    ;//no prompt
-                else
-                    TextBufferWindow.this.setPrompt(mLastLine.subSequence(1, mLastLine.length()));
-            } else {
-                TextBufferWindow.this.setPrompt(mLastLine);
+            /*
+            adjust prompt, prevent wrapping
+             */
+            CharSequence pr = "";
+            char fc = mLastLine.charAt(0);
+            if (fc != '\n' || mLastLine.length() > 1) {
+
+                if (fc == '\n') {
+                    pr = mLastLine.subSequence(1, mLastLine.length());
+                } else {
+                    pr = mLastLine;
+                }
+
+                if (pr.length() > 1) {
+
+                    if (mTrailingCr) {
+                        mTrailingCr = false;
+                        append("\n");
+                    }
+
+                    char lc = pr.charAt(pr.length() - 1);
+                    if (lc == '>') {
+                        int pi = pr.length() - 1;
+                        append(pr.subSequence(0, pi));
+                        pr = pr.subSequence(pi, pi + 1);
+                    }
+                    else {
+                        append(pr);
+                        pr = "";
+                    }
+                    mTrailingCr = true;
+                    mLastLine = pr;
+                }
             }
+            TextBufferWindow.this.setPrompt(pr);
         }
 
         public void print(CharSequence text) {
@@ -1508,7 +1555,8 @@ public class TextBufferWindow extends Window {
 
         LineInputEvent lie = new LineInputEvent(this, result, mLineEventBuffer,
                 mLineEventBufferLength, mLineEventBufferRock, mUnicodeEvent);
-        mLineEventBufferLength = mLineEventBuffer = mLineEventBufferRock = 0;
+        mLineEventBufferLength =  mLineEventBufferRock = 0;
+        mLineEventBuffer = 0;
         mGlk.postEvent(lie);
     }
 
@@ -1588,8 +1636,8 @@ public class TextBufferWindow extends Window {
 
     @Override
     public void requestLineEvent(final String initial, final long maxlen,
-                                 final int buffer, final int unicode) {
-        //Log.d("Glk/TextBufferWindow","requestLineEvent");
+                                 final long buffer, final int unicode) {
+        //Log.d("HunkyPunk","TexBufferWindow.requestLineEvent "+initial+" "+unicode);
         flush();
 
         Glk.getInstance().waitForUi(
@@ -1600,8 +1648,8 @@ public class TextBufferWindow extends Window {
                         mLineEventBufferLength = maxlen;
                         mLineEventBufferRock = retainVmArray(buffer, maxlen);
                         mUnicodeEvent = (unicode != 0);
-                        mActiveCommand.enableInput();
                         mScrollView.fullScroll(View.FOCUS_DOWN);
+                        mActiveCommand.enableInput();
                     }
                 });
     }

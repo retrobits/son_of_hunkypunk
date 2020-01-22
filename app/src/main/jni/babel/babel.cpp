@@ -26,7 +26,7 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 {
 	if(jvm || reserved){} //remove unused warning
 
-	return JNI_VERSION_1_4;
+	return JNI_VERSION_1_6;
 }
 
 extern "C" int32 zcode_treaty(int32 selector, void *story_file, int32 extent, void *output, int32 output_extent);

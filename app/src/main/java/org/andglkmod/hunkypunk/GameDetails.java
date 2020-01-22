@@ -342,6 +342,8 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
             sb.append(getZcodeVersion());
             sb.append('\n');
         }
+        sb.append("IFID: "+mGameIfid);
+        sb.append('\n');
 
         final int len = sb.length();
         if (len != 0)

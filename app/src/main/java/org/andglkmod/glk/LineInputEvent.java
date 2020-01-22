@@ -21,12 +21,12 @@ package org.andglkmod.glk;
 
 public class LineInputEvent extends Event {
 	public String line;
-	public int buffer;
+	public long buffer;
 	public long len;
 	public int rock;
 	public int unicode;
 
-	public LineInputEvent(Window w, String s, int lineBuffer, long maxLen, int dispatchRock, boolean unicode) {
+	public LineInputEvent(Window w, String s, long lineBuffer, long maxLen, int dispatchRock, boolean unicode) {
 		super(w);
 		line = s;
 		buffer = lineBuffer;

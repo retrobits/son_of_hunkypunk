@@ -88,7 +88,7 @@ public class Interpreter extends Activity {
         glk.setTranscriptDir(Paths.transcriptDirectory()); // there goes separation, and so cheaply...
 
         ArrayList<String> args = new ArrayList<String>();
-        args.add(getFilesDir() + "/../lib/lib" + terp + ".so");
+        args.add("lib" + terp + ".so");
         if (terp.compareTo("tads") == 0 && getBookmark().exists()) {
             args.add("-r");
             args.add(getBookmark().getAbsolutePath());

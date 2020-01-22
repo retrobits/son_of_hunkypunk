@@ -22,22 +22,22 @@ package org.andglkmod.glk;
 import java.io.IOException;
 
 	/* todo :
-	  change const public MemoryStream(int cBuffer, int[] buffer, int mode, int rock)
+	  change const public MemoryStream(long cBuffer, int[] buffer, int mode, int rock)
 	  (move copy of bytes to native side non-unicode stream open)
-	  private native void writeOutUni(int buffer, int[] buffer2)
+	  private native void writeOutUni(long buffer, int[] buffer2)
 	  protected int[] doGetBufferUni(int maxLen) throws IOException
 	  protected void doPutChar(int c) throws IOException
 	  protected void doClose() throws IOException -> check for unicode call writeOut or writeOutUni
 	*/
 
 public class MemoryStream extends Stream {
-	private final int mCBuffer;
+	private final long mCBuffer;
 	private final int[] mBuffer;
 	private final int mMode;
 	private int mPos;
 	private int mDispatchRock;
 
-	public MemoryStream(int cBuffer, byte[] buffer, int mode, int rock) {
+	public MemoryStream(long cBuffer, byte[] buffer, int mode, int rock) {
 		super(rock);
 		mCBuffer = cBuffer;
 		mBuffer = new int[buffer.length];
@@ -63,9 +63,9 @@ public class MemoryStream extends Stream {
 		}
 	}
 
-	protected native int retainVmArray(int buffer, long len);
-	protected native void releaseVmArray(int buffer, int length, int dispatchRock);
-	private native void writeOut(int buffer, byte[] buffer2);
+	protected native int retainVmArray(long buffer, long len);
+	protected native void releaseVmArray(long buffer, long length, int dispatchRock);
+	private native void writeOut(long buffer, byte[] buffer2);
 
 	@Override
 	protected byte[] doGetBuffer(int maxLen) throws IOException {

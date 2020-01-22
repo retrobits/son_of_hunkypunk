@@ -117,8 +117,8 @@ public abstract class Window extends CPointed {
 		mStream.putString(str);
 	}
 	
-	public abstract void requestLineEvent(String initial, long maxlen, int buffer, int unicode);
-	protected native int retainVmArray(int buffer, long length);
+	public abstract void requestLineEvent(String initial, long maxlen, long buffer, int unicode);
+	protected native int retainVmArray(long buffer, long length);
 	/* release is in the C function to convert event since we can't release 
 	 * until we've copied it back
 	 */
@@ -191,7 +191,7 @@ public abstract class Window extends CPointed {
 		mStream.setEchoStream(echoStream);
 	}
 	
-	public int getEchoStream() {
+	public long getEchoStream() {
 		return mStream.getEchoStream();
 	}
 
@@ -213,7 +213,7 @@ public abstract class Window extends CPointed {
 	 */
 	abstract public int measureHeight(int size);
 
-	public static int open(Window split, int method, int size, int wintype, int rock) {
+	public static long open(Window split, int method, int size, int wintype, int rock) {
 		//Log.d("Glk/Window", "Window.open " + Long.toString(wintype));
 		final Glk glk = Glk.getInstance();
 		Window wnd;
@@ -247,8 +247,9 @@ public abstract class Window extends CPointed {
 			if (_root == split)
 				_root = w;
 		}
-		
-		return wnd.getPointer();
+
+		long p = wnd.getPointer();
+		return p;
 	}
 
 	public void echoOff() {
@@ -272,7 +273,7 @@ public abstract class Window extends CPointed {
 			mEchoStream = null;
 		}
 
-		public int getEchoStream() {
+		public long getEchoStream() {
 			if (mEchoStream != null)
 				return mEchoStream.getPointer();
 			else

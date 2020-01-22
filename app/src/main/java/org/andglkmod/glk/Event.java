@@ -25,5 +25,5 @@ public class Event {
 		windowPointer = w == null ? 0 : w.getPointer();
 	}
 	public Window window;
-	public int windowPointer;
+	public long windowPointer;
 }

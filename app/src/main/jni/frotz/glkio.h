@@ -23,7 +23,7 @@
 /* glkio.h -- make stdio calls use glk i/o instead */
 
 #undef FILE
-typedef struct glk_stream_struct FILE;
+#define FILE struct glk_stream_struct
 
 #undef EOF
 #define EOF				(-1)

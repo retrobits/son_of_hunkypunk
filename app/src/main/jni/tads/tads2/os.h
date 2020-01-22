@@ -78,10 +78,14 @@ extern "C" {
 #ifdef __arm__
 #define _M_ARM
 #else
+#ifdef __aarch64__
+#define _M_ARM_64
+#else
 #ifdef __x86_64__
 #define _M_IX86_64
 #else
 #define _M_IX86
+#endif
 #endif
 #endif
 #endif
@@ -111,6 +115,9 @@ extern "C" {
  *   ARM CPU's 
  */
 #ifdef _M_ARM
+#include "h_arm.h"
+#endif
+#ifdef _M_ARM_64
 #include "h_arm.h"
 #endif
 

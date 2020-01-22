@@ -514,6 +514,9 @@ extern void garglk_set_zcolors_stream(strid_t str, glui32 fg, glui32 bg);
 extern void garglk_set_reversevideo(glui32 reverse);
 extern void garglk_set_reversevideo_stream(strid_t str, glui32 reverse);
 
+extern void gli_streams_close_all(void);
+extern void gli_fileref_delete_all(void);
+
 /* non standard keycodes */
 #define keycode_Erase               (0xffffef7f)
 #define keycode_MouseWheelUp        (0xffffeffe)

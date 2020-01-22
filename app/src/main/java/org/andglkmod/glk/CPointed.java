@@ -26,7 +26,7 @@ public abstract class CPointed {
 	public final static int GIDISP_CLASS_FILEREF = 2;
 	public final static int GIDISP_CLASS_SCHANNEL = 3;
 
-	private int mPointer;
+	private long mPointer;
 	private int mRock;
 	private int mDispatchRock;
 	
@@ -35,13 +35,13 @@ public abstract class CPointed {
 		setRock(rock);
 	}
 	
-	private native int makePoint();
+	private native long makePoint();
 
-	public int getPointer() {
+	public long getPointer() {
 		return mPointer;
 	}
 	
-	private native void releasePoint(int ptr);
+	private native void releasePoint(long ptr);
 	
 	public void release() {
 		if (mPointer != 0) releasePoint(mPointer);

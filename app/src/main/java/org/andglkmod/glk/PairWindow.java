@@ -283,7 +283,7 @@ public class PairWindow extends Window {
 	}
 
 	@Override
-	public void requestLineEvent(String initial, long maxlen, int buffer, int unicode) {
+	public void requestLineEvent(String initial, long maxlen, long buffer, int unicode) {
 	}
 
 	@Override

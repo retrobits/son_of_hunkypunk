@@ -33,7 +33,9 @@ import android.graphics.Typeface;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextPaint;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.view.inputmethod.InputMethodManager;
 
 public class TextGridWindow extends Window {
     public static class TextGridParcelable implements Parcelable {
@@ -391,6 +393,7 @@ public class TextGridWindow extends Window {
         }
 
         public void requestCharEvent() {
+            //Log.d("HunkyPunk","TextGridWindow.requestCharEvent");
             mGlk.waitForUi(new Runnable() {
                 @Override
                 public void run() {
@@ -518,6 +521,7 @@ public class TextGridWindow extends Window {
 
         @Override
         public Parcelable onSaveInstanceState() {
+            super.onSaveInstanceState();
             TextGridParcelable ss = new TextGridParcelable();
             ss.mFrameBuf = mFrameBufTemp;
             ss.mHeight = mHeight;
@@ -529,6 +533,7 @@ public class TextGridWindow extends Window {
 
         @Override
         protected void onRestoreInstanceState(Parcelable state) {
+            super.onRestoreInstanceState(state);
             TextGridParcelable ss = (TextGridParcelable) state;
             mFrameBufTemp = ss.mFrameBuf;
             //mFrameBufTemp = new char[mFrameBuf.length];
@@ -552,7 +557,7 @@ public class TextGridWindow extends Window {
 
     protected View mView;
     private final Glk mGlk;
-    private int mLineBuffer;
+    private long mLineBuffer;
     private int mMaxLen;
     private int mDispatchRock;
     private boolean mUnicodeEvent = false;
@@ -621,11 +626,11 @@ public class TextGridWindow extends Window {
     }
 
     @Override
-    public void requestLineEvent(String initial, long maxlen, int buffer, int unicode) {
+    public void requestLineEvent(String initial, long maxlen, long buffer, int unicode) {
         if (mView == null) return;
 
         mLineBuffer = buffer;
-        mMaxLen = (int) maxlen;
+        mMaxLen = (int)maxlen;
         mDispatchRock = retainVmArray(buffer, maxlen);
         mView.requestLineEvent(initial);
         mUnicodeEvent = (unicode != 0);

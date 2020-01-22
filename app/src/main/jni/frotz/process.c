@@ -18,6 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
+#include <glk.h>
 #include "frotz.h"
 
 #ifdef DJGPP
@@ -276,7 +277,27 @@ void interpret (void)
 
 	zargc = 0;
 
-	//LOGD("interpret.opcode: %x %x",pcp,opcode);
+	/*
+	char* opt = "";
+	zbyte theop = 0;
+	if (opcode < 0x80) {
+		opt = "2OP";
+		theop = opcode & 0x1f;
+	}
+	else if (opcode < 0xb0) {
+		opt = "1OP";
+		theop = opcode & 0x0f;
+	}
+	else if (opcode < 0xc0) {
+		opt = "0OP";
+		theop = opcode - 0xb0;
+	}
+	else{
+		opt = "VAR";
+		theop = opcode - 0xc0;
+	}
+	LOGD("interpret.opcode: %x %x %s %x",pcp,opcode,opt,theop);
+	*/
 
 	if (opcode < 0x80) {			/* 2OP opcodes */
 

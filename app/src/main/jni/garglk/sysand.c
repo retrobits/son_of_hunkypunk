@@ -43,7 +43,7 @@ extern jclass _class;
 
 //static char* gidispatch_char_array = "&+#!Cn";
 
-#define GLK_JNI_VERSION JNI_VERSION_1_2
+#define GLK_JNI_VERSION JNI_VERSION_1_6
 
 /* these are OK to keep */
 static JavaVM *_jvm;
@@ -59,7 +59,7 @@ jobject _this = 0;
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN   , "HunkyPunk", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR  , "HunkyPunk", __VA_ARGS__) 
 
-//#define DEBUG_LOGGING
+#define DEBUG_LOGGING
 #ifdef DEBUG_LOGGING
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "HunkyPunk", __VA_ARGS__)
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "HunkyPunk", __VA_ARGS__)

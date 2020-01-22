@@ -66,7 +66,7 @@ void w_glk_put_char (int ch );
 #endif
 
 #ifdef __USE_GNU
-#define n_lfind(k, b, n, s, c) lfind(k, b, n, s, c)
+//#define n_lfind(k, b, n, s, c) lfind(k, b, n, s, c)
 
 #endif
 

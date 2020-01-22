@@ -462,7 +462,7 @@ void CVmRun::run(VMG_ const uchar *start_pc)
      *   file (search for [REGISTER_P_FOOTNOTE]).  Executive summary: you can
      *   safely ignore the warning, and I'm keeping the code as it is.  
      */
-    register const uchar *p = start_pc;
+    const uchar *p = start_pc;
     const uchar *last_pc;
     const uchar **old_pc_ptr;
     vm_val_t *valp;

@@ -490,7 +490,7 @@ unsigned char *os_gets(unsigned char *buf, size_t buflen)
 {
 	event_t event;
 
-	glk_request_line_event(mainwin, buf, buflen - 1, 0);
+	glk_request_line_event(mainwin, (char*)buf, buflen - 1, 0);
 
 	do
 	{

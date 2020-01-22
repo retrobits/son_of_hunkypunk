@@ -82,16 +82,16 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     };
 
     protected static final String[] BEGINNER_GAMES = {
-            "http://www.ifarchive.org/if-archive/games/zcode/905.z5",
-            "http://www.ifarchive.org/if-archive/games/zcode/Advent.z5",
-            "http://www.ifarchive.org/if-archive/games/zcode/awaken.z5",
-            "http://www.ifarchive.org/if-archive/games/zcode/dreamhold.z8",
-            "http://www.ifarchive.org/if-archive/games/zcode/LostPig.z8",
-            "http://www.ifarchive.org/if-archive/games/zcode/shade.z5",
-            "http://www.ifarchive.org/if-archive/games/tads/indigo.t3",
-            "http://www.ifarchive.org/if-archive/games/competition98/tads/plant/plant.gam",
-            "http://www.ifarchive.org/if-archive/games/zcode/Bronze.zblorb",
-            "http://www.ifarchive.org/if-archive/games/zcode/theatre.z5",
+            "https://www.ifarchive.org/if-archive/games/zcode/905.z5",
+            "https://www.ifarchive.org/if-archive/games/zcode/Advent.z5",
+            "https://www.ifarchive.org/if-archive/games/zcode/awaken.z5",
+            "https://www.ifarchive.org/if-archive/games/zcode/dreamhold.z8",
+            "https://www.ifarchive.org/if-archive/games/zcode/LostPig.z8",
+            "https://www.ifarchive.org/if-archive/games/zcode/shade.z5",
+            "https://www.ifarchive.org/if-archive/games/tads/indigo.t3",
+            "https://www.ifarchive.org/if-archive/games/competition98/tads/plant/plant.gam",
+            "https://www.ifarchive.org/if-archive/games/zcode/Bronze.zblorb",
+            "https://www.ifarchive.org/if-archive/games/zcode/theatre.z5",
             "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/hunkypunk/uu1.gam"
     };
 
