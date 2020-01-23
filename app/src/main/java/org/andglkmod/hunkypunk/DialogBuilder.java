@@ -42,17 +42,17 @@ public class DialogBuilder {
         String aboutTitle = String.format("About %s", context.getString(R.string.hunky_punk));
         String versionString = String.format("Version: %s", versionInfo);
 
-        String aboutText = versionString + "\n\nby Dan Vernon and " +
-                "JPDOB Team (students from the University of Constance, Germany)\n\n";
+        String aboutText = versionString + "\n\nby Dan Vernon\n\n";
 
-        aboutText += "(based on the original Hunky Punk by Rafał Rzepecki)\n\n";
+        aboutText += "Many thanks to JPDOB Team (students from the University of Constance, Germany)\n\n";
+
+        aboutText += "Based on the original version by Rafał Rzepecki\n\n";
 
         aboutText += "Improvements include:\n";
         aboutText += "  * Tads & better Z-code support\n";
         aboutText += "  * Shortcut command buttons\n";
         aboutText += "  * Tap words as input\n";
-        aboutText += "  * Night mode, fonts, custom story path\n";
-        aboutText += "  * Fling scrollback\n";
+        aboutText += "  * Night mode, font selection\n";
         aboutText += "  * Stability and bug fixes\n\n";
 
         aboutText += "Help topics can be found here:\n";
