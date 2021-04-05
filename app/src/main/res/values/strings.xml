@@ -75,13 +75,16 @@
     <string name="invalid_if_dir">I\'m unable to use the current storage location.
         Please go to Preferences and update the "IF folder path" to a valid location.
    	</string>
-    <string name="empty_list">You seem to have no stories installed.
-    	To install one, just put it in the Interactive Fiction directory.
-        Alternatively you can choose another directory in preferences.
-    	You may find many stories at IFDb, or you can just
-    	let me download a handful to get you started.
-		Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
-		Tads files (ending in .t2, t3, or .gam) are all currently supported.
+    <string name="empty_list">You seem to have no stories installed.\n
+        \n
+        You can just let me download a handful to get you started,
+        or you may find many stories at IFDb.  Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
+		Tads files (ending in .t2, t3, or .gam) are all currently supported.\n
+        \n
+    	To install one, download a story file and either tap on it in a file manager or
+        copy it manually to the Interactive Fiction directory.  The exact location
+        of this directory can be seen in the app preferences under "File Path".\n
+        \n
    	</string>
    	<string name="go_to_ifdb">Go to IFDb</string>
    	<string name="download_preselected">Download preselected</string> 

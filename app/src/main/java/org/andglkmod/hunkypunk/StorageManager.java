@@ -239,7 +239,7 @@ public class StorageManager {
 		new Thread() {
 			@Override
 			public void run() {
-				scan(Paths.ifDirectory());
+				scan(Paths.ifDirectory(mContext));
 				Message.obtain(mHandler, DONE).sendToTarget();
 				alreadyScanning = false;
 			}
@@ -279,7 +279,7 @@ public class StorageManager {
 					}
 
 					String src = fgame.getAbsolutePath();
-					String dst = Paths.ifDirectory().getAbsolutePath()+"/"+fgame.getName();		
+					String dst = Paths.ifDirectory(mContext).getAbsolutePath()+"/"+fgame.getName();
 					String installedPath = gameInstalledFilePath(fgame);
 
 					if (installedPath == null || !(new File(installedPath).exists())) {

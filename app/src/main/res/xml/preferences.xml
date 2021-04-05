@@ -39,11 +39,16 @@
         <Preference
             android:key="setIFDir"
             android:summary="Your new IF-Directory"
-            android:title="@string/add" />
+            android:title="@string/add"
+            android:enabled="false"
+            />
+        <!--
         <Preference
             android:key="defaultif"
             android:summary="Your default IF-Directory"
-            android:title="@string/ifdef" />
+            android:title="@string/ifdef"
+            android:enabled="false" />
+        -->
     </PreferenceCategory>
     <PreferenceCategory android:title="Night Mode">
         <SwitchPreference

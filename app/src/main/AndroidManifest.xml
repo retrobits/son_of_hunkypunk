@@ -19,8 +19,8 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.andglkmod.hunkypunk"
-    android:versionCode="17"
-    android:versionName="1.7">
+    android:versionCode="18"
+    android:versionName="1.8">
 
     <supports-screens
         android:anyDensity="true"

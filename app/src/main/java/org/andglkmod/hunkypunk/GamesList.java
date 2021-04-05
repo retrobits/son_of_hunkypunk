@@ -119,9 +119,9 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     private SimpleCursorAdapter adapter;
 
 
-    private void verifyIfDirectory()
+    private void verifyIfDirectory(Context c)
     {
-        if (Paths.isIfDirectoryValid()){
+        if (Paths.isIfDirectoryValid(c)){
             findViewById(R.id.go_to_prefs).setVisibility(View.INVISIBLE);
             findViewById(R.id.go_to_prefs_msg).setVisibility(View.INVISIBLE);
             findViewById(R.id.go_to_ifdb).setVisibility(View.VISIBLE);
@@ -136,18 +136,18 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
         }
 
         /** gets the If-Path from SharedPrefences, which could be changed at the last session */
-        String path = getSharedPreferences("ifPath", Context.MODE_PRIVATE).getString("ifPath", "");
-        if (!path.equals(""))
-            Paths.setIfDirectory(new File(path));
+        //String path = getSharedPreferences("ifPath", Context.MODE_PRIVATE).getString("ifPath", "");
+        //if (!path.equals(""))
+        //    Paths.setIfDirectory(new File(path));
 
         /** deletes all Ifs, which are not in the current Path, in other words, it delets the
          * Ifs from the older Directory*/
         DatabaseHelper mOpenHelper = new DatabaseHelper(this);
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         for (int i = 0; i < adapter.getCount(); i++) {
-            Cursor c = (Cursor) adapter.getItem(i);
-            if (!Pattern.matches(".*" + Paths.ifDirectory() + ".*", c.getString(4))) {
-                db.execSQL("delete from games where ifid = '" + c.getString(1) + "'");
+            Cursor cur = (Cursor) adapter.getItem(i);
+            if (!Pattern.matches(".*" + Paths.ifDirectory(this) + ".*", cur.getString(4))) {
+                db.execSQL("delete from games where ifid = '" + cur.getString(1) + "'");
             }
         }
         db.close();
@@ -159,7 +159,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     @Override
     protected void onResume() {
         super.onResume();
-        verifyIfDirectory();
+        verifyIfDirectory(this);
     }
 
     @Override
@@ -249,7 +249,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
             prefEditor.commit();
         }
 
-        verifyIfDirectory();
+        verifyIfDirectory(this);
     }
 
     public void onSupportActionModeStarted(android.support.v7.view.ActionMode mode) {}
@@ -424,7 +424,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
                     try {
                         final URL u = new URL(s);
                         final String fileName = Uri.parse(s).getLastPathSegment();
-                        Utils.copyStream(u.openStream(), new FileOutputStream(new File(Paths.ifDirectory(), fileName)));
+                        Utils.copyStream(u.openStream(), new FileOutputStream(new File(Paths.ifDirectory(c), fileName)));
                     } catch (MalformedURLException e) {
                         Log.e(TAG, "malformed URL when fetching " + s, e);
                     } catch (FileNotFoundException e) {
@@ -436,7 +436,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
                 }
 
                 try {
-                    mScanner.scan(Paths.ifDirectory());
+                    mScanner.scan(Paths.ifDirectory(c));
                     IFDb.getInstance(getContentResolver()).lookupGames(c);
                 } catch (IOException e) {
                     Log.e(TAG, "I/O error when fetching metadata", e);

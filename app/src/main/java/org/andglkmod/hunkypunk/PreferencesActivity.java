@@ -136,39 +136,47 @@ public class PreferencesActivity
 
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 
+        SharedPreferences sharedPrefs = getSharedPreferences("ifPath", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString("ifPath", Paths.ifDirectory(getApplicationContext()).getAbsolutePath());
+        editor.commit();
+
         Preference apref = findPreference("setIFDir");
         if (apref != null) {
             apref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    DirChooser chd = new DirChooser();
-                    chd.show(getFragmentManager(), "");
+                    //DirChooser chd = new DirChooser();
+                    //chd.show(getFragmentManager(), "");
                     return false;
                 }
             });
         }
 
+        /*
         final Preference dpref = findPreference("defaultif");
-        dpref.setSummary(Paths.defaultIfDirectory().getPath());
+        dpref.setSummary(Paths.defaultIfDirectory(this).getPath());
         if (dpref != null) {
             dpref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    Paths.setIfDirectory(Paths.defaultIfDirectory()); //set Path as default
+                    Paths.setIfDirectory(Paths.defaultIfDirectory(getApplicationContext())); //set Path as default
 
                     Toast.makeText(PreferencesActivity.this, "You have set the default directory.", Toast.LENGTH_SHORT).show();
 
-                    /* pushes the default If Directory to SharedPreferneces */
+                    // pushes the default If Directory to SharedPreferneces
                     SharedPreferences sharedPrefs = getSharedPreferences("ifPath", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPrefs.edit();
-                    editor.putString("ifPath", Paths.ifDirectory().getAbsolutePath());
+                    editor.putString("ifPath", Paths.ifDirectory(getApplicationContext()).getAbsolutePath());
                     editor.commit();
 
                     return false;
                 }
             });
         }
-        /* Refreshes the summary of SetIF before the listView is shown. */
+        */
+
+        // Refreshes the summary of SetIF before the listView is shown.
         getListView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
@@ -297,7 +305,7 @@ public class PreferencesActivity
             setSummaryPref(prefFn);
         } else if (key.equals("setIFDir")) {
             Preference preference = findPreference(key);
-            preference.setSummary(Paths.ifDirectory().getAbsolutePath());
+            preference.setSummary(Paths.ifDirectory(getApplicationContext()).getAbsolutePath());
         } else if (key.equals("defaultif")) {
             Preference preference = findPreference(key);
             preference.setSummary(Paths.cardDirectory().getPath() + "/Interactive Fiction");

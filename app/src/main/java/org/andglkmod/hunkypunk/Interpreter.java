@@ -85,7 +85,7 @@ public class Interpreter extends Activity {
         setContentView(glk.getView());
         glk.setAutoSave(getBookmark(), 0);
         glk.setSaveDir(saveDir);
-        glk.setTranscriptDir(Paths.transcriptDirectory()); // there goes separation, and so cheaply...
+        glk.setTranscriptDir(Paths.transcriptDirectory(this)); // there goes separation, and so cheaply...
 
         ArrayList<String> args = new ArrayList<String>();
         args.add("lib" + terp + ".so");

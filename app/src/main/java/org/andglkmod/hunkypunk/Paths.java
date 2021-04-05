@@ -59,8 +59,8 @@ public abstract class Paths {
         return f;
     }
 
-    public static File fontDirectory() {
-        File f = new File(cardDirectory(), "Fonts");
+    public static File fontDirectory(Context c) {
+        File f = new File(appDirectory(c), "Fonts");
         if (!f.exists()) f.mkdir();
         return f;
     }
@@ -104,34 +104,35 @@ public abstract class Paths {
         return new File(fData, dirName);
     }
 
-    public static boolean isIfDirectoryValid() {
+    public static boolean isIfDirectoryValid(Context c) {
         String state = Environment.getExternalStorageState();
         return state.equals(Environment.MEDIA_MOUNTED)
-            && ifDirectory().exists();
+            && ifDirectory(c).exists();
     }
 
-    public static File ifDirectory() {
+    public static File ifDirectory(Context c) {
         File f;
-        if (ifDirectory != null)
-            f = ifDirectory;
-        else
-            f = defaultIfDirectory();
+
+            //if (ifDirectory != null)
+        //    f = ifDirectory;
+        //else
+            f = defaultIfDirectory(c);
         if (!f.exists()) f.mkdir();
         return f;
     }
 
-    public static File defaultIfDirectory()
+    public static File defaultIfDirectory(Context c)
     {
-        File c = cardDirectory();
-        File f = new File(c, "Interactive Fiction");
+        File a = appDirectory(c);
+        File f = new File(a, "Interactive Fiction");
         return f;
     }
 
     public static void setIfDirectory(File file) {
         ifDirectory = file;
     }
-    public static File transcriptDirectory() {
-        File f = new File(ifDirectory(), "transcripts");
+    public static File transcriptDirectory(Context c) {
+        File f = new File(ifDirectory(c), "transcripts");
         if (!f.exists()) f.mkdir();
         return f;
     }

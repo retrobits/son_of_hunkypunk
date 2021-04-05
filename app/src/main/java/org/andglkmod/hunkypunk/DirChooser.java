@@ -59,7 +59,7 @@ public class DirChooser extends DialogFragment {
                 Paths.setIfDirectory(currentPath);
                 SharedPreferences sharedPrefs = getActivity().getSharedPreferences("ifPath", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPrefs.edit();
-                editor.putString("ifPath", Paths.ifDirectory().getAbsolutePath());
+                editor.putString("ifPath", Paths.ifDirectory(getActivity()).getAbsolutePath());
                 editor.commit();
 
                 try {
