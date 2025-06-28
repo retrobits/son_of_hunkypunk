@@ -376,16 +376,13 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.go_to_ifdb:
-                startActivity(new Intent(Intent.ACTION_DEFAULT, Uri.parse("http://ifdb.tads.org")));
-                break;
-            case R.id.download_preselected:
-                downloadPreselected();
-                break;
-            case R.id.go_to_prefs:
-                startActivity(new Intent(this, PreferencesActivity.class));
-                break;
+        int id = v.getId();
+        if (id == R.id.go_to_ifdb) {
+            startActivity(new Intent(Intent.ACTION_DEFAULT, Uri.parse("http://ifdb.tads.org")));
+        } else if (id == R.id.download_preselected) {
+            downloadPreselected();
+        } else if (id == R.id.go_to_prefs) {
+            startActivity(new Intent(this, PreferencesActivity.class));
         }
     }
 

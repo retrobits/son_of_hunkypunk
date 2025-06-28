@@ -25,7 +25,7 @@ object.c   random.c    stream.c  variable.c \
 err.c      glkmisc.c    main.c   process.c  redirect.c  table.c \
 fastmem.c  glkscreen.c  math.c   quetzal.c  sound.c     text.c  
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../andglk 
-LOCAL_CFLAGS	:= -DANDGLK 
+LOCAL_CFLAGS	:= -DANDGLK -DGLK_MODULE_UNICODE 
 LOCAL_STATIC_LIBRARIES := andglk
 LOCAL_LDLIBS	:= -llog
 

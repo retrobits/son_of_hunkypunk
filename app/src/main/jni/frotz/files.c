@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#include "frotz.h"
+#include "glkfrotz.h"
 #include "glk.h"
 #include "glkio.h"
 

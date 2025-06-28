@@ -371,63 +371,60 @@ public class ShortcutPreferencesActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         final SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
         final SharedPreferences sharedShortcutIDs = getSharedPreferences("shortcutIDs", MODE_PRIVATE);
-        switch (item.getItemId()) {
-            case R.id.add_button:
-                showAddShortcutDialog();
-                return true;
+        int itemId = item.getItemId();
+        if (itemId == R.id.add_button) {
+            showAddShortcutDialog();
+            return true;
+        } else if (itemId == R.id.restore_button) {
+            AlertDialog.Builder restoreBuilder = new AlertDialog.Builder(mContext);
+            restoreBuilder.setTitle("Restore shortcuts");
+            restoreBuilder.setMessage(R.string.deleteShortcuts);
+            restoreBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            });
+            restoreBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    adapter.clear();
+                    restoreDefaultShortcutsPreference();
 
-            case R.id.restore_button:
-                AlertDialog.Builder restoreBuilder = new AlertDialog.Builder(mContext);
-                restoreBuilder.setTitle("Restore shortcuts");
-                restoreBuilder.setMessage(R.string.deleteShortcuts);
-                restoreBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
+                    for (int j = 0; j < sharedShortcutIDs.getAll().size(); j++) {
+                        String title = sharedShortcutIDs.getString(j + "", "");
+                        String command = sharedShortcuts.getString(title, "");
+
+                        adapter.add(new ShortcutItem(title, command));
                     }
-                });
-                restoreBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        adapter.clear();
-                        restoreDefaultShortcutsPreference();
-
-                        for (int j = 0; j < sharedShortcutIDs.getAll().size(); j++) {
-                            String title = sharedShortcutIDs.getString(j + "", "");
-                            String command = sharedShortcuts.getString(title, "");
-
-                            adapter.add(new ShortcutItem(title, command));
-                        }
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-                restoreBuilder.create().show();
-                return true;
-
-            case R.id.help_button:
-                DialogBuilder.showShortcutHelpDialog(this);
-                return true;
-            case R.id.change_color:
-                restoreIcon(mMenu); //in case nothing is selected
-                return true;
-            case R.id.blue:
-                setColor(item);
-                return true;
-            case R.id.grey:
-                setColor(item);
-                return true;
-            case R.id.green:
-                setColor(item);
-                return true;
-            case R.id.red:
-                setColor(item);
-                return true;
-            case R.id.yellow:
-                setColor(item);
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
+                    adapter.notifyDataSetChanged();
+                }
+            });
+            restoreBuilder.create().show();
+            return true;
+        } else if (itemId == R.id.help_button) {
+            DialogBuilder.showShortcutHelpDialog(this);
+            return true;
+        } else if (itemId == R.id.change_color) {
+            restoreIcon(mMenu); //in case nothing is selected
+            return true;
+        } else if (itemId == R.id.blue) {
+            setColor(item);
+            return true;
+        } else if (itemId == R.id.grey) {
+            setColor(item);
+            return true;
+        } else if (itemId == R.id.green) {
+            setColor(item);
+            return true;
+        } else if (itemId == R.id.red) {
+            setColor(item);
+            return true;
+        } else if (itemId == R.id.yellow) {
+            setColor(item);
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 

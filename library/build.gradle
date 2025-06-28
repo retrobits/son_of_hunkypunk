@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 29
-    //buildToolsVersion '27.0.3'
+    namespace 'com.mobeta.android.dslv'
+    compileSdk 34
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 29
+        minSdk 21
+        targetSdk 34
     }
 
     buildTypes {
