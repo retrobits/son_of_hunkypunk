@@ -1,13 +1,19 @@
 apply plugin: 'com.android.application'
 
 dependencies {
-    //For some reason in 23.2 'GestureDetectorCompat' is already final which results in exception
-    //in org.twview.ClickItemTouchListener.
-    //Interestingly, below 23.0.0 the method 'RecyclerView.isAttachedToWindow()' is not recognized.
-    //Luckily, v.up. >= 23.0.0 && v.up. < 23.2 work
-    implementation 'com.android.support:cardview-v7:24.1.1'
+    // Material Design and AndroidX dependencies
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
+    implementation 'androidx.core:core:1.12.0'
+    implementation 'androidx.fragment:fragment:1.6.2'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    
     implementation project(':library')
-    implementation 'com.android.support:design:24.1.1'
 }
 
 android {

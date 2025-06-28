@@ -1,5 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Legacy dimensions -->
     <dimen name="item_height">67dp</dimen>
     <dimen name="section_div_height">20dp</dimen>
+    
+    <!-- Material Design spacing -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+    <dimen name="spacing_lg">24dp</dimen>
+    <dimen name="spacing_xl">32dp</dimen>
+    
+    <!-- Card dimensions -->
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_elevation_pressed">8dp</dimen>
+    
+    <!-- Game list item dimensions -->
+    <dimen name="game_item_height">88dp</dimen>
+    <dimen name="game_icon_size">56dp</dimen>
+    <dimen name="game_cover_width">120dp</dimen>
+    <dimen name="game_cover_height">160dp</dimen>
+    
+    <!-- Button dimensions -->
+    <dimen name="button_corner_radius">20dp</dimen>
+    <dimen name="button_height">48dp</dimen>
+    
+    <!-- Text sizes -->
+    <dimen name="text_size_display">57sp</dimen>
+    <dimen name="text_size_headline_large">32sp</dimen>
+    <dimen name="text_size_headline_medium">28sp</dimen>
+    <dimen name="text_size_headline_small">24sp</dimen>
+    <dimen name="text_size_title_large">22sp</dimen>
+    <dimen name="text_size_title_medium">16sp</dimen>
+    <dimen name="text_size_title_small">14sp</dimen>
+    <dimen name="text_size_body_large">16sp</dimen>
+    <dimen name="text_size_body_medium">14sp</dimen>
+    <dimen name="text_size_body_small">12sp</dimen>
+    <dimen name="text_size_label_large">14sp</dimen>
+    <dimen name="text_size_label_medium">12sp</dimen>
+    <dimen name="text_size_label_small">11sp</dimen>
+    
+    <!-- Elevation values -->
+    <dimen name="elevation_level_0">0dp</dimen>
+    <dimen name="elevation_level_1">1dp</dimen>
+    <dimen name="elevation_level_2">3dp</dimen>
+    <dimen name="elevation_level_3">6dp</dimen>
+    <dimen name="elevation_level_4">8dp</dimen>
+    <dimen name="elevation_level_5">12dp</dimen>
 </resources>

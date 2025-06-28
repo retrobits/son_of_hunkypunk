@@ -18,20 +18,84 @@
 	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
-	android:layout_height="wrap_content"
-	android:orientation="vertical"
-	android:layout_marginBottom="10sp"
-	android:layout_marginTop="0sp"
->
-	<ImageView
-		android:id="@+id/cover"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:scaleType="fitCenter"
-		android:adjustViewBounds="true"
-		android:maxHeight="376dip"
-	/>
-	<include layout="@layout/game_details_header_title" />
-</LinearLayout>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <!-- Game cover image with rounded corners -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cover_card"
+        android:layout_width="120dp"
+        android:layout_height="160dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="?attr/colorSurfaceVariant"
+            android:contentDescription="Game cover art" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Game title and details -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@id/cover_card"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/cover_card">
+
+        <include layout="@layout/game_details_header_title" />
+
+    </LinearLayout>
+
+    <!-- Game metadata chips -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/metadata_chips"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cover_card"
+        app:chipSpacing="8dp"
+        app:singleLine="false">
+
+        <!-- These chips will be populated programmatically based on game metadata -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_genre"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Adventure"
+            android:visibility="gone" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_language"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="English"
+            android:visibility="gone" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_year"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1980"
+            android:visibility="gone" />
+
+    </com.google.android.material.chip.ChipGroup>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -60,11 +60,12 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.support.annotation.Nullable;
-import android.support.v7.view.ActionMode;
-import android.support.v7.app.AppCompatCallback;
-import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.appcompat.view.ActionMode;
+import androidx.appcompat.app.AppCompatCallback;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.widget.NestedScrollView;
 
 public class GameDetails extends Activity implements OnClickListener,AppCompatCallback {
     private static final String TAG = "hunkypunk.GameDetails";
@@ -108,7 +109,7 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
     private TextView mDescription;
     private View mDescriptionLayout;
     private TextView mDetails;
-    private ScrollView mScroll;
+    private NestedScrollView mScroll;
     private ProgressDialog mProgressDialog;
     private Handler mLookupHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -163,9 +164,9 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
         getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false);
     }
 
-    public void onSupportActionModeStarted(android.support.v7.view.ActionMode mode) {}
+    public void onSupportActionModeStarted(androidx.appcompat.view.ActionMode mode) {}
 
-    public void onSupportActionModeFinished(android.support.v7.view.ActionMode mode) {}
+    public void onSupportActionModeFinished(androidx.appcompat.view.ActionMode mode) {}
 
     @Nullable
     public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback)
@@ -264,7 +265,7 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
         mCover = (ImageView) findViewById(R.id.cover);
         mDescriptionLayout = findViewById(R.id.description_layout);
         mDetails = (TextView) findViewById(R.id.details);
-        mScroll = (ScrollView) findViewById(R.id.info_scroll);
+        mScroll = (NestedScrollView) findViewById(R.id.info_scroll);
         mRestartButton = findViewById(id.restart);
 
         ((Button) findViewById(R.id.open)).setOnClickListener(this);
