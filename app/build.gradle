@@ -44,9 +44,10 @@ android {
             path "src/main/jni/Android.mk"
         }
     }
-    
     packagingOptions {
-        pickFirst '**/libc++_shared.so'
-        pickFirst '**/libjsc.so'
+        jniLibs {
+            pickFirsts += ['**/libc++_shared.so', '**/libjsc.so']
+        }
     }
+
 }
