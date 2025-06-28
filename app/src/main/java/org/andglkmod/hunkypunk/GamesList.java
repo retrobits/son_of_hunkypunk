@@ -331,7 +331,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        new MenuInflater(getApplication()).inflate(R.layout.menu_main, menu);
+        new MenuInflater(getApplication()).inflate(R.menu.menu_main, menu);
         return true;
     }
 
