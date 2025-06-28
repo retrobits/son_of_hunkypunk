@@ -21,18 +21,46 @@ package org.andglkmod.babel;
 
 import java.io.File;
 import java.io.IOException;
+import android.util.Log;
 
 public class Babel {
 	private static final String TAG = "Babel";
 
 	static {
-		System.loadLibrary("babel");
+		try {
+			System.loadLibrary("babel");
+		} catch (UnsatisfiedLinkError e) {
+			Log.e(TAG, "Failed to load babel native library", e);
+		}
 	}
 	
 	public static String examine(File f) throws IOException {
-		final String ifid = examine(f.getAbsolutePath());
-		//Log.d(TAG, "examined " + f + ", found IFID " + ifid);
-		return ifid;
+		if (f == null || !f.exists() || !f.canRead()) {
+			Log.w(TAG, "File does not exist or is not readable: " + f);
+			return null;
+		}
+		
+		if (f.length() == 0) {
+			Log.w(TAG, "File is empty: " + f);
+			return null;
+		}
+		
+		if (f.length() > 10 * 1024 * 1024) { // 10MB limit
+			Log.w(TAG, "File too large: " + f + " (" + f.length() + " bytes)");
+			return null;
+		}
+		
+		try {
+			final String ifid = examine(f.getAbsolutePath());
+			//Log.d(TAG, "examined " + f + ", found IFID " + ifid);
+			return ifid;
+		} catch (Exception e) {
+			Log.e(TAG, "Native crash while examining file: " + f, e);
+			return null;
+		} catch (Error e) {
+			Log.e(TAG, "Native error while examining file: " + f, e);
+			return null;
+		}
 	}
 
 	private native static String examine(String filename);

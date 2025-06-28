@@ -23,16 +23,18 @@ static int32 get_story_file_IFID(void *story_file, int32 extent, char *output, i
  char ser[7];
  char buffer[32];
 
+ // Add safety checks
+ if (!story_file || !output || output_extent < 1 || extent < 0x1D) 
+     return INVALID_STORY_FILE_RV;
 
- if (extent<0x1D) return INVALID_STORY_FILE_RV;
  memcpy(ser, (char *) story_file+0x12, 6);
  ser[6]=0;
  /* Detect vintage story files */
  if (!(ser[0]=='8' || ser[0]=='9' ||
      (ser[0]=='0' && ser[1]>='0' && ser[1]<='5')))
  {
-  for(i=0;i<extent;i++) if (memcmp((char *)story_file+i,"UUID://",7)==0) break;
-  if (i<extent) /* Found explicit IFID */
+  for(i=0;i<extent-7;i++) if (memcmp((char *)story_file+i,"UUID://",7)==0) break;
+  if (i<extent-7) /* Found explicit IFID */
   {
    for(j=i+7;j<extent && ((char *)story_file)[j]!='/';j++);
    if (j<extent)
@@ -65,19 +67,23 @@ static int32 get_story_file_IFID(void *story_file, int32 extent, char *output, i
 
 static int32 read_zint(unsigned char *sf)
 {
+ // Add null pointer check
+ if (!sf) return 0;
  return ((int32)sf[0] << 8) | ((int32) sf[1]);
-
 }
 static int32 claim_story_file(void *story_file, int32 extent)
 {
  unsigned char *sf=(unsigned char *)story_file;
  int32 i,j;
- if (extent<0x3c ||
-     sf[0] < 1 ||
-     sf[0] > 8
-    ) return INVALID_STORY_FILE_RV;
+ 
+ // Add null pointer check
+ if (!sf || extent < 0x3c || sf[0] < 1 || sf[0] > 8) 
+     return INVALID_STORY_FILE_RV;
+     
  for(i=4;i<=14;i+=2)
  {
+  // Add bounds check before reading
+  if (i+1 >= extent) return INVALID_STORY_FILE_RV;
   j=read_zint(sf+i);
   if (j>extent || j < 0x40) return INVALID_STORY_FILE_RV;
  }

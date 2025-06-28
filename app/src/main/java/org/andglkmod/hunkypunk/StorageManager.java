@@ -85,17 +85,29 @@ public class StorageManager {
 		String path = null;
 
 		try {
-			ifid = Babel.examine(f);
-		}catch(Exception e){}
+			if (f != null && f.exists() && f.canRead() && f.length() > 0) {
+				ifid = Babel.examine(f);
+			}
+		} catch (Exception e) {
+			Log.w(TAG, "Failed to examine file: " + f, e);
+		} catch (Error e) {
+			Log.e(TAG, "Native error examining file: " + f, e);
+		}
 		
 		if (ifid == null)
 			return path;
 		
 		Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, ifid);
 		Cursor query = mContentResolver.query(uri, PROJECTION, null, null, null);		
-		if (query != null || query.getCount() == 1)
-			if (query.moveToNext())
-				path = query.getString(PATH);			
+		if (query != null) {
+			try {
+				if (query.getCount() == 1 && query.moveToNext()) {
+					path = query.getString(PATH);
+				}
+			} finally {
+				query.close();
+			}
+		}
 		return path;
 	}
 	
@@ -188,13 +200,42 @@ public class StorageManager {
 	}
 
 	private String checkFile(File f) throws IOException {
-		String ifid = Babel.examine(f);		
+		if (f == null || !f.exists() || !f.canRead()) {
+			return null;
+		}
+		
+		String ifid = null;
+		try {
+			ifid = Babel.examine(f);
+		} catch (Exception e) {
+			Log.w(TAG, "Failed to examine file: " + f, e);
+			return null;
+		} catch (Error e) {
+			Log.e(TAG, "Native error examining file: " + f, e);
+			return null;
+		}
+		
 		if (ifid == null) return null;
 
 		return checkFile(f, ifid);
 	}
 	private String checkFile(File f, String ifid) throws IOException {
-		if (ifid == null) ifid = Babel.examine(f);
+		if (f == null || !f.exists() || !f.canRead()) {
+			return null;
+		}
+		
+		if (ifid == null) {
+			try {
+				ifid = Babel.examine(f);
+			} catch (Exception e) {
+				Log.w(TAG, "Failed to examine file: " + f, e);
+				return null;
+			} catch (Error e) {
+				Log.e(TAG, "Native error examining file: " + f, e);
+				return null;
+			}
+		}
+		
 		if (ifid == null) return null;
 		
 		Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, ifid);
@@ -206,12 +247,20 @@ public class StorageManager {
 		if (query == null || query.getCount() != 1) {
 			cv.put(Games.IFID, ifid);
 			final String fname = f.getName();
-			cv.put(Games.TITLE, fname.substring(0, fname.lastIndexOf('.')));
+			int lastDot = fname.lastIndexOf('.');
+			if (lastDot > 0) {
+				cv.put(Games.TITLE, fname.substring(0, lastDot));
+			} else {
+				cv.put(Games.TITLE, fname);
+			}
 			mContentResolver.insert(Games.CONTENT_URI, cv);
-		} else
+		} else {
 			mContentResolver.update(uri, cv, null, null);
+		}
 		
-		query.close();
+		if (query != null) {
+			query.close();
+		}
 		return ifid;
 	}
 
@@ -264,7 +313,15 @@ public class StorageManager {
 						Utils.copyStream(in, out);
 						in.close(); out.close();
 
-						ifid = Babel.examine(ftemp);
+						try {
+							ifid = Babel.examine(ftemp);
+						} catch (Exception e) {
+							Log.w(TAG, "Failed to examine temp file: " + ftemp, e);
+							ifid = null;
+						} catch (Error e) {
+							Log.e(TAG, "Native error examining temp file: " + ftemp, e);
+							ifid = null;
+						}
 
 						//TODO: obtain terp from Babel
 						String ext = "zcode";					
@@ -325,24 +382,32 @@ public class StorageManager {
 		String[] ifIdArray = new String[gameArray.length];
 		for (int i = 0; i < (gameArray.length); i++) {
 			try {
-				path = Babel.examine(x[i]);
-			} catch (IOException e) {
-				e.printStackTrace();
+				if (x[i] != null && x[i].exists() && x[i].canRead()) {
+					path = Babel.examine(x[i]);
+				}
+			} catch (Exception e) {
+				Log.w(TAG, "Failed to examine file: " + x[i], e);
+				continue;
+			} catch (Error e) {
+				Log.e(TAG, "Native error examining file: " + x[i], e);
+				continue;
 			}
+
+			if (path == null) continue;
 
 			Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, path);
 
 			Cursor query = mContentResolver.query(uri, PROJECTION2, null, null, null);
 
-			query.moveToFirst();
 			if (query != null) {
-
-				gameArray[i] = query.getString(3);
-
+				try {
+					if (query.moveToFirst()) {
+						gameArray[i] = query.getString(3);
+					}
+				} finally {
+					query.close();
+				}
 			}
-			query.close();
-
-
 		}
 		Arrays.sort(gameArray);
 		for (int i = 0; i < (ifIdArray.length); i++) {
@@ -350,18 +415,31 @@ public class StorageManager {
 
 			for (int j = 0; j < (ifIdArray.length); j++) {
 				try {
-					path = Babel.examine(x[j]);
-				} catch (IOException e) {
-					e.printStackTrace();
+					if (x[j] != null && x[j].exists() && x[j].canRead()) {
+						path = Babel.examine(x[j]);
+					}
+				} catch (Exception e) {
+					Log.w(TAG, "Failed to examine file: " + x[j], e);
+					continue;
+				} catch (Error e) {
+					Log.e(TAG, "Native error examining file: " + x[j], e);
+					continue;
 				}
+				
+				if (path == null) continue;
+				
 				Uri uri = Uri.withAppendedPath(Games.CONTENT_URI, path);
 				Cursor query = mContentResolver.query(uri, PROJECTION3, null, null, null);
-				query.moveToFirst();
 				if (query != null) {
-					if (query.getString(1).equals(gameTitle))
-						ifIdArray[i] = query.getString(0);
+					try {
+						if (query.moveToFirst()) {
+							if (query.getString(1).equals(gameTitle))
+								ifIdArray[i] = query.getString(0);
+						}
+					} finally {
+						query.close();
+					}
 				}
-				query.close();
 			}
 
 

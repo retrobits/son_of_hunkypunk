@@ -268,8 +268,8 @@ public class IFDb {
 	public static IFDb getInstance(ContentResolver contentResolver) {
 		if (sInstance == null)
 			sInstance = new IFDb(contentResolver);
-		else
-			assert(contentResolver.equals(sInstance.mContentResolver));
+		// Note: Removed assertion as ContentResolver objects may not be equal
+		// even when they come from the same context across different activity instances
 
 		return sInstance;
 	}

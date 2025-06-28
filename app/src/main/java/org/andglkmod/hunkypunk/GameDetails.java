@@ -176,7 +176,7 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        new MenuInflater(getApplication()).inflate(R.layout.menu_game_details, menu);
+        new MenuInflater(getApplication()).inflate(R.menu.menu_game_details, menu);
         return true;
     }
 

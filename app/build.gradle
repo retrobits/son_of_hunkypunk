@@ -19,6 +19,10 @@ android {
         minSdk 21
         targetSdk 34
         vectorDrawables.useSupportLibrary = true
+        
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
     }
     sourceSets.main {
         jni.srcDirs = [] // This prevents the auto generation of Android.mk
@@ -29,11 +33,20 @@ android {
             minifyEnabled false
             //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+        debug {
+            debuggable true
+            jniDebuggable true
+        }
     }
 
     externalNativeBuild {
         ndkBuild {
             path "src/main/jni/Android.mk"
         }
+    }
+    
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsc.so'
     }
 }
