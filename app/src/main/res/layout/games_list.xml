@@ -17,58 +17,138 @@
 	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
-	android:gravity="center"
->
-	<android.support.v7.widget.Toolbar
-		android:id="@+id/appbar"
-		android:layout_height="@dimen/abc_action_bar_default_height_material"
-		android:layout_width="match_parent"
-		android:minHeight="@dimen/abc_action_bar_default_height_material"
-		android:background="?attr/colorPrimary"
-		/>
-	<ListView android:id="@id/android:list"
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-	/>
-	<LinearLayout android:id="@id/android:empty"
-		android:orientation="vertical"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:layout_gravity="center"
-		android:layout_margin="10sp"
-		android:layout_weight="1"
-		android:gravity="center"
-	>
-		<TextView android:id="@+id/go_to_prefs_msg"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:gravity="center"
-			android:text="@string/invalid_if_dir"
-			/>
-		<Button android:id="@+id/go_to_prefs"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:text="Go to Preferences"
-			/>
-		<TextView android:id="@+id/go_to_ifdb_msg"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:gravity="center"
-			android:text="@string/empty_list"
-		/>
-		<Button android:id="@+id/go_to_ifdb"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/go_to_ifdb"
-		/>
-		<Button android:id="@+id/download_preselected"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/download_preselected"
-		/>
-	</LinearLayout>
-</LinearLayout>
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        app:elevation="4dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/appbar"
+            style="@style/Widget.HunkyPunk.AppBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/hunky_punk"
+            app:titleTextAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+            app:layout_scrollFlags="scroll|enterAlways|snap" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/games_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- Fallback to ListView for compatibility -->
+    <ListView 
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <!-- Empty state with Material Design -->
+    <LinearLayout 
+        android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Widget.HunkyPunk.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/go_to_prefs_msg"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/invalid_if_dir"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:layout_marginBottom="16dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/go_to_prefs"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Go to Preferences"
+                    android:layout_marginBottom="24dp"
+                    app:icon="@drawable/ic_settings_24"
+                    app:iconGravity="start" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/go_to_ifdb_msg"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/empty_list"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:layout_marginBottom="16dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/go_to_ifdb"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/go_to_ifdb"
+                    android:layout_marginBottom="12dp"
+                    app:icon="@drawable/ic_public_24"
+                    app:iconGravity="start" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/download_preselected"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/download_preselected"
+                    app:icon="@drawable/ic_download_24"
+                    app:iconGravity="start" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+    <!-- Floating Action Button for adding games -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="Add new game"
+        app:srcCompat="@drawable/ic_add_24" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

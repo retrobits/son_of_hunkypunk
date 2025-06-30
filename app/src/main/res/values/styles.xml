@@ -19,115 +19,221 @@
 -->
 
 <resources>
-	<style name="TextBufferWindow" parent="@android:style/Widget.TextView">
-		<item name="android:scrollbars">none</item>
-		<item name="android:inputType">text|textMultiLine|textNoSuggestions</item>
-	</style>
-	<style name="TextBufferWindowEdit" parent="@android:style/Widget.TextView">
-		<item name="android:scrollbars">none</item>
-		<item name="android:inputType">text|textMultiLine</item>
-	</style>
-	
-	<style name="TextGridWindow" parent="@android:style/Widget.TextView">
-<!--	makes the whole window white, why?	<item name="android:background">?android:attr/colorBackground</item>-->
-		<item name="android:textAppearance">@style/TextGridWindow.TextAppearance</item>
-	</style>
-	
-	<style name="TextGridWindow.TextAppearance" parent="@android:style/TextAppearance.Small">
-		<item name="android:typeface">monospace</item> <!-- we don't use this, only here for completeness -->
-		<item name="android:textSize">11dip</item>
-	</style>
-	
-	<style name="theme" parent="@android:style/Theme.Light.NoTitleBar">
-		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
-		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
-		<item name="textGridWindowStyle">@style/TextGridWindow</item>
-	</style>
+    <!-- Base Application Theme - Material Design 3 -->
+    <style name="Base.Theme.HunkyPunk" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/md_theme_light_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_light_onPrimaryContainer</item>
+        <item name="colorSecondary">@color/md_theme_light_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_light_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_light_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_light_onSecondaryContainer</item>
+        <item name="colorTertiary">@color/md_theme_light_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_light_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_light_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_light_onTertiaryContainer</item>
+        <item name="colorError">@color/md_theme_light_error</item>
+        <item name="colorOnError">@color/md_theme_light_onError</item>
+        <item name="colorErrorContainer">@color/md_theme_light_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md_theme_light_onErrorContainer</item>
+        <item name="android:colorBackground">@color/md_theme_light_background</item>
+        <item name="colorOnBackground">@color/md_theme_light_onBackground</item>
+        <item name="colorSurface">@color/md_theme_light_surface</item>
+        <item name="colorOnSurface">@color/md_theme_light_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_light_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_light_onSurfaceVariant</item>
+        <item name="colorOutline">@color/md_theme_light_outline</item>
+        <item name="colorSurfaceInverse">@color/md_theme_light_inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_light_inverseOnSurface</item>
+        <item name="colorPrimaryInverse">@color/md_theme_light_inversePrimary</item>
+        
+        <!-- Custom attributes for text windows -->
+        <item name="textBufferWindowStyle">@style/TextBufferWindow</item>
+        <item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
+        <item name="textGridWindowStyle">@style/TextGridWindow</item>
+    </style>
 
-	<!-- Night Theme-->
-	<style name="theme2" parent="@android:style/Theme.Black.NoTitleBar">
-		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
-		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
-		<item name="textGridWindowStyle">@style/TextGridWindow</item>
-	</style>
+    <!-- Main Application Theme -->
+    <style name="Theme.HunkyPunk" parent="Base.Theme.HunkyPunk" />
 
-	<style name="normal">
-	</style>
-	
-	<style name="emphasized">
-		<item name="android:textStyle">italic</item>
-	</style>
-	
-	<style name="preformatted" parent="@style/TextGridWindow.TextAppearance"/>
-<!-- Used for the bold names such as places or other specialities in the game -->
-	<style name="header" parent="@android:style/TextAppearance.Medium">
-		<item name="android:textStyle">bold</item>
-	</style>
+    <!-- Text Window Styles - Modern Material Design -->
+    <style name="TextBufferWindow" parent="Widget.AppCompat.TextView">
+        <item name="android:scrollbars">none</item>
+        <item name="android:inputType">text|textMultiLine|textNoSuggestions</item>
+        <item name="android:textAppearance">@style/TextAppearance.Material3.BodyLarge</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+    
+    <style name="TextBufferWindowEdit" parent="Widget.AppCompat.TextView">
+        <item name="android:scrollbars">none</item>
+        <item name="android:inputType">text|textMultiLine</item>
+        <item name="android:textAppearance">@style/TextAppearance.Material3.BodyLarge</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">?attr/colorSurfaceVariant</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+    
+    <style name="TextGridWindow" parent="Widget.AppCompat.TextView">
+        <item name="android:textAppearance">@style/TextGridWindow.TextAppearance</item>
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:padding">12dp</item>
+    </style>
+    
+    <style name="TextGridWindow.TextAppearance" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
+    </style>
 
-<!-- Also used with some games as 'header' but could be influenced by textColor -->
-	<style name="subheader" parent="@android:style/TextAppearance.Small">
-		<item name="android:textStyle">bold</item>
-	</style>
+    <!-- Game Text Styles - Enhanced for readability -->
+    <style name="GameText.Normal" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:lineSpacingMultiplier">1.3</item>
+    </style>
+    
+    <style name="GameText.Emphasized" parent="GameText.Normal">
+        <item name="android:textStyle">italic</item>
+        <item name="android:textColor">?attr/colorSecondary</item>
+    </style>
+    
+    <style name="GameText.Preformatted" parent="@style/TextGridWindow.TextAppearance">
+        <item name="android:background">?attr/colorSurfaceVariant</item>
+        <item name="android:padding">8dp</item>
+    </style>
 
-	<style name="alert">
-		<item name="android:textStyle">bold</item>
-		<item name="android:textColor">#600</item>
-	</style>
-	
-	<style name="note">
-		<item name="android:textStyle">italic</item>
-	</style>
-	
-	<style name="blockquote">
-		<item name="android:textStyle">italic</item>
-	</style>
-	
-	<style name="input">
-		<item name="android:textStyle">bold</item>
-		<item name="android:textColor">#060</item>
-	</style>
+    <style name="GameText.Header" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
 
-	<style name="user1">
-		<item name="android:textColor">#006</item>
-	</style>
+    <style name="GameText.Subheader" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorSecondary</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+    </style>
 
-	<style name="user2">
-		<item name="android:textColor">#060</item>
-	</style>
-	<style name="night">
-		<item name="android:textStyle">bold</item>
-		<item name="android:textColor">#5ff602</item>
-		<!-- <item name="android:textColor">#f6020e</item> -->
-	</style>
+    <style name="GameText.Alert" parent="GameText.Normal">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorError</item>
+    </style>
+    
+    <style name="GameText.Note" parent="GameText.Normal">
+        <item name="android:textStyle">italic</item>
+        <item name="android:textColor">?attr/colorTertiary</item>
+    </style>
+    
+    <style name="GameText.Blockquote" parent="GameText.Normal">
+        <item name="android:textStyle">italic</item>
+        <item name="android:background">?attr/colorSurfaceVariant</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+    
+    <style name="GameText.Input" parent="GameText.Normal">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/game_input_text</item>
+    </style>
 
-	<style name="night_header" parent="@android:style/TextAppearance.Medium">
-		<item name="android:textStyle">bold</item>
-		<item name="android:textColor">#008db7</item>
-	</style>
+    <style name="GameText.User1" parent="GameText.Normal">
+        <item name="android:textColor">@color/game_text_primary</item>
+    </style>
 
-	<style name="night_subheader" parent="@android:style/TextAppearance.Small">
-		<item name="android:textStyle">bold</item>
-		<item name="android:textColor">#ffd4e5</item>
-	</style>
+    <style name="GameText.User2" parent="GameText.Normal">
+        <item name="android:textColor">@color/game_text_secondary</item>
+    </style>
 
-	<style name="night_format" parent="@style/TextGridWindow.TextAppearance">
-		<item name="android:textColor">#e5fff6</item>
-	</style>
+    <!-- Legacy themes for backward compatibility -->
+    <style name="theme" parent="Theme.HunkyPunk" />
+    <style name="theme2" parent="Theme.HunkyPunk" />
 
-	<style name="shortcutpreftheme" parent="Theme.AppCompat.NoActionBar" >
-		<item name="actionButtonStyle">@style/MyActionButtonStyle</item>
-		<item name="android:actionButtonStyle">@style/MyActionButtonStyle</item>
-	</style>
+    <!-- Modern Material Components -->
+    <style name="Widget.HunkyPunk.Button" parent="Widget.Material3.Button">
+        <item name="android:layout_marginHorizontal">4dp</item>
+    </style>
 
-	<color name="shortcutsColor">#52A6B8</color>
+    <style name="Widget.HunkyPunk.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_marginHorizontal">4dp</item>
+    </style>
 
-	<style name="MyActionButtonStyle" parent="Theme.AppCompat.NoActionBar">
-		<item name="android:minWidth">32dip</item>
-		<item name="android:padding">7dip</item>
-	</style>
+    <style name="Widget.HunkyPunk.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
 
-	<style name="prefstheme" parent="Theme.AppCompat">
-	</style>
-	<style name="compatbartheme" parent="Theme.AppCompat.NoActionBar">
-	</style>
+    <style name="Widget.HunkyPunk.AppBar" parent="Widget.Material3.Toolbar">
+        <item name="android:elevation">4dp</item>
+        <item name="titleTextAppearance">@style/TextAppearance.Material3.HeadlineSmall</item>
+    </style>
+
+    <!-- Preferences Theme -->
+    <style name="Theme.HunkyPunk.Preferences" parent="Theme.Material3.DayNight">
+        <item name="colorPrimary">@color/md_theme_light_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_light_onPrimaryContainer</item>
+        <item name="android:colorBackground">@color/md_theme_light_background</item>
+        <item name="colorOnBackground">@color/md_theme_light_onBackground</item>
+        <item name="colorSurface">@color/md_theme_light_surface</item>
+        <item name="colorOnSurface">@color/md_theme_light_onSurface</item>
+    </style>
+
+    <!-- Shortcut Preferences Theme -->
+    <style name="Theme.HunkyPunk.ShortcutPreferences" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/md_theme_light_primary</item>
+        <item name="android:colorBackground">@color/md_theme_light_background</item>
+        <item name="actionButtonStyle">@style/Widget.HunkyPunk.ActionButton</item>
+        <item name="android:actionButtonStyle">@style/Widget.HunkyPunk.ActionButton</item>
+    </style>
+
+    <style name="Widget.HunkyPunk.ActionButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:minWidth">48dp</item>
+        <item name="android:padding">12dp</item>
+    </style>
+
+    <!-- Legacy style aliases for compatibility -->
+    <style name="normal" parent="GameText.Normal" />
+    <style name="emphasized" parent="GameText.Emphasized" />
+    <style name="preformatted" parent="GameText.Preformatted" />
+    <style name="header" parent="GameText.Header" />
+    <style name="subheader" parent="GameText.Subheader" />
+    <style name="alert" parent="GameText.Alert" />
+    <style name="note" parent="GameText.Note" />
+    <style name="blockquote" parent="GameText.Blockquote" />
+    <style name="input" parent="GameText.Input" />
+    <style name="user1" parent="GameText.User1" />
+    <style name="user2" parent="GameText.User2" />
+    
+    <!-- Night mode specific styles -->
+    <style name="night" parent="GameText.Normal">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#5ff602</item>
+    </style>
+
+    <style name="night_header" parent="GameText.Header">
+        <item name="android:textColor">#008db7</item>
+    </style>
+
+    <style name="night_subheader" parent="GameText.Subheader">
+        <item name="android:textColor">#ffd4e5</item>
+    </style>
+
+    <style name="night_format" parent="GameText.Preformatted">
+        <item name="android:textColor">#e5fff6</item>
+    </style>
+
+    <!-- Theme aliases for backward compatibility -->
+    <style name="shortcutpreftheme" parent="Theme.HunkyPunk.ShortcutPreferences" />
+    <style name="prefstheme" parent="Theme.HunkyPunk.Preferences" />
+    <style name="compatbartheme" parent="Theme.HunkyPunk" />
+
 </resources>

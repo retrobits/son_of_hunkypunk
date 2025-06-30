@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Dark theme color values for Hunky Punk
+-->
+<resources>
+    <!-- Surface colors with elevation for dark theme -->
+    <color name="surface_1">#22202B</color>
+    <color name="surface_2">#28252F</color>
+    <color name="surface_3">#2D2A34</color>
+    <color name="surface_4">#322F39</color>
+    <color name="surface_5">#36333E</color>
+</resources>
