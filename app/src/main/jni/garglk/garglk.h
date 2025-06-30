@@ -637,6 +637,7 @@ extern int gli_window_check_terminator(glui32 ch);
 
 extern void gli_windows_redraw(void);
 extern void gli_windows_size_change(void);
+extern void gli_windows_rearrange(void);
 
 extern void gli_window_click(window_t *win, int x, int y);
 

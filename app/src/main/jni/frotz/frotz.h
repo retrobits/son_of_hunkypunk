@@ -596,6 +596,7 @@ zchar	translate_from_zscii (zbyte);
 zbyte	translate_to_zscii (zchar);
 
 void 	flush_buffer (void);
+void 	init_buffer (void);
 void	new_line (void);
 void	print_char (zchar);
 void	print_num (zword);
@@ -628,6 +629,7 @@ void 	os_finish_with_sample (int);
 int  	os_font_data (int, int *, int *);
 int 	os_from_true_colour (zword);
 void 	os_init_screen (void);
+void 	os_init_setup (void);
 void 	os_menu(int, int, const zword *);
 void 	os_more_prompt (void);
 int  	os_peek_colour (void);

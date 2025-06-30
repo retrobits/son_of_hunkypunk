@@ -176,7 +176,7 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        new MenuInflater(getApplication()).inflate(R.layout.menu_game_details, menu);
+        new MenuInflater(getApplication()).inflate(R.menu.menu_game_details, menu);
         return true;
     }
 
@@ -383,14 +383,13 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
 
     @Override
     public void onClick(View arg0) {
-        switch (arg0.getId()) {
-            case R.id.restart:
-                askRestartGame();
-                break;
-            case R.id.open:
-                openGame();
-            case R.id.remove:
-                // TODO
+        int id = arg0.getId();
+        if (id == R.id.restart) {
+            askRestartGame();
+        } else if (id == R.id.open) {
+            openGame();
+        } else if (id == R.id.remove) {
+            // TODO
         }
     }
 

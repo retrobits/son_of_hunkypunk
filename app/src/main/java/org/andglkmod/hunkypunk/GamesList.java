@@ -227,7 +227,16 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
             {
                 //copy covers
                 String oldCovers = new File(old,"covers").getPath();
-                copyFileOrDirectory(oldCovers, Paths.coverDirectory(this).getParentFile().getPath());
+                File oldCoversFile = new File(oldCovers);
+                if (oldCoversFile.exists()) {
+                    // Ensure the destination directory exists
+                    File coverParent = Paths.coverDirectory(this).getParentFile();
+                    if (!coverParent.exists() && !coverParent.mkdirs()) {
+                        android.util.Log.w("GamesList", "Failed to create covers directory: " + coverParent.getAbsolutePath());
+                    } else {
+                        copyFileOrDirectory(oldCovers, coverParent.getPath());
+                    }
+                }
 
                 //copy existing games with state data
                 DatabaseHelper mOpenHelper = new DatabaseHelper(this);
@@ -263,20 +272,28 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     }
 
     public static void copyFileOrDirectory(String srcDir, String dstDir) {
-
         try {
             File src = new File(srcDir);
+            if (!src.exists()) {
+                return; // Source doesn't exist, nothing to copy
+            }
+            
             File dst = new File(dstDir, src.getName());
 
             if (src.isDirectory()) {
+                // Create destination directory if it doesn't exist
+                if (!dst.exists() && !dst.mkdirs()) {
+                    throw new IOException("Failed to create directory: " + dst.getAbsolutePath());
+                }
 
                 String files[] = src.list();
-                int filesLength = files.length;
-                for (int i = 0; i < filesLength; i++) {
-                    String src1 = (new File(src, files[i]).getPath());
-                    String dst1 = dst.getPath();
-                    copyFileOrDirectory(src1, dst1);
-
+                if (files != null) {
+                    int filesLength = files.length;
+                    for (int i = 0; i < filesLength; i++) {
+                        String src1 = (new File(src, files[i]).getPath());
+                        String dst1 = dst.getPath();
+                        copyFileOrDirectory(src1, dst1);
+                    }
                 }
             } else {
                 copyFile(src, dst);
@@ -314,7 +331,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        new MenuInflater(getApplication()).inflate(R.layout.menu_main, menu);
+        new MenuInflater(getApplication()).inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -376,16 +393,13 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.go_to_ifdb:
-                startActivity(new Intent(Intent.ACTION_DEFAULT, Uri.parse("http://ifdb.tads.org")));
-                break;
-            case R.id.download_preselected:
-                downloadPreselected();
-                break;
-            case R.id.go_to_prefs:
-                startActivity(new Intent(this, PreferencesActivity.class));
-                break;
+        int id = v.getId();
+        if (id == R.id.go_to_ifdb) {
+            startActivity(new Intent(Intent.ACTION_DEFAULT, Uri.parse("http://ifdb.tads.org")));
+        } else if (id == R.id.download_preselected) {
+            downloadPreselected();
+        } else if (id == R.id.go_to_prefs) {
+            startActivity(new Intent(this, PreferencesActivity.class));
         }
     }
 

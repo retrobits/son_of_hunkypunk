@@ -259,6 +259,8 @@ extern glui32 glk_stream_get_position(strid_t str);
 extern void glk_stream_set_current(strid_t str);
 extern strid_t glk_stream_get_current(void);
 
+extern void gli_streams_close_all(void);
+
 extern void glk_put_char(unsigned char ch);
 extern void glk_put_char_stream(strid_t str, unsigned char ch);
 extern void glk_put_string(char *s);
