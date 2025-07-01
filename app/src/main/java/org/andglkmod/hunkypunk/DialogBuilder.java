@@ -44,6 +44,8 @@ public class DialogBuilder {
 
         String aboutText = versionString + "\n\nby Dan Vernon\n\n";
 
+        aboutText += "Many thanks to Cameron Aaron for fixing the build and other bugs\n\n";
+
         aboutText += "Many thanks to JPDOB Team (students from the University of Constance, Germany)\n\n";
 
         aboutText += "Based on the original version by Rafał Rzepecki\n\n";
