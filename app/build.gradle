@@ -1,42 +1,58 @@
 apply plugin: 'com.android.application'
 
-dependencies {
-    //For some reason in 23.2 'GestureDetectorCompat' is already final which results in exception
-    //in org.twview.ClickItemTouchListener.
-    //Interestingly, below 23.0.0 the method 'RecyclerView.isAttachedToWindow()' is not recognized.
-    //Luckily, v.up. >= 23.0.0 && v.up. < 23.2 work
-    implementation 'com.android.support:cardview-v7:24.1.1'
-    implementation project(':library')
-    implementation 'com.android.support:design:24.1.1'
-}
-
 android {
-    namespace 'org.andglkmod.hunkypunk'
-    compileSdk 34
+    namespace = 'org.andglkmod.hunkypunk'
+    compileSdk = 36
 
     defaultConfig {
-        applicationId "org.andglkmod.hunkypunk"
-        minSdk 21
-        targetSdk 34
+        applicationId = "org.andglkmod.hunkypunk"
+        minSdk = 24
+        targetSdk = 36
         vectorDrawables.useSupportLibrary = true
         
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
         }
+        
+        // Versioning
+        versionCode 20
+        versionName "2.0"
+        
+        // Enable multidex for large apps
+        multiDexEnabled true
     }
+    
     sourceSets.main {
         jni.srcDirs = [] // This prevents the auto generation of Android.mk
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // Enable code obfuscation
+            debuggable false
         }
         debug {
             debuggable true
             jniDebuggable true
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
         }
+    }
+
+    // Add build features
+    buildFeatures {
+        buildConfig = true
+        viewBinding = false
+    }
+    
+    // Compile options for Java 8+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     externalNativeBuild {
@@ -44,10 +60,26 @@ android {
             path "src/main/jni/Android.mk"
         }
     }
+    
     packagingOptions {
         jniLibs {
             pickFirsts += ['**/libc++_shared.so', '**/libjsc.so']
         }
     }
+}
 
+dependencies {
+    // AndroidX support libraries - replacing old support library
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation project(':library')
+    implementation 'com.google.android.material:material:1.12.0'
+    
+    // Core AndroidX libraries
+    implementation 'androidx.core:core:1.13.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.activity:activity:1.9.2'
+    implementation 'androidx.fragment:fragment:1.8.4'
+    
+    // For apps with large method counts
+    implementation 'androidx.multidex:multidex:2.0.1'
 }

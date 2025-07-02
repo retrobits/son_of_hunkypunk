@@ -38,6 +38,13 @@
 		<item name="android:textSize">11dip</item>
 	</style>
 	
+	<!-- Main app theme for Android 16 -->
+	<style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
+		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
+		<item name="textGridWindowStyle">@style/TextGridWindow</item>
+	</style>
+
 	<style name="theme" parent="@android:style/Theme.Light.NoTitleBar">
 		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
 		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>

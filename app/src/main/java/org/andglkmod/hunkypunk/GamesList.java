@@ -53,8 +53,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -65,11 +65,11 @@ import android.view.View.OnClickListener;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
-import android.support.annotation.Nullable;
-import android.support.v7.view.ActionMode;
-import android.support.v7.app.AppCompatCallback;
-import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.appcompat.view.ActionMode;
+import androidx.appcompat.app.AppCompatCallback;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
 import java.util.regex.Pattern;
 
 public class GamesList extends ListActivity implements OnClickListener, AppCompatCallback {
@@ -261,9 +261,9 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
         verifyIfDirectory(this);
     }
 
-    public void onSupportActionModeStarted(android.support.v7.view.ActionMode mode) {}
+    public void onSupportActionModeStarted(androidx.appcompat.view.ActionMode mode) {}
 
-    public void onSupportActionModeFinished(android.support.v7.view.ActionMode mode) {}
+    public void onSupportActionModeFinished(androidx.appcompat.view.ActionMode mode) {}
 
     @Nullable
     public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback)

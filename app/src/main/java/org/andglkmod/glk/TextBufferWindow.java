@@ -38,7 +38,7 @@ import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
-import android.support.v7.widget.CardView;
+import androidx.cardview.widget.CardView;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.Selection;
@@ -286,6 +286,16 @@ public class TextBufferWindow extends Window {
                                 lineInputAccepted(sb);
 
                                 ToggleCommandView();
+                            } else {
+                                // Ensure shortcuts remain visible during text input
+                                if (TextBufferWindow.this.mHLView != null) {
+                                    TextBufferWindow.this.mHLView.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            TextBufferWindow.this.mHLView.setVisibility(View.VISIBLE);
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
@@ -380,11 +390,30 @@ public class TextBufferWindow extends Window {
             if (requestFocus())
             {
                 showKeyboard();
+                // Ensure shortcut layout remains visible when input is enabled
+                if (TextBufferWindow.this.mHLView != null) {
+                    TextBufferWindow.this.mHLView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            TextBufferWindow.this.mHLView.setVisibility(View.VISIBLE);
+                            TextBufferWindow.this.mHLView.requestLayout();
+                        }
+                    });
+                }
             }
         }
 
         public void disableInput() {
             setFocusable(false);
+            // Ensure shortcut layout remains visible when input is disabled
+            if (TextBufferWindow.this.mHLView != null) {
+                TextBufferWindow.this.mHLView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextBufferWindow.this.mHLView.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
         }
 
         private void showKeyboard() {
@@ -1029,6 +1058,7 @@ public class TextBufferWindow extends Window {
     private _CommandView mCommand2 = null;
     private _PromptView mPrompt = null;
     private LinearLayout mLayout = null;
+    private LinearLayout mRootLayout = null;  // Root layout containing everything
     private LinearLayout hl = null;
     private _HorListView mHLView = null;
     private CharSequence mCommandText = null;
@@ -1061,6 +1091,11 @@ public class TextBufferWindow extends Window {
                         // when window is created, style hints are fixed
                         stylehints = new Styles(_stylehints);
 
+                        // Create the root container that will hold everything
+                        mRootLayout = new LinearLayout(mContext);
+                        mRootLayout.setOrientation(LinearLayout.VERTICAL);
+                        mRootLayout.setBackgroundColor(DefaultBackground);
+
                         mScrollView = new _ScrollView(mContext);
                         mScrollView.setPadding(0, 0, 0, 0);
                         mScrollView.setFocusable(false);
@@ -1077,21 +1112,22 @@ public class TextBufferWindow extends Window {
                                 LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
                         LinearLayout.LayoutParams paramsLLayout = new
                                 LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams paramsScrollable = new
+                                LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 1.0f); // weight=1 to fill available space
                         paramsPrompt.setMargins(0, -margin, 0, 0);
                         paramsCommand.setMargins(0, -margin, 0, 0);
 
+                        // This layout will contain only the scrollable game text
                         mLayout = new LinearLayout(mContext);
                         mLayout.setOrientation(LinearLayout.VERTICAL);
                         mLayout.setPadding(0, 0, 0, 0);
                         mLayout.setBackgroundColor(DefaultBackground);
 
-                        LinearLayout hl = new LinearLayout(mContext);
-                        hl.setPadding(0, 0, 0, 0);
+                        // Create the fixed input area (outside scroll view)
+                        hl = new LinearLayout(mContext);
+                        hl.setPadding(8, 4, 8, 8); // Add padding, especially bottom padding
                         hl.setOrientation(LinearLayout.HORIZONTAL);
-
-                        LinearLayout hll = new LinearLayout(mContext);
-                        hll.setPadding(0, 0, 0, 0);
-                        hll.setOrientation(LinearLayout.HORIZONTAL);
+                        hl.setBackgroundColor(DefaultBackground);
 
 
                         mCommand1 = new _CommandView(mContext);
@@ -1112,13 +1148,28 @@ public class TextBufferWindow extends Window {
                         mPrompt.setPadding(pad, 0, pad, pad);
                         mPrompt.setFocusable(false);
 
+                        // Add input components to the input layout
                         hl.addView(mPrompt, paramsPrompt);
                         hl.addView(mCommand1, paramsCommand);
                         hl.addView(mCommand2, paramsCommand);
 
+                        mView = new _View(mContext);
+                        mView.setPadding(pad, pad, pad, 0);
+                        mView.setFocusable(false);
+
+                        // Add only the game text view to the scrollable layout
+                        mLayout.addView(mView, paramsDefault);
+                        mScrollView.addView(mLayout);
+
+                        // Create the fixed shortcuts area (outside scroll view)
+                        LinearLayout shortcutLayout = new LinearLayout(mContext);
+                        shortcutLayout.setPadding(8, 8, 8, 24); // Add bottom padding to avoid navigation bar
+                        shortcutLayout.setOrientation(LinearLayout.HORIZONTAL);
+                        shortcutLayout.setBackgroundColor(DefaultBackground);
 
                         mHLView = new _HorListView(mContext);
                         mHLView.setPadding(0, 0, 0, 0);
+                        mHLView.setVisibility(View.VISIBLE); // Ensure it's explicitly visible
                         final ViewGroup viewGroup = new LinearLayout(mContext);
 
                         SharedPreferences sharedShortcuts = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
@@ -1128,7 +1179,7 @@ public class TextBufferWindow extends Window {
                                 .getString("newColor", "#52A6B8");
                         int bg = Color.parseColor(shortcutsColor);
 
-                        if (sharedShortcutPrefs.getBoolean("enablelist", true))
+                        if (sharedShortcutPrefs.getBoolean("enablelist", true)) {
                             for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
                                 String title = sharedShortcutIDs.getString(i + "", "");
                                 final String command = sharedShortcuts.getString(title, "");
@@ -1146,7 +1197,6 @@ public class TextBufferWindow extends Window {
 
                                 cardView.setCardBackgroundColor(bg);
 
-
                                 textView.setTag(command);
                                 cardView.setOnClickListener(new View.OnClickListener() {
                                     @Override
@@ -1158,22 +1208,34 @@ public class TextBufferWindow extends Window {
                                     }
                                 });
 
-                                viewGroup.addView(shortcutView);
+                                // Add with proper layout parameters for horizontal layout
+                                LinearLayout.LayoutParams shortcutParams = new LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.WRAP_CONTENT, 
+                                    LinearLayout.LayoutParams.WRAP_CONTENT
+                                );
+                                shortcutParams.setMargins(4, 4, 4, 4); // Add small margins between shortcuts
+                                viewGroup.addView(shortcutView, shortcutParams);
                             }
+                        } else {
+                            // If shortcuts are disabled, still add the view but make it minimal
+                            mHLView.setVisibility(View.GONE);
+                        }
 
                         mHLView.addView(viewGroup);
-                        hll.addView(mHLView, paramsLView);
+                        shortcutLayout.addView(mHLView, paramsLView);
 
-                        mView = new _View(mContext);
-                        mView.setPadding(pad, pad, pad, 0);
-                        mView.setFocusable(false);
+                        // Assemble the final layout structure:
+                        // Root Layout
+                        //   ├── ScrollView (takes up remaining space with weight=1)
+                        //   │   └── Game text view
+                        //   ├── Input area (fixed at bottom)
+                        //   └── Shortcuts area (fixed at bottom)
+                        mRootLayout.addView(mScrollView, paramsScrollable);  // ScrollView gets weight=1
+                        mRootLayout.addView(hl, paramsHLayout);              // Input area fixed
+                        mRootLayout.addView(shortcutLayout, paramsLLayout);  // Shortcuts fixed
 
-                        mLayout.addView(mView, paramsDefault);
-                        mLayout.addView(hl, paramsHLayout);
-                        mLayout.addView(hll, paramsLLayout);
-
+                        // Set the root layout as the main view
                         mScrollView.setBackgroundColor(DefaultBackground);
-                        mScrollView.addView(mLayout);
                         mStream = new _Stream();
 
 
@@ -1332,6 +1394,12 @@ public class TextBufferWindow extends Window {
             mCommand1.setVisibility(View.VISIBLE);
             mCommand1.setTag("_ActiveCommandViewTAG");
             mActiveCommand = mCommand1;
+        }
+        
+        // Ensure shortcut view remains visible after command view toggle
+        if (mHLView != null) {
+            mHLView.setVisibility(View.VISIBLE);
+            mHLView.invalidate();
         }
     }
 
@@ -1606,7 +1674,7 @@ public class TextBufferWindow extends Window {
 
     @Override
     public View getView() {
-        return mScrollView;
+        return mRootLayout;
     }
 
     @Override
