@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Include game save files and preferences -->
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="games/" />
+        <include domain="file" path="saves/" />
+        
+        <!-- Exclude temporary files -->
+        <exclude domain="file" path="temp/" />
+        <exclude domain="file" path="cache/" />
+    </cloud-backup>
+    
+    <device-transfer>
+        <!-- Include all user data for device transfer -->
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="." />
+    </device-transfer>
+</data-extraction-rules>

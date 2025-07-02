@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Include game save files and preferences -->
+    <include domain="sharedpref" path="." />
+    <include domain="file" path="games/" />
+    <include domain="file" path="saves/" />
+    
+    <!-- Exclude temporary files -->
+    <exclude domain="file" path="temp/" />
+    <exclude domain="file" path="cache/" />
+</full-backup-content>

@@ -23,7 +23,7 @@
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 >
-	<android.support.v7.widget.Toolbar
+	<androidx.appcompat.widget.Toolbar
 		android:id="@+id/appbar"
 		android:layout_height="@dimen/abc_action_bar_default_height_material"
 		android:layout_width="match_parent"
