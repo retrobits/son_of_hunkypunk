@@ -1,7 +1,7 @@
 /*
-	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+    Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
 
-	This file is part of Hunky Punk.
+    This file is part of Hunky Punk.
 
     Hunky Punk is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -236,7 +236,8 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
 
 
             for (int i = 0; i < list.size(); i++) {
-                shortcutEditor.putString(list.get(i), list.get(i));
+                // Append a space to the stored command so default shortcuts include a trailing space
+                shortcutEditor.putString(list.get(i), list.get(i) + " ");
                 shortcutIDEditor.putString(i + "", list.get(i));
             }
             prefEditor.putBoolean("firstStart", false);

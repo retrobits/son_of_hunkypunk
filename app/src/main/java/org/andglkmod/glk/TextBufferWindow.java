@@ -220,6 +220,9 @@ public class TextBufferWindow extends Window {
     protected _View mView;
     protected Handler mHandler;
     protected Context mContext;
+    // Command history support
+    private java.util.List<String> mCommandHistory = new java.util.ArrayList<>();
+    private int mHistoryIndex = -1;
     private long mLineEventBuffer;
     private long mLineEventBufferLength;
     private int mLineEventBufferRock;
@@ -428,6 +431,42 @@ public class TextBufferWindow extends Window {
             }
 
             return true;
+        }
+
+        @Override
+        public boolean onKeyDown(int keyCode, KeyEvent event) {
+            // Navigate command history
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                if (!mCommandHistory.isEmpty()) {
+                    if (mHistoryIndex == -1) {
+                        mHistoryIndex = mCommandHistory.size() - 1;
+                    } else if (mHistoryIndex > 0) {
+                        mHistoryIndex--;
+                    }
+                    setText(mCommandHistory.get(mHistoryIndex));
+                    setSelection(getText().length());
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                if (!mCommandHistory.isEmpty() && mHistoryIndex >= 0) {
+                    if (mHistoryIndex < mCommandHistory.size() - 1) {
+                        mHistoryIndex++;
+                        setText(mCommandHistory.get(mHistoryIndex));
+                    } else {
+                        mHistoryIndex = -1;
+                        setText("");
+                    }
+                    setSelection(getText().length());
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                String cmd = getText().toString();
+                if (!cmd.isEmpty()) {
+                    mCommandHistory.add(cmd);
+                }
+                mHistoryIndex = -1;
+            }
+            return super.onKeyDown(keyCode, event);
         }
     }
 
