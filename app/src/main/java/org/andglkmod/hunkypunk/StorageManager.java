@@ -70,9 +70,8 @@ public class StorageManager {
 	private static StorageManager sInstance;
 	
 	public static StorageManager getInstance(Context context) {
-		if (sInstance == null) sInstance = new StorageManager(context);
+		if (sInstance == null) sInstance = new StorageManager(context.getApplicationContext());
 		
-		assert(sInstance.mContentResolver == context.getContentResolver());
 		return sInstance;
 	}
 
