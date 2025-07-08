@@ -5,11 +5,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleTextColor="@android:color/white"></android.support.v7.widget.Toolbar>
+        app:titleTextColor="@android:color/white"></androidx.appcompat.widget.Toolbar>
 
     <com.mobeta.android.dslv.DragSortListView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:dslv="http://schemas.android.com/apk/res-auto"

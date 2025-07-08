@@ -209,7 +209,7 @@ public class SimpleDragSortCursorAdapter extends ResourceDragSortCursorAdapter {
      * @param v ImageView to receive an image
      * @param value the value retrieved from the cursor
      */
-    public void setViewImage(ImageView v, String value) {
+    public static void setViewImage(ImageView v, String value) {
         try {
             v.setImageResource(Integer.parseInt(value));
         } catch (NumberFormatException nfe) {

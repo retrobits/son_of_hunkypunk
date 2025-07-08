@@ -20,6 +20,7 @@
 package org.andglkmod.hunkypunk;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.content.Context;
 import android.widget.Toast;
@@ -32,6 +33,7 @@ public abstract class Paths {
     public static File cardDirectory() {
         return new File(Environment.getExternalStorageDirectory().getPath());
     }
+    
     public static File appDirectory(Context c) {
         return c.getExternalFilesDir(null);
     }
@@ -113,7 +115,7 @@ public abstract class Paths {
     public static File ifDirectory(Context c) {
         File f;
 
-            //if (ifDirectory != null)
+        //if (ifDirectory != null)
         //    f = ifDirectory;
         //else
             f = defaultIfDirectory(c);
@@ -121,16 +123,52 @@ public abstract class Paths {
         return f;
     }
 
-    public static File defaultIfDirectory(Context c)
-    {
+    public static File defaultIfDirectory(Context c) {
         File a = appDirectory(c);
         File f = new File(a, "Interactive Fiction");
         return f;
     }
 
+    /**
+     * Get the public Documents directory path for better user accessibility.
+     * This provides a user-accessible location for game files.
+     */
+    public static File getPublicGamesDirectory() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            File documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+            File gamesDir = new File(documentsDir, "Interactive Fiction");
+            if (!gamesDir.exists()) {
+                gamesDir.mkdirs();
+            }
+            return gamesDir;
+        } else {
+            // Fallback for older Android versions
+            File sdcard = Environment.getExternalStorageDirectory();
+            File gamesDir = new File(sdcard, "Documents/Interactive Fiction");
+            if (!gamesDir.exists()) {
+                gamesDir.mkdirs();
+            }
+            return gamesDir;
+        }
+    }
+
+    /**
+     * Get a user-friendly path description for the games directory
+     */
+    public static String getGameDirectoryDescription(Context c) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return "Use the 'Add Games' button to select game files from any location.";
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return "Documents/Interactive Fiction or use 'Add Games' button";
+        } else {
+            return getPublicGamesDirectory().getAbsolutePath();
+        }
+    }
+
     public static void setIfDirectory(File file) {
         ifDirectory = file;
     }
+    
     public static File transcriptDirectory(Context c) {
         File f = new File(ifDirectory(c), "transcripts");
         if (!f.exists()) f.mkdir();

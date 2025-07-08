@@ -1,7 +1,7 @@
 /*
-	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+    Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
 
-	This file is part of Hunky Punk.
+    This file is part of Hunky Punk.
 
     Hunky Punk is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
-import android.support.v7.widget.CardView;
+import androidx.cardview.widget.CardView;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.Selection;
@@ -220,6 +220,9 @@ public class TextBufferWindow extends Window {
     protected _View mView;
     protected Handler mHandler;
     protected Context mContext;
+    // Command history support
+    private java.util.List<String> mCommandHistory = new java.util.ArrayList<>();
+    private int mHistoryIndex = -1;
     private long mLineEventBuffer;
     private long mLineEventBufferLength;
     private int mLineEventBufferRock;
@@ -365,15 +368,15 @@ public class TextBufferWindow extends Window {
             disableInput();
         }
 
-		/*
+        /*
         public void enableWatcher(){
-			addTextChangedListener(mWatcher);
-		}
-		public void disableWatcher() {
+            addTextChangedListener(mWatcher);
+        }
+        public void disableWatcher() {
             //causes exception in TextView
-			removeTextChangedListener(mWatcher);
-		}
-		*/
+            removeTextChangedListener(mWatcher);
+        }
+        */
 
         public void enableInput() {
             setFocusableInTouchMode(true);
@@ -429,6 +432,42 @@ public class TextBufferWindow extends Window {
 
             return true;
         }
+
+        @Override
+        public boolean onKeyDown(int keyCode, KeyEvent event) {
+            // Navigate command history
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                if (!mCommandHistory.isEmpty()) {
+                    if (mHistoryIndex == -1) {
+                        mHistoryIndex = mCommandHistory.size() - 1;
+                    } else if (mHistoryIndex > 0) {
+                        mHistoryIndex--;
+                    }
+                    setText(mCommandHistory.get(mHistoryIndex));
+                    setSelection(getText().length());
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                if (!mCommandHistory.isEmpty() && mHistoryIndex >= 0) {
+                    if (mHistoryIndex < mCommandHistory.size() - 1) {
+                        mHistoryIndex++;
+                        setText(mCommandHistory.get(mHistoryIndex));
+                    } else {
+                        mHistoryIndex = -1;
+                        setText("");
+                    }
+                    setSelection(getText().length());
+                }
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                String cmd = getText().toString();
+                if (!cmd.isEmpty()) {
+                    mCommandHistory.add(cmd);
+                }
+                mHistoryIndex = -1;
+            }
+            return super.onKeyDown(keyCode, event);
+        }
     }
 
     private class _PromptView extends TextView {
@@ -443,16 +482,16 @@ public class TextBufferWindow extends Window {
             setTypeface(TextBufferWindow.this.getDefaultTypeface());
             setBackgroundColor(TextBufferWindow.DefaultBackground);
 
-			/*DO NOT DELETE*/
+            /*DO NOT DELETE*/
             /* Not used for now but left for onPreDrawNight */
             /*getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                 @Override
-				public boolean onPreDraw () {
-					setBackgroundColor(TextBufferWindow.this.DefaultBackground);
-					setTextColor(TextBufferWindow.this.DefaultTextColor);
-					return true;
-				}
-			});*/
+                public boolean onPreDraw () {
+                    setBackgroundColor(TextBufferWindow.this.DefaultBackground);
+                    setTextColor(TextBufferWindow.this.DefaultTextColor);
+                    return true;
+                }
+            });*/
 
         }
     }
@@ -760,11 +799,11 @@ public class TextBufferWindow extends Window {
             setBackgroundResource(0);
             //setTextSize(DefaultFontSize);
 
-			/* In Styles.class the typeface of the text is firstly set, here it is only measured
-			   onto the view.
-			   Setting it only here results in wrong measuring (when actual and here set typeface
-			   differ in size) and text overflow bug/issue too.
-			 */
+            /* In Styles.class the typeface of the text is firstly set, here it is only measured
+               onto the view.
+               Setting it only here results in wrong measuring (when actual and here set typeface
+               differ in size) and text overflow bug/issue too.
+             */
             setTypeface(TextBufferWindow.this.getDefaultTypeface());
             setReadOnly(this, true);
 
@@ -1119,7 +1158,17 @@ public class TextBufferWindow extends Window {
 
                         mHLView = new _HorListView(mContext);
                         mHLView.setPadding(0, 0, 0, 0);
+                        mHLView.setHorizontalScrollBarEnabled(true);
+                        mHLView.setVerticalScrollBarEnabled(false);
+                        
                         final ViewGroup viewGroup = new LinearLayout(mContext);
+                        ((LinearLayout) viewGroup).setOrientation(LinearLayout.HORIZONTAL);
+                        
+                        // Set proper layout parameters for the shortcuts container
+                        LinearLayout.LayoutParams viewGroupParams = new LinearLayout.LayoutParams(
+                            LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                        viewGroup.setLayoutParams(viewGroupParams);
+                        viewGroup.setPadding(8, 8, 8, 8);
 
                         SharedPreferences sharedShortcuts = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
                         SharedPreferences sharedShortcutIDs = mContext.getSharedPreferences("shortcutIDs", Context.MODE_PRIVATE);
@@ -1133,7 +1182,8 @@ public class TextBufferWindow extends Window {
                                 String title = sharedShortcutIDs.getString(i + "", "");
                                 final String command = sharedShortcuts.getString(title, "");
 
-                                View shortcutView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_view, null);
+                                // Inflate with viewGroup as parent so LayoutParams are applied correctly
+                                View shortcutView = LayoutInflater.from(mContext).inflate(R.layout.shortcut_view, (ViewGroup) viewGroup, false);
                                 CardView cardView = (CardView) shortcutView.findViewById(R.id.cardview);
                                 final TextView textView = (TextView) shortcutView.findViewById(R.id.shortcuttitle);
                                 textView.setText(title);
@@ -1158,6 +1208,7 @@ public class TextBufferWindow extends Window {
                                     }
                                 });
 
+                                // Add the shortcut view to the horizontal container (margins applied in XML or via LayoutParams)
                                 viewGroup.addView(shortcutView);
                             }
 
@@ -1167,28 +1218,46 @@ public class TextBufferWindow extends Window {
                         mView = new _View(mContext);
                         mView.setPadding(pad, pad, pad, 0);
                         mView.setFocusable(false);
+                        
+                        // Ensure the text view has a proper background and minimum height from resources
+                        mView.setBackgroundColor(DefaultBackground);
+                        mView.setMinHeight(mView.getResources().getDimensionPixelSize(R.dimen.text_buffer_min_height));
+                        mView.setText(R.string.welcome_message); // Add initial content from string resources
+                        mView.setTextColor(DefaultTextColor);
 
-                        mLayout.addView(mView, paramsDefault);
-                        mLayout.addView(hl, paramsHLayout);
-                        mLayout.addView(hll, paramsLLayout);
-
+                        // Put only the text view in the scroll view
                         mScrollView.setBackgroundColor(DefaultBackground);
-                        mScrollView.addView(mLayout);
+                        mScrollView.addView(mView, paramsDefault);
+
+                        // Create the main layout with proper constraints
+                        LinearLayout.LayoutParams scrollParams = new
+                                LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 1.0f);
+                        LinearLayout.LayoutParams commandParams = new
+                                LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams shortcutParams = new
+                                LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+                        // Increase bottom margin so buttons sit further above navigation bar
+                        int bottomMargin = margin * 3; // approx 9dp
+                        shortcutParams.setMargins(0, 0, 0, bottomMargin);
+                        
+                        mLayout.addView(mScrollView, scrollParams);
+                        mLayout.addView(hl, commandParams);
+                        mLayout.addView(hll, shortcutParams);
                         mStream = new _Stream();
 
 
-					/*DO NOT DELETE*/
+                    /*DO NOT DELETE*/
                     /*Not used for now but left for compatibility as part of issue - onPreDrawNight*/
                     /*mGlk.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                         @Override
-						public boolean onPreDraw () {
-							mScrollView.setBackgroundColor(DefaultBackground);
-							mLayout.setBackgroundColor(DefaultBackground);
-							hl.setBackgroundColor(DefaultBackground);
+                        public boolean onPreDraw () {
+                            mScrollView.setBackgroundColor(DefaultBackground);
+                            mLayout.setBackgroundColor(DefaultBackground);
+                            hl.setBackgroundColor(DefaultBackground);
 
-							return true;
-						}
-					});*/
+                            return true;
+                        }
+                    });*/
                     }
                 });
     }
@@ -1606,7 +1675,7 @@ public class TextBufferWindow extends Window {
 
     @Override
     public View getView() {
-        return mScrollView;
+        return mLayout;
     }
 
     @Override

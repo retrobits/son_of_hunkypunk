@@ -23,7 +23,7 @@
 	android:layout_height="fill_parent"
 	android:gravity="center"
 >
-	<android.support.v7.widget.Toolbar
+	<androidx.appcompat.widget.Toolbar
 		android:id="@+id/appbar"
 		android:layout_height="@dimen/abc_action_bar_default_height_material"
 		android:layout_width="match_parent"
@@ -32,7 +32,16 @@
 		/>
 	<ListView android:id="@id/android:list"
 		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
+		android:layout_height="0dp"
+		android:layout_weight="1"
+	/>
+	<Button android:id="@+id/add_games_button"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/add_games"
+		android:layout_margin="8dp"
+		android:background="?attr/colorPrimary"
+		android:textColor="@android:color/white"
 	/>
 	<LinearLayout android:id="@id/android:empty"
 		android:orientation="vertical"

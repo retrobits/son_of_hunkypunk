@@ -18,8 +18,9 @@
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="19"
-    android:versionName="1.9">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:versionCode="20"
+    android:versionName="2.0">
 
     <supports-screens
         android:anyDensity="true"
@@ -28,8 +29,13 @@
         android:smallScreens="true" />
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_DOCUMENTS" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" 
+        tools:ignore="ScopedStorage" />
 
     <application
         android:icon="@drawable/icon"
@@ -41,6 +47,7 @@
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:theme="@style/theme"
+            android:windowSoftInputMode="adjustPan"
             android:exported="true">
             <!-- for debugging remove android:process above, the debugger can't cope with it -->
 
@@ -86,116 +93,155 @@
             android:targetActivity="org.andglkmod.hunkypunk.GameDetails"
             android:exported="true">
 
-            <intent-filter>
+            <!-- MIME type based matching for modern Android -->
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="content" />
                 <data android:mimeType="application/x-zmachine" />
-                <data android:mimeType="application/x-tads" />
-                <data android:mimeType="application/x-blorb;profile=zcode" />
-                <data android:host="*" />
             </intent-filter>
-
-            <!-- the dev responsible for pathPattern should pay for this mess -->
-            <intent-filter>
+            
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/x-tads" />
+            </intent-filter>
+            
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/x-blorb" />
+            </intent-filter>
+            
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
 
+            <!-- Legacy file:// based matching with improved patterns -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="file" />
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\\..*\\..*\\.z1" />
-                <data android:pathPattern=".*\\..*\\.z1" />
-                <data android:pathPattern=".*\\.z1" />
-                <data android:pathPattern=".*\\..*\\..*\\.z2" />
-                <data android:pathPattern=".*\\..*\\.z2" />
-                <data android:pathPattern=".*\\.z2" />
-                <data android:pathPattern=".*\\..*\\..*\\.z3" />
-                <data android:pathPattern=".*\\..*\\.z3" />
-                <data android:pathPattern=".*\\.z3" />
-                <data android:pathPattern=".*\\..*\\..*\\.z4" />
-                <data android:pathPattern=".*\\..*\\.z4" />
-                <data android:pathPattern=".*\\.z4" />
-                <data android:pathPattern=".*\\..*\\..*\\.z5" />
-                <data android:pathPattern=".*\\..*\\.z5" />
-                <data android:pathPattern=".*\\.z5" />
-                <data android:pathPattern=".*\\..*\\..*\\.z6" />
-                <data android:pathPattern=".*\\..*\\.z6" />
-                <data android:pathPattern=".*\\.z6" />
-                <data android:pathPattern=".*\\..*\\..*\\.z7" />
-                <data android:pathPattern=".*\\..*\\.z7" />
-                <data android:pathPattern=".*\\.z7" />
-                <data android:pathPattern=".*\\..*\\..*\\.z8" />
-                <data android:pathPattern=".*\\..*\\.z8" />
-                <data android:pathPattern=".*\\.z8" />
-                <data android:pathPattern=".*\\..*\\..*\\.Z1" />
-                <data android:pathPattern=".*\\..*\\.Z1" />
-                <data android:pathPattern=".*\\.Z1" />
-                <data android:pathPattern=".*\\..*\\..*\\.Z2" />
-                <data android:pathPattern=".*\\..*\\.Z2" />
-                <data android:pathPattern=".*\\.Z2" />
-                <data android:pathPattern=".*\\..*\\..*\\.Z3" />
-                <data android:pathPattern=".*\\..*\\.Z3" />
-                <data android:pathPattern=".*\\.Z3" />
-                <data android:pathPattern=".*\\..*\\..*\\.Z4" />
-                <data android:pathPattern=".*\\..*\\.Z4" />
-                <data android:pathPattern=".*\\.Z4" />
-                <data android:pathPattern=".*\\..*\\..*\\.Z5" />
-                <data android:pathPattern=".*\\..*\\.Z5" />
-                <data android:pathPattern=".*\\.Z5" />
-                <data android:pathPattern=".*\\..*\\..*\\.Z6" />
-                <data android:pathPattern=".*\\..*\\.Z6" />
-                <data android:pathPattern=".*\\.Z6" />
-                <data android:pathPattern=".*\\..*\\..*\\.Z7" />
-                <data android:pathPattern=".*\\..*\\.Z7" />
-                <data android:pathPattern=".*\\.Z7" />
-                <data android:pathPattern=".*\\..*\\..*\\.Z8" />
-                <data android:pathPattern=".*\\..*\\.Z8" />
-                <data android:pathPattern=".*\\.Z8" />
-                <data android:pathPattern=".*\\..*\\..*\\.dat" />
-                <data android:pathPattern=".*\\..*\\.dat" />
-                <data android:pathPattern=".*\\.dat" />
-                <data android:pathPattern=".*\\..*\\..*\\.DAT" />
-                <data android:pathPattern=".*\\..*\\.DAT" />
-                <data android:pathPattern=".*\\.DAT" />
-                <data android:pathPattern=".*\\..*\\..*\\.gam" />
-                <data android:pathPattern=".*\\..*\\.gam" />
-                <data android:pathPattern=".*\\.gam" />
-                <data android:pathPattern=".*\\..*\\..*\\.GAM" />
-                <data android:pathPattern=".*\\..*\\.GAM" />
-                <data android:pathPattern=".*\\.GAM" />
-                <data android:pathPattern=".*\\..*\\..*\\.t2" />
-                <data android:pathPattern=".*\\..*\\.t2" />
-                <data android:pathPattern=".*\\.t2" />
-                <data android:pathPattern=".*\\..*\\..*\\.T2" />
-                <data android:pathPattern=".*\\..*\\.T2" />
-                <data android:pathPattern=".*\\.T2" />
-                <data android:pathPattern=".*\\..*\\..*\\.t3" />
-                <data android:pathPattern=".*\\..*\\.t3" />
-                <data android:pathPattern=".*\\.t3" />
-                <data android:pathPattern=".*\\..*\\..*\\.T3" />
-                <data android:pathPattern=".*\\..*\\.T3" />
-                <data android:pathPattern=".*\\.T3" />
-                <data android:pathPattern=".*\\..*\\..*\\.zcode" />
-                <data android:pathPattern=".*\\..*\\.zcode" />
-                <data android:pathPattern=".*\\.zcode" />
-                <data android:pathPattern=".*\\..*\\..*\\.zblorb" />
-                <data android:pathPattern=".*\\..*\\.zblorb" />
-                <data android:pathPattern=".*\\.zblorb" />
-                <data android:pathPattern=".*\\..*\\..*\\.ZBLORB" />
-                <data android:pathPattern=".*\\..*\\.ZBLORB" />
-                <data android:pathPattern=".*\\.ZBLORB" />
-                <data android:pathPattern=".*\\..*\\..*\\.zblb" />
-                <data android:pathPattern=".*\\..*\\.zblb" />
-                <data android:pathPattern=".*\\.zblb" />
-                <data android:pathPattern=".*\\..*\\..*\\.ZBLB" />
-                <data android:pathPattern=".*\\..*\\.ZBLB" />
-                <data android:pathPattern=".*\\.ZBLB" />
-                <data android:host="*" />
+                <data android:pathPattern=".*\\.z[1-8]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.Z[1-8]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[dD][aA][tT]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[gG][aA][mM]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[tT][23]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[zZ][cC][oO][dD][eE]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[zZ][bB][lL][oO][rR][bB]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[zZ][bB][lL][bB]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[uU][lL][xX]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[bB][lL][bB]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[bB][lL][oO][rR][bB]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[gG][lL][bB]" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.[gG][bB][lL][oO][rR][bB]" />
             </intent-filter>
         </activity-alias>
 
@@ -221,6 +267,14 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name="org.andglkmod.hunkypunk.DocumentPickerActivity"
+            android:label="Add Games"
+            android:theme="@style/compatbartheme"
+            android:exported="false"
+            >
         </activity>
 
     </application>

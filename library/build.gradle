@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    namespace 'com.mobeta.android.dslv'
-    compileSdk 34
+    namespace = 'com.mobeta.android.dslv'
+    compileSdk = 36
 
     defaultConfig {
-        minSdk 21
-        targetSdk 34
+        minSdk = 21
+        targetSdk = 36
     }
 
     buildTypes {
@@ -18,5 +18,5 @@ android {
 }
 
 dependencies {
-    api 'com.android.support:support-v4:24.1.1'
+    api 'androidx.cursoradapter:cursoradapter:1.0.0'
 }

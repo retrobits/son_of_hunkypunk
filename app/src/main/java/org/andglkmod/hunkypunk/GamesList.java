@@ -1,7 +1,7 @@
 /*
-	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+    Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
 
-	This file is part of Hunky Punk.
+    This file is part of Hunky Punk.
 
     Hunky Punk is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,11 +50,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.provider.Settings;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -65,11 +68,11 @@ import android.view.View.OnClickListener;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
-import android.support.annotation.Nullable;
-import android.support.v7.view.ActionMode;
-import android.support.v7.app.AppCompatCallback;
-import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.appcompat.view.ActionMode;
+import androidx.appcompat.app.AppCompatCallback;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
 import java.util.regex.Pattern;
 
 public class GamesList extends ListActivity implements OnClickListener, AppCompatCallback {
@@ -119,6 +122,28 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     private SimpleCursorAdapter adapter;
 
 
+    private void requestStoragePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11+ - Use Manage External Storage for legacy compatibility
+            if (!Environment.isExternalStorageManager()) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    startActivity(intent);
+                }
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android 6.0-10 - Use traditional storage permissions
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            }
+        }
+        // For Android < 6.0, permissions are granted at install time
+    }
+
     private void verifyIfDirectory(Context c)
     {
         if (Paths.isIfDirectoryValid(c)){
@@ -166,9 +191,8 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-        }
+        // Handle storage permissions based on Android version
+        requestStoragePermissions();
 
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
@@ -193,6 +217,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
         findViewById(R.id.go_to_ifdb).setOnClickListener(this);
         findViewById(R.id.go_to_prefs).setOnClickListener(this);
         findViewById(R.id.download_preselected).setOnClickListener(this);
+        findViewById(R.id.add_games_button).setOnClickListener(this);
 
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
@@ -211,7 +236,8 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
 
 
             for (int i = 0; i < list.size(); i++) {
-                shortcutEditor.putString(list.get(i), list.get(i));
+                // Append a space to the stored command so default shortcuts include a trailing space
+                shortcutEditor.putString(list.get(i), list.get(i) + " ");
                 shortcutIDEditor.putString(i + "", list.get(i));
             }
             prefEditor.putBoolean("firstStart", false);
@@ -261,9 +287,9 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
         verifyIfDirectory(this);
     }
 
-    public void onSupportActionModeStarted(android.support.v7.view.ActionMode mode) {}
+    public void onSupportActionModeStarted(androidx.appcompat.view.ActionMode mode) {}
 
-    public void onSupportActionModeFinished(android.support.v7.view.ActionMode mode) {}
+    public void onSupportActionModeFinished(androidx.appcompat.view.ActionMode mode) {}
 
     @Nullable
     public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback)
@@ -400,7 +426,14 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
             downloadPreselected();
         } else if (id == R.id.go_to_prefs) {
             startActivity(new Intent(this, PreferencesActivity.class));
+        } else if (id == R.id.add_games_button) {
+            openDocumentPicker();
         }
+    }
+
+    private void openDocumentPicker() {
+        Intent intent = new Intent(this, DocumentPickerActivity.class);
+        startActivity(intent);
     }
 
     private void downloadPreselected() {

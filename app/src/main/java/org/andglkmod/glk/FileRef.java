@@ -139,13 +139,40 @@ public class FileRef {
 				.setItems(list, new OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						if (allowNew) { 
-							if (which == 0)
-								new NewFileDialog(FilePrompt.this, usage);
+						int index = allowNew ? which - 1 : which;
+						// Handle create-new
+						if (allowNew && which == 0) {
+							new NewFileDialog(FilePrompt.this, usage);
+							return;
+						}
+						final File selected = new File(mBaseDir, list[index]);
+						// For saved games, offer delete or load
+						if (usage == FILEUSAGE_SAVEDGAME) {
+							new AlertDialog.Builder(mContext)
+								.setTitle(R.string.pick_saved_game)
+								.setMessage(mContext.getString(R.string.modify_warning).replace("file", list[index]))
+								.setPositiveButton(android.R.string.yes, new OnClickListener() {
+									@Override
+									public void onClick(DialogInterface d, int p) {
+										selected.delete();
+										// refresh dialog
+										buildExistingFileDialog(usage, allowNew);
+									}
+								})
+								.setNeutralButton(R.string.pick_saved_game, new OnClickListener() {
+									@Override public void onClick(DialogInterface d, int p) {
+										publishResult(selected);
+									}
+								})
+								.setNegativeButton(android.R.string.no, null)
+								.show();
+						} else {
+							// default behavior
+							if (allowNew)
+								makeSure(list[index]);
 							else
-								makeSure(list[which]);
-						} else
-							publishResult(new File(mBaseDir, list[which]));
+								publishResult(selected);
+						}
 					}})
 				.setOnCancelListener(new OnCancelListener() {
 					@Override

@@ -78,12 +78,12 @@
     <string name="empty_list">You seem to have no stories installed.\n
         \n
         You can just let me download a handful to get you started,
-        or you may find many stories at IFDb.  Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
+        or you may find many stories at IFDb. You can also use the "Add Games" button to select game files from anywhere on your device.\n
+        \n
+        Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
 		Tads files (ending in .t2, t3, or .gam) are all currently supported.\n
         \n
-    	To install one, download a story file and either tap on it in a file manager or
-        copy it manually to the Interactive Fiction directory.  The exact location
-        of this directory can be seen in the app preferences under "File Path".\n
+    	To install one, you can use the "Add Games" button below, or download a story file and tap on it in a file manager.\n
         \n
    	</string>
    	<string name="go_to_ifdb">Go to IFDb</string>
@@ -97,4 +97,15 @@
     <string name="dayNight">Night Mode</string>
     <string name="deleteShortcuts">Do you want to delete the current shortcuts and restore the predefined shortcuts?</string>
     <string name="placeholder">Long-press any object to fill the placeholder</string>
+    <string name="add_games">Add Games</string>
+    <string name="add_games_description">Select game files from any location</string>
+    <string name="no_valid_games_selected">No valid game files were selected. Please select files with supported extensions (.z1-.z8, .dat, .gam, .t2, .t3, .zblorb, etc.)</string>
+    <string name="storage_permission_needed">Storage permission is needed to access game files. Please grant permission in system settings.</string>
+    
+    <plurals name="games_added_successfully">
+        <item quantity="one">Successfully added %d game</item>
+        <item quantity="other">Successfully added %d games</item>
+    </plurals>
+    <!-- Welcome message shown in the main text buffer -->
+    <string name="welcome_message">Welcome to Hunky Punk\n\nLoad a game to begin your adventure.\n\n</string>
 </resources>
