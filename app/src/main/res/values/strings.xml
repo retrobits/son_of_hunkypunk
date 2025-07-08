@@ -106,4 +106,6 @@
         <item quantity="one">Successfully added %d game</item>
         <item quantity="other">Successfully added %d games</item>
     </plurals>
+    <!-- Welcome message shown in the main text buffer -->
+    <string name="welcome_message">Welcome to Hunky Punk\n\nLoad a game to begin your adventure.\n\n</string>
 </resources>

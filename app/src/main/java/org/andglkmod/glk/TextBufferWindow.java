@@ -1180,10 +1180,10 @@ public class TextBufferWindow extends Window {
                         mView.setPadding(pad, pad, pad, 0);
                         mView.setFocusable(false);
                         
-                        // Ensure the text view has a proper background and minimum height
+                        // Ensure the text view has a proper background and minimum height from resources
                         mView.setBackgroundColor(DefaultBackground);
-                        mView.setMinHeight(400); // Increased minimum height
-                        mView.setText("Welcome to Hunky Punk\n\nLoad a game to begin your adventure.\n\n"); // Add initial content
+                        mView.setMinHeight(mView.getResources().getDimensionPixelSize(R.dimen.text_buffer_min_height));
+                        mView.setText(R.string.welcome_message); // Add initial content from string resources
                         mView.setTextColor(DefaultTextColor);
 
                         // Put only the text view in the scroll view
