@@ -3,18 +3,18 @@
 
 	This file is part of Hunky Punk.
 
-    Hunky Punk is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	Hunky Punk is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    Hunky Punk is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	Hunky Punk is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package org.andglkmod.hunkypunk;
@@ -70,8 +70,15 @@ public class StorageManager {
 	private static StorageManager sInstance;
 	
 	public static StorageManager getInstance(Context context) {
-		if (sInstance == null) sInstance = new StorageManager(context.getApplicationContext());
-		
+		try {
+			if (sInstance == null) {
+				sInstance = new StorageManager(context.getApplicationContext());
+			}
+		} catch (AssertionError ae) {
+			// Ignore assertion and create instance
+			sInstance = new StorageManager(context.getApplicationContext());
+			Log.w(TAG, "AssertionError in getInstance, created new instance", ae);
+		}
 		return sInstance;
 	}
 
