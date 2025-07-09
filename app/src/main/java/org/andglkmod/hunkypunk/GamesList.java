@@ -205,7 +205,11 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
             Log.w(TAG, "AssertionError initializing StorageManager, skipping storage scan", ae);
             mScanner = null;
         }
-        mScanner.checkExisting();
+        if (mScanner != null) {
+            mScanner.checkExisting();
+        } else {
+            Log.w(TAG, "mScanner is null, skipping checkExisting()");
+        }
 
         /** This part creates the list of Ifs */
         Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
