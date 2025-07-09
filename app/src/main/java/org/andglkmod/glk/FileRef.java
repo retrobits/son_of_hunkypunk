@@ -148,23 +148,16 @@ public class FileRef {
 						final File selected = new File(mBaseDir, list[index]);
 						// For saved games, offer delete or load
 						if (usage == FILEUSAGE_SAVEDGAME) {
+							// Confirmation dialog: OK to load, Cancel to dismiss
 							new AlertDialog.Builder(mContext)
 								.setTitle(R.string.pick_saved_game)
 								.setMessage(mContext.getString(R.string.modify_warning).replace("file", list[index]))
-								.setPositiveButton(android.R.string.yes, new OnClickListener() {
-									@Override
-									public void onClick(DialogInterface d, int p) {
-										selected.delete();
-										// refresh dialog
-										buildExistingFileDialog(usage, allowNew);
-									}
-								})
-								.setNeutralButton(R.string.pick_saved_game, new OnClickListener() {
+								.setPositiveButton(android.R.string.ok, new OnClickListener() {
 									@Override public void onClick(DialogInterface d, int p) {
 										publishResult(selected);
 									}
 								})
-								.setNegativeButton(android.R.string.no, null)
+								.setNegativeButton(android.R.string.cancel, null)
 								.show();
 						} else {
 							// default behavior
@@ -374,7 +367,7 @@ public class FileRef {
 	 * @param rock rock value to store in this fileref
 	 * @return C pointer to a reference to the new fileref or 0 if canceled or errored.
 	 */
-    /* moved to native code
+	/* moved to native code
 	public static FileRef createByPrompt(int usage, int mode, int rock) {
 		try {
 			Future<File> filename = new FilePrompt(usage & FILEUSAGE_TYPEMASK, mode);
@@ -389,7 +382,7 @@ public class FileRef {
 			return null;
 		}
 	}
-    */
+	*/
 
 	public static String getPathByPrompt(int usage, int mode, int rock) {
 		try {

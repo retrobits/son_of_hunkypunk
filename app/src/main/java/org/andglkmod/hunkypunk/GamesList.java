@@ -1,7 +1,7 @@
 /*
-    Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
 
-    This file is part of Hunky Punk.
+	This file is part of Hunky Punk.
 
     Hunky Punk is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
