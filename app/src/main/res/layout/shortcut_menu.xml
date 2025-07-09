@@ -18,7 +18,8 @@
                 android:layout_height="wrap_content"
                 android:icon="@drawable/blue_big"
                 android:title=""
-                android:titleCondensed="Blue"
+                android:title="Blue"
+                android:iconTint="@color/md_theme_light_primary"
                 android:iconTint="@color/md_theme_light_primary"
                 android:showAsAction="always">
             </item>
