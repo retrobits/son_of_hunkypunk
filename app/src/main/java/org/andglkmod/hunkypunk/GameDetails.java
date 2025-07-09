@@ -123,6 +123,7 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
         }
     };
     protected String mGameIfid;
+    private AppCompatDelegate mDelegate;
     private Handler mInstallHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -251,25 +252,27 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
 
     private void show(Uri game, Bundle savedInstanceState) {
 
-        AppCompatDelegate delegate = AppCompatDelegate.create(this, this);
-        if (savedInstanceState != null) delegate.onCreate(savedInstanceState);
-        delegate.setContentView(R.layout.game_details);
-        Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
-        delegate.setSupportActionBar(toolbar);
+        if (mDelegate == null) {
+            mDelegate = AppCompatDelegate.create(this, this);
+            if (savedInstanceState != null) mDelegate.onCreate(savedInstanceState);
+            mDelegate.setContentView(R.layout.game_details);
+            Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
+            mDelegate.setSupportActionBar(toolbar);
 
-        mTitle = (TextView) findViewById(R.id.title);
-        mHeadline = (TextView) findViewById(R.id.headline);
-        mAuthor = (TextView) findViewById(R.id.author);
-        mDescription = (TextView) findViewById(R.id.description);
-        mCover = (ImageView) findViewById(R.id.cover);
-        mDescriptionLayout = findViewById(R.id.description_layout);
-        mDetails = (TextView) findViewById(R.id.details);
-        mScroll = (ScrollView) findViewById(R.id.info_scroll);
-        mRestartButton = findViewById(id.restart);
+            mTitle = (TextView) findViewById(R.id.title);
+            mHeadline = (TextView) findViewById(R.id.headline);
+            mAuthor = (TextView) findViewById(R.id.author);
+            mDescription = (TextView) findViewById(R.id.description);
+            mCover = (ImageView) findViewById(R.id.cover);
+            mDescriptionLayout = findViewById(R.id.description_layout);
+            mDetails = (TextView) findViewById(R.id.details);
+            mScroll = (ScrollView) findViewById(R.id.info_scroll);
+            mRestartButton = findViewById(id.restart);
 
-        ((Button) findViewById(R.id.open)).setOnClickListener(this);
-        ((Button) findViewById(R.id.remove)).setOnClickListener(this);
-        mRestartButton.setOnClickListener(this);
+            ((Button) findViewById(R.id.open)).setOnClickListener(this);
+            ((Button) findViewById(R.id.remove)).setOnClickListener(this);
+            mRestartButton.setOnClickListener(this);
+        }
 
         mQuery = managedQuery(game, PROJECTION, null, null, null);
         mQuery.registerContentObserver(mContentObserver);
