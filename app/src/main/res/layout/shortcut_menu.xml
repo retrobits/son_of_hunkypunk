@@ -17,9 +17,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:icon="@drawable/blue_big"
-                android:title=""
                 android:title="Blue"
-                android:iconTint="@color/md_theme_light_primary"
                 android:iconTint="@color/md_theme_light_primary"
                 android:showAsAction="always">
             </item>
@@ -28,8 +26,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:icon="@drawable/grey_big"
-                android:title=""
-                android:titleCondensed="@color/md_theme_light_outline"
+                android:title="Grey"
+                android:iconTint="@color/md_theme_light_outline"
                 android:showAsAction="always">
             </item>
             <item
@@ -37,8 +35,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:icon="@drawable/green_big"
-                android:title=""
-                android:titleCondensed="@color/md_theme_light_tertiary"
+                android:title="Green"
+                android:iconTint="@color/md_theme_light_tertiary"
                 android:showAsAction="always">
             </item>
             <item
@@ -46,8 +44,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:icon="@drawable/red_big"
-                android:title=""
-                android:titleCondensed="@color/md_theme_light_error"
+                android:title="Red"
+                android:iconTint="@color/md_theme_light_error"
                 android:showAsAction="always">
             </item>
             <item
@@ -55,8 +53,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:icon="@drawable/yellow_big"
-                android:title=""
-                android:titleCondensed="@color/md_theme_light_secondary"
+                android:title="Yellow"
+                android:iconTint="@color/md_theme_light_secondary"
                 android:showAsAction="always">
             </item>
         </menu>

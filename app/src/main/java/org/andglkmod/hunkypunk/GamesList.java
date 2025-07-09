@@ -41,6 +41,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -57,6 +58,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings;
 import androidx.core.app.ActivityCompat;
@@ -128,6 +130,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
 
     private SimpleCursorAdapter adapter;
     private Cursor gamesCursor;
+    private final Object cursorLock = new Object(); // Thread safety for cursor operations
 
 
     private void requestStoragePermissions() {
@@ -208,46 +211,72 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         super.onResume();
         Log.d(TAG, "onResume called - refreshing adapter");
         
-        // Refresh the cursor and adapter when returning to this activity
-        refreshGamesList();
-        verifyIfDirectory(this);
+        // Ensure cursor refresh happens on UI thread
+        runOnUiThread(() -> {
+            refreshGamesList();
+            verifyIfDirectory(this);
+        });
     }
 
     private void refreshGamesList() {
         Log.d(TAG, "Refreshing games list...");
         
-        // Close previous cursor if it exists
-        if (gamesCursor != null && !gamesCursor.isClosed()) {
-            gamesCursor.close();
+        // Ensure we're on the UI thread for all cursor operations
+        if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
+            runOnUiThread(() -> refreshGamesList());
+            return;
         }
         
-        // Create a new cursor to get fresh data using modern approach
-        gamesCursor = getContentResolver().query(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
-        Log.d(TAG, "New cursor count: " + (gamesCursor != null ? gamesCursor.getCount() : "null"));
-        
-        // Debug: Check cursor data
-        if (gamesCursor != null && gamesCursor.getCount() > 0) {
-            gamesCursor.moveToFirst();
-            for (int i = 0; i < Math.min(3, gamesCursor.getCount()); i++) {
-                Log.d(TAG, "Game " + i + ": ID=" + gamesCursor.getLong(0) + 
-                      ", IFID=" + gamesCursor.getString(1) + 
-                      ", TITLE=" + gamesCursor.getString(2) + 
-                      ", AUTHOR=" + gamesCursor.getString(3) + 
-                      ", PATH=" + gamesCursor.getString(4));
-                gamesCursor.moveToNext();
+        synchronized (cursorLock) {
+            // Close previous cursor if it exists
+            if (gamesCursor != null && !gamesCursor.isClosed()) {
+                try {
+                    gamesCursor.close();
+                } catch (Exception e) {
+                    Log.w(TAG, "Error closing previous cursor", e);
+                }
             }
-            gamesCursor.moveToFirst(); // Reset cursor position
-        }
-        
-        if (adapter != null && mListView != null) {
-            adapter.changeCursor(gamesCursor);
-            adapter.notifyDataSetChanged();
-            Log.d(TAG, "Adapter updated with new cursor. Count: " + adapter.getCount());
             
-            // Force ListView to update its empty view state
-            if (mListView.getEmptyView() != null) {
-                Log.d(TAG, "ListView empty view state: isEmpty=" + adapter.isEmpty() + 
-                      ", emptyViewVisibility=" + mListView.getEmptyView().getVisibility());
+            // Create a new cursor to get fresh data using modern approach
+            try {
+                gamesCursor = getContentResolver().query(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
+                Log.d(TAG, "New cursor count: " + (gamesCursor != null ? gamesCursor.getCount() : "null"));
+            } catch (Exception e) {
+                Log.e(TAG, "Error creating new cursor", e);
+                return;
+            }
+            
+            // Debug: Check cursor data safely
+            if (gamesCursor != null && gamesCursor.getCount() > 0) {
+                try {
+                    if (gamesCursor.moveToFirst()) {
+                        for (int i = 0; i < Math.min(3, gamesCursor.getCount()); i++) {
+                            String title = gamesCursor.getString(2);
+                            String path = gamesCursor.getString(4);
+                            Log.d(TAG, "Game " + i + ": TITLE=" + title + ", PATH=" + path);
+                            if (!gamesCursor.moveToNext()) break;
+                        }
+                        gamesCursor.moveToFirst(); // Reset cursor position
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing cursor data", e);
+                }
+            }
+            
+            if (adapter != null && mListView != null) {
+                try {
+                    adapter.changeCursor(gamesCursor);
+                    adapter.notifyDataSetChanged();
+                    Log.d(TAG, "Adapter updated with new cursor. Count: " + adapter.getCount());
+                    
+                    // Force ListView to update its empty view state
+                    if (mListView.getEmptyView() != null) {
+                        Log.d(TAG, "ListView empty view state: isEmpty=" + adapter.isEmpty() + 
+                              ", emptyViewVisibility=" + mListView.getEmptyView().getVisibility());
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error updating adapter with new cursor", e);
+                }
             }
         }
     }
@@ -376,10 +405,12 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
     protected void onDestroy() {
         super.onDestroy();
         
-        // Properly close the cursor to prevent memory leaks
-        if (gamesCursor != null && !gamesCursor.isClosed()) {
-            gamesCursor.close();
-            gamesCursor = null;
+        synchronized (cursorLock) {
+            // Properly close the cursor to prevent memory leaks
+            if (gamesCursor != null && !gamesCursor.isClosed()) {
+                gamesCursor.close();
+                gamesCursor = null;
+            }
         }
     }
 
@@ -537,7 +568,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         progressIndicator.setMax(BEGINNER_GAMES.length);
         progressView.findViewById(R.id.progress_circular).setVisibility(View.GONE);
 
-        progressDialog = new AlertDialog.Builder(this)
+        progressDialog = new MaterialAlertDialogBuilder(this)
                 .setView(progressView)
                 .setCancelable(true)
                 .setOnCancelListener(

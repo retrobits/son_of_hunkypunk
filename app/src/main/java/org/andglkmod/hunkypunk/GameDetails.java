@@ -33,6 +33,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -45,6 +46,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.text.Editable;
@@ -102,10 +104,12 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
         @Override
         public void onChange(boolean selfChange) {
             super.onChange(selfChange);
-            showData();
+            // Ensure showData runs on UI thread
+            runOnUiThread(() -> showData());
         }
     };
     private Cursor mQuery;
+    private final Object cursorLock = new Object(); // Thread safety for cursor operations
     private TextView mTitle;
     private TextView mHeadline;
     private TextView mAuthor;
@@ -202,7 +206,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
                 final EditText input = new EditText(this);
                 input.setText(mTitle.getText());
                 input.setSelection(input.getText().length());
-                new AlertDialog.Builder(this)
+                new MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.edit_title)
                         .setView(input)
                         .setPositiveButton(android.R.string.ok,
@@ -217,7 +221,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
                         .setNegativeButton(this.getString(android.R.string.cancel), null).show();
                 break;
             case '3':
-                AlertDialog d = new AlertDialog.Builder(this)
+                AlertDialog d = new MaterialAlertDialogBuilder(this)
                         .setPositiveButton(this.getString(android.R.string.ok),
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int whichButton) {
@@ -250,7 +254,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
         TextView messageView = progressView.findViewById(R.id.progress_message);
         messageView.setText(getString(R.string.examining_file, game.getLastPathSegment()));
         
-        mProgressDialog = new AlertDialog.Builder(this)
+        mProgressDialog = new MaterialAlertDialogBuilder(this)
                 .setView(progressView)
                 .setCancelable(false)
                 .create();
@@ -313,101 +317,143 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     }
 
     protected void showData() {
-        mQuery.moveToFirst();
-
-        if (mGameIfid == null)
-            mGameIfid = mQuery.getString(IFID);
-        if (mQuery.isNull(LOOKED_UP)) {
-            Toast.makeText(this, R.string.looking_up, Toast.LENGTH_SHORT).show();
-            // Progress is now handled by Material progress indicators
-            IFDb.getInstance(getContentResolver()).startLookup(this, mGameIfid, mLookupHandler);
+        // Ensure we're on the UI thread
+        if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
+            runOnUiThread(() -> showData());
+            return;
         }
+        
+        synchronized (cursorLock) {
+            if (mQuery == null || mQuery.isClosed()) {
+                Log.w(TAG, "showData called with null or closed cursor");
+                return;
+            }
+            
+            try {
+                if (!mQuery.moveToFirst()) {
+                    Log.w(TAG, "showData: cursor is empty");
+                    return;
+                }
 
-        mTitle.setText(mQuery.getString(TITLE));
-        String string = mQuery.getString(HEADLINE);
-        mHeadline.setText(string);
-        mHeadline.setVisibility(string == null ? View.GONE : View.VISIBLE);
+                if (mGameIfid == null) {
+                    mGameIfid = mQuery.getString(IFID);
+                }
+                
+                if (mQuery.isNull(LOOKED_UP)) {
+                    Toast.makeText(this, R.string.looking_up, Toast.LENGTH_SHORT).show();
+                    // Progress is now handled by Material progress indicators
+                    IFDb.getInstance(getContentResolver()).startLookup(this, mGameIfid, mLookupHandler);
+                }
 
-        string = mQuery.getString(AUTHOR);
-        mAuthor.setText(getString(R.string.by_author, string));
-        mAuthor.setVisibility(string == null ? View.GONE : View.VISIBLE);
+                String title = mQuery.getString(TITLE);
+                if (title != null) {
+                    mTitle.setText(title);
+                }
 
-        string = mQuery.getString(DESCRIPTION);
-        if (string != null) {
-            // Convert HTML br tags to proper line breaks for better formatting
-            string = string.replace("<br/>", "\n").replace("<br>", "\n").replace("<BR/>", "\n").replace("<BR>", "\n");
-            mDescription.setText(string);
+                String string = mQuery.getString(HEADLINE);
+                mHeadline.setText(string);
+                mHeadline.setVisibility(string == null ? View.GONE : View.VISIBLE);
+
+                string = mQuery.getString(AUTHOR);
+                if (string != null) {
+                    mAuthor.setText(getString(R.string.by_author, string));
+                    mAuthor.setVisibility(View.VISIBLE);
+                } else {
+                    mAuthor.setVisibility(View.GONE);
+                }
+
+                string = mQuery.getString(DESCRIPTION);
+                if (string != null) {
+                    // Convert HTML br tags to proper line breaks for better formatting
+                    string = string.replace("<br/>", "\n").replace("<br>", "\n").replace("<BR/>", "\n").replace("<BR>", "\n");
+                    mDescription.setText(string);
+                    mDescriptionLayout.setVisibility(View.VISIBLE);
+                } else {
+                    mDescriptionLayout.setVisibility(View.GONE);
+                }
+
+                StringBuilder sb = new StringBuilder();
+                if ((string = mQuery.getString(FIRSTPUBLISHED)) != null) {
+                    sb.append(getString(R.string.first_published_s, string));
+                    sb.append('\n');
+                }
+                if ((string = mQuery.getString(GENRE)) != null) {
+                    sb.append(getString(R.string.genre_s, string));
+                    sb.append('\n');
+                }
+                if ((string = mQuery.getString(GROUP)) != null) {
+                    sb.append(getString(R.string.group_s, string));
+                    sb.append('\n');
+                }
+                if ((string = mQuery.getString(SERIES)) != null) {
+                    sb.append(getString(R.string.series_s, string));
+                    sb.append('\n');
+                }
+                if ((string = mQuery.getString(SERIESNUMBER)) != null) {
+                    sb.append(getString(R.string.seriesnumber_s, string));
+                    sb.append('\n');
+                }
+                if ((string = mQuery.getString(FORGIVENESS)) != null) {
+                    sb.append(getString(R.string.forgiveness_s, string));
+                    sb.append('\n');
+                }
+                if ((string = mQuery.getString(LANGUAGE)) != null) {
+                    sb.append(getString(R.string.language_s, string));
+                    sb.append('\n');
+                }
+
+                String pathString = mQuery.getString(PATH);
+                if (pathString != null) {
+                    mGameFile = new File(pathString);
+
+                    String terp = getTerp();
+                    sb.append("Interpreter: ");
+                    sb.append(terp);
+                    sb.append('\n');
+
+                    if (terp.compareTo("frotz") == 0 || terp.compareTo("nitfol") == 0) {
+                        sb.append("ZCode Version: ");
+                        sb.append(getZcodeVersion());
+                        sb.append('\n');
+                    }
+                }
+                
+                if (mGameIfid != null) {
+                    sb.append("IFID: ").append(mGameIfid);
+                    sb.append('\n');
+                }
+
+                final int len = sb.length();
+                if (len != 0)
+                    sb.replace(len - 1, len, ""); // remove trailing newline
+
+                mDetails.setText(sb);
+
+                String ifid = mQuery.getString(IFID);
+                if (ifid != null) {
+                    File i = HunkyPunk.getCover(this, ifid);
+                    if (i != null && i.exists()) {
+                        // Uri.fromFile doesn't work for some reason
+                        mCover.setImageURI(Uri.parse(i.getAbsolutePath()));
+
+                        Display display = getWindowManager().getDefaultDisplay();
+                        int width = (int) (display.getWidth() / 1.5);  // deprecated
+                        int height = (int) (display.getHeight() / 1.5);  // deprecated
+                        int sz = Math.min(width, height);
+
+                        // Use FrameLayout.LayoutParams since MaterialCardView extends FrameLayout
+                        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(sz, sz);
+                        lp.gravity = Gravity.CENTER;
+                        mCover.setLayoutParams(lp);
+                    }
+                }
+
+                mRestartButton.setVisibility(getBookmark().exists() ? View.VISIBLE : View.GONE);
+            } catch (Exception e) {
+                Log.e(TAG, "Error in showData", e);
+                Toast.makeText(this, "Error loading game data", Toast.LENGTH_SHORT).show();
+            }
         }
-        mDescriptionLayout.setVisibility(string == null ? View.GONE : View.VISIBLE);
-
-        StringBuilder sb = new StringBuilder();
-        if ((string = mQuery.getString(FIRSTPUBLISHED)) != null) {
-            sb.append(getString(R.string.first_published_s, string));
-            sb.append('\n');
-        }
-        if ((string = mQuery.getString(GENRE)) != null) {
-            sb.append(getString(R.string.genre_s, string));
-            sb.append('\n');
-        }
-        if ((string = mQuery.getString(GROUP)) != null) {
-            sb.append(getString(R.string.group_s, string));
-            sb.append('\n');
-        }
-        if ((string = mQuery.getString(SERIES)) != null) {
-            sb.append(getString(R.string.series_s, string));
-            sb.append('\n');
-        }
-        if ((string = mQuery.getString(SERIESNUMBER)) != null) {
-            sb.append(getString(R.string.seriesnumber_s, string));
-            sb.append('\n');
-        }
-        if ((string = mQuery.getString(FORGIVENESS)) != null) {
-            sb.append(getString(R.string.forgiveness_s, string));
-            sb.append('\n');
-        }
-        if ((string = mQuery.getString(LANGUAGE)) != null) {
-            sb.append(getString(R.string.language_s, string));
-            sb.append('\n');
-        }
-
-        mGameFile = new File(mQuery.getString(PATH));
-
-        String terp = getTerp();
-        sb.append("Interpreter: ");
-        sb.append(terp);
-        sb.append('\n');
-
-        if (terp.compareTo("frotz") == 0 || terp.compareTo("nitfol") == 0) {
-            sb.append("ZCode Version: ");
-            sb.append(getZcodeVersion());
-            sb.append('\n');
-        }
-        sb.append("IFID: "+mGameIfid);
-        sb.append('\n');
-
-        final int len = sb.length();
-        if (len != 0)
-            sb.replace(len - 1, len, ""); // remove trailing newline
-
-        mDetails.setText(sb);
-
-        File i = HunkyPunk.getCover(this,mQuery.getString(IFID));
-        if (i.exists()) {
-            // Uri.fromFile doesn't work for some reason
-            mCover.setImageURI(Uri.parse(i.getAbsolutePath()));
-
-            Display display = getWindowManager().getDefaultDisplay();
-            int width = (int) (display.getWidth() / 1.5);  // deprecated
-            int height = (int) (display.getHeight() / 1.5);  // deprecated
-            int sz = Math.min(width, height);
-
-            // Use FrameLayout.LayoutParams since MaterialCardView extends FrameLayout
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(sz, sz);
-            lp.gravity = Gravity.CENTER;
-            mCover.setLayoutParams(lp);
-        }
-
-        mRestartButton.setVisibility(getBookmark().exists() ? View.VISIBLE : View.GONE);
     }
 
     private File getBookmark() {
@@ -483,7 +529,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     }
 
     private void askRestartGame() {
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setMessage(R.string.restart_warning)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
@@ -553,15 +599,15 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
 
     private void rotateDialog(final Intent intent) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this);
+            MaterialAlertDialogBuilder rotateDialog = new MaterialAlertDialogBuilder(this);
             setUpAlertTheatre(rotateDialog, intent);
         } else {
-            AlertDialog.Builder rotateDialog = new AlertDialog.Builder(this, android.R.style.Theme_Dialog);
+            MaterialAlertDialogBuilder rotateDialog = new MaterialAlertDialogBuilder(this);
             setUpAlertTheatre(rotateDialog, intent);
         }
     }
 
-    private void setUpAlertTheatre(AlertDialog.Builder rotateDialog, final Intent intent) {
+    private void setUpAlertTheatre(MaterialAlertDialogBuilder rotateDialog, final Intent intent) {
         rotateDialog.setTitle("Theatre")
                 .setMessage(R.string.theatre_message)
                 .setPositiveButton("Apply", new DialogInterface.OnClickListener() {
@@ -586,26 +632,41 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     protected void onDestroy() {
         super.onDestroy();
         
-        // Properly close the cursor to prevent memory leaks
-        if (mQuery != null && !mQuery.isClosed()) {
-            mQuery.unregisterContentObserver(mContentObserver);
-            mQuery.close();
-            mQuery = null;
+        synchronized (cursorLock) {
+            // Properly close the cursor to prevent memory leaks
+            if (mQuery != null && !mQuery.isClosed()) {
+                mQuery.unregisterContentObserver(mContentObserver);
+                mQuery.close();
+                mQuery = null;
+            }
         }
     }
     
     private void refreshGameData() {
-        // Close the old cursor and create a new one to get fresh data
-        if (mQuery != null && !mQuery.isClosed()) {
-            mQuery.unregisterContentObserver(mContentObserver);
-            mQuery.close();
+        // Ensure we're on the UI thread
+        if (Thread.currentThread() != getMainLooper().getThread()) {
+            runOnUiThread(() -> refreshGameData());
+            return;
         }
         
-        Uri game = getIntent().getData();
-        mQuery = getContentResolver().query(game, PROJECTION, null, null, null);
-        if (mQuery != null) {
-            mQuery.registerContentObserver(mContentObserver);
-            showData();
+        synchronized (cursorLock) {
+            // Close the old cursor and create a new one to get fresh data
+            if (mQuery != null && !mQuery.isClosed()) {
+                mQuery.unregisterContentObserver(mContentObserver);
+                mQuery.close();
+            }
+            
+            try {
+                Uri game = getIntent().getData();
+                mQuery = getContentResolver().query(game, PROJECTION, null, null, null);
+                if (mQuery != null) {
+                    mQuery.registerContentObserver(mContentObserver);
+                    showData();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error refreshing game data", e);
+                Toast.makeText(this, "Error refreshing game data", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

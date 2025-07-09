@@ -1,22 +1,3 @@
-/*
-	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
-
-	This file is part of Hunky Punk.
-
-    Hunky Punk is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Hunky Punk is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 package org.andglkmod.hunkypunk;
 
 import androidx.appcompat.app.AlertDialog;
@@ -29,6 +10,7 @@ import android.text.util.Linkify;
 import android.text.method.LinkMovementMethod;
 import android.util.TypedValue;
 import android.widget.TextView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class DialogBuilder {
     public static AlertDialog showAboutDialog(Context context) throws NameNotFoundException {
@@ -66,20 +48,23 @@ public class DialogBuilder {
         final SpannableString s = new SpannableString(aboutText);
         Linkify.addLinks(s, Linkify.WEB_URLS);
 
-        AlertDialog d = new AlertDialog.Builder(context)
+        // Use Material Design 3 AlertDialog
+        AlertDialog d = new MaterialAlertDialogBuilder(context)
                 .setPositiveButton(context.getString(android.R.string.ok), null)
                 .setIcon(R.drawable.icon)
                 .setMessage(s)
                 .setCancelable(true)
-                .setTitle(aboutTitle).create();
+                .setTitle(aboutTitle)
+                .create();
 
         d.show();
 
         TextView tv = ((TextView) d.findViewById(android.R.id.message));
-        TextView tvDefault = new TextView(context);
-
-        tv.setMovementMethod(LinkMovementMethod.getInstance());
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, tvDefault.getTextSize());
+        if (tv != null) {
+            TextView tvDefault = new TextView(context);
+            tv.setMovementMethod(LinkMovementMethod.getInstance());
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, tvDefault.getTextSize());
+        }
 
         return d;
     }
@@ -112,20 +97,23 @@ public class DialogBuilder {
         final SpannableString s = new SpannableString(aboutText);
         Linkify.addLinks(s, Linkify.WEB_URLS);
 
-        AlertDialog d = new AlertDialog.Builder(context)
+        // Use Material Design 3 AlertDialog
+        AlertDialog d = new MaterialAlertDialogBuilder(context)
                 .setPositiveButton(context.getString(android.R.string.ok), null)
                 .setIcon(R.drawable.icon)
                 .setMessage(s)
                 .setCancelable(true)
-                .setTitle(aboutTitle).create();
+                .setTitle(aboutTitle)
+                .create();
 
         d.show();
 
         TextView tv = ((TextView) d.findViewById(android.R.id.message));
-        TextView tvDefault = new TextView(context);
-
-        tv.setMovementMethod(LinkMovementMethod.getInstance());
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, tvDefault.getTextSize());
+        if (tv != null) {
+            TextView tvDefault = new TextView(context);
+            tv.setMovementMethod(LinkMovementMethod.getInstance());
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, tvDefault.getTextSize());
+        }
 
         return d;
     }
