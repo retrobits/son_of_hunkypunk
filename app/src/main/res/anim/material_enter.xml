@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material 3 content entrance animation -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/fast_out_slow_in">
+
+    <!-- Fade in -->
+    <alpha
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0"
+        android:duration="300" />
+
+    <!-- Slide up from bottom -->
+    <translate
+        android:fromYDelta="50dp"
+        android:toYDelta="0dp"
+        android:duration="400" />
+
+</set>

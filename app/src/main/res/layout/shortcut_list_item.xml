@@ -1,42 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_weight="1">
 
         <TextView
             android:id="@+id/title"
-            style="@android:style/TextAppearance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            android:gravity="center_vertical"
-            android:paddingLeft="8dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:layout_marginBottom="4dp"
+            android:textAppearance="@android:style/TextAppearance.Medium"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/command"
-            style="@android:style/TextAppearance.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            android:gravity="center_vertical"
-            android:paddingLeft="8dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="@android:style/TextAppearance.Small"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:alpha="0.8" />
     </LinearLayout>
 
     <ImageView
         android:id="@+id/drag_handle"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_weight="0"
-        android:background="@drawable/drag" />
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/drag"
+        android:contentDescription="Drag handle" />
 </LinearLayout>
