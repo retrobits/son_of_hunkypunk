@@ -4,7 +4,7 @@ dependencies {
     // Updated to AndroidX versions (replacing deprecated support libraries)
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation project(':library')
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.google.android.material:material:1.14.0-alpha02'
 }
 
 android {
