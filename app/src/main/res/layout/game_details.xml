@@ -18,28 +18,39 @@
 	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
-	android:orientation="vertical"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:background="?attr/colorSurface"
 >
-	<com.google.android.material.appbar.MaterialToolbar
-		android:id="@+id/appbar"
-		android:layout_height="?attr/actionBarSize"
+	<com.google.android.material.appbar.AppBarLayout
 		android:layout_width="match_parent"
-		android:minHeight="?attr/actionBarSize"
+		android:layout_height="wrap_content"
 		android:background="?attr/colorSurface"
-		app:titleTextColor="?attr/colorOnSurface"
-		android:elevation="4dp"
+		app:elevation="0dp"
+		style="@style/Widget.Material3.AppBarLayout"
+	>
+		<com.google.android.material.appbar.MaterialToolbar
+			android:id="@+id/appbar"
+			android:layout_height="?attr/actionBarSize"
+			android:layout_width="match_parent"
+			android:minHeight="?attr/actionBarSize"
+			android:background="?attr/colorSurface"
+			app:titleTextColor="?attr/colorOnSurface"
+			app:navigationIcon="@drawable/ic_arrow_back"
+			app:navigationIconTint="?attr/colorOnSurface"
+			app:titleCentered="false"
+			app:layout_scrollFlags="scroll|enterAlways"
+			style="@style/Widget.Material3.Toolbar"
 		/>
-	<ScrollView android:id="@+id/info_scroll"
+	</com.google.android.material.appbar.AppBarLayout>
+	<androidx.core.widget.NestedScrollView android:id="@+id/info_scroll"
 		android:layout_width="match_parent"
-		android:layout_height="0dp"
-		android:layout_weight="1"
+		android:layout_height="match_parent"
 		android:fadingEdge="none"
 		android:fillViewport="true"
+		app:layout_behavior="@string/appbar_scrolling_view_behavior"
 	>
 		<LinearLayout
 			android:orientation="vertical"
@@ -89,47 +100,31 @@
 				android:lineSpacingExtra="2dp"
 			/>
 		</LinearLayout>
-	</ScrollView>
-	<LinearLayout
-		android:orientation="horizontal"
+	</androidx.core.widget.NestedScrollView>
+	
+	<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+		android:id="@+id/fab_play"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_width="match_parent"
-		android:padding="16dp"
-		android:background="?attr/colorSurface"
-		android:elevation="8dp"
-	>
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/open"
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
-			android:text="@string/open"
-			style="@style/Widget.Material3.Button"
-			android:layout_marginEnd="8dp"
-			app:cornerRadius="12dp"
-		/>
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/restart"
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
-			android:text="@string/restart"
-			android:visibility="gone"
-			style="@style/Widget.Material3.Button.OutlinedButton"
-			android:layout_marginHorizontal="4dp"
-			app:cornerRadius="12dp"
-		/>
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/remove"
-			android:layout_width="0dp"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
-			android:text="@string/remove"
-			android:visibility="gone"
-			style="@style/Widget.Material3.Button.OutlinedButton"
-			android:layout_marginStart="8dp"
-			app:cornerRadius="12dp"
-		/>
-	</LinearLayout>
+		android:layout_gravity="bottom|end"
+		android:layout_margin="16dp"
+		android:text="@string/open"
+		app:icon="@drawable/ic_play_arrow"
+		app:iconTint="?attr/colorOnPrimary"
+		style="@style/Widget.Material3.ExtendedFloatingActionButton.Primary"
+	/>
+	
+	<com.google.android.material.floatingactionbutton.FloatingActionButton
+		android:id="@+id/restart"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom|end"
+		android:layout_margin="16dp"
+		android:layout_marginBottom="88dp"
+		android:visibility="gone"
+		app:srcCompat="@drawable/ic_restart"
+		app:tint="?attr/colorOnSecondaryContainer"
+		style="@style/Widget.Material3.FloatingActionButton.Secondary"
+	/>
 		
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

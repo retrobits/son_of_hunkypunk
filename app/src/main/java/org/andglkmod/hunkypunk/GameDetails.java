@@ -29,6 +29,8 @@ import org.andglkmod.glk.Utils;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.widget.NestedScrollView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -69,11 +71,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.view.ActionMode;
-import androidx.appcompat.app.AppCompatCallback;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 
-public class GameDetails extends AppCompatActivity implements OnClickListener,AppCompatCallback {
+public class GameDetails extends AppCompatActivity implements OnClickListener {
     private static final String TAG = "hunkypunk.GameDetails";
 
     private static final String[] PROJECTION = {
@@ -117,7 +117,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     private TextView mDescription;
     private View mDescriptionLayout;
     private TextView mDetails;
-    private ScrollView mScroll;
+    private NestedScrollView mScroll;
     private AlertDialog mProgressDialog;
     private Handler mLookupHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -134,7 +134,6 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
         }
     };
     protected String mGameIfid;
-    private AppCompatDelegate mDelegate;
     private Handler mInstallHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -175,16 +174,6 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
         getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false);
     }
 
-    public void onSupportActionModeStarted(androidx.appcompat.view.ActionMode mode) {}
-
-    public void onSupportActionModeFinished(androidx.appcompat.view.ActionMode mode) {}
-
-    @Nullable
-    public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback)
-    {
-        return null;
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
@@ -195,6 +184,12 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle back navigation
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        
         Intent intent;
         switch (item.getNumericShortcut()) {
             case '1':
@@ -266,47 +261,38 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     }
 
     private void show(Uri game, Bundle savedInstanceState) {
-
-        if (mDelegate == null) {
-            try {
-                mDelegate = AppCompatDelegate.create(this, this);
-                if (savedInstanceState != null) mDelegate.onCreate(savedInstanceState);
-                mDelegate.setContentView(R.layout.game_details);
-                Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
-                mDelegate.setSupportActionBar(toolbar);
-
-                mTitle = (TextView) findViewById(R.id.title);
-                mHeadline = (TextView) findViewById(R.id.headline);
-                mAuthor = (TextView) findViewById(R.id.author);
-                mDescription = (TextView) findViewById(R.id.description);
-                mCover = (ImageView) findViewById(R.id.cover);
-                mDescriptionLayout = findViewById(R.id.description_layout);
-                mDetails = (TextView) findViewById(R.id.details);
-                mScroll = (ScrollView) findViewById(R.id.info_scroll);
-                mRestartButton = findViewById(id.restart);
-
-                ((Button) findViewById(R.id.open)).setOnClickListener(this);
-                ((Button) findViewById(R.id.remove)).setOnClickListener(this);
-                mRestartButton.setOnClickListener(this);
-            } catch (IllegalStateException ise) {
-                Log.w(TAG, "AppCompat already installed, using existing setup", ise);
-                // Use regular activity content view instead
-                setContentView(R.layout.game_details);
-                
-                mTitle = (TextView) findViewById(R.id.title);
-                mHeadline = (TextView) findViewById(R.id.headline);
-                mAuthor = (TextView) findViewById(R.id.author);
-                mDescription = (TextView) findViewById(R.id.description);
-                mCover = (ImageView) findViewById(R.id.cover);
-                mDescriptionLayout = findViewById(R.id.description_layout);
-                mDetails = (TextView) findViewById(R.id.details);
-                mScroll = (ScrollView) findViewById(R.id.info_scroll);
-                mRestartButton = findViewById(id.restart);
-
-                ((Button) findViewById(R.id.open)).setOnClickListener(this);
-                ((Button) findViewById(R.id.remove)).setOnClickListener(this);
-                mRestartButton.setOnClickListener(this);
+        // Simplified approach - just use the inherited AppCompatActivity functionality
+        try {
+            setContentView(R.layout.game_details);
+            
+            // Set up toolbar 
+            Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
+            setSupportActionBar(toolbar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayShowHomeEnabled(true);
             }
+            
+            // Set up navigation click listener
+            toolbar.setNavigationOnClickListener(v -> onBackPressed());
+
+            mTitle = (TextView) findViewById(R.id.title);
+            mHeadline = (TextView) findViewById(R.id.headline);
+            mAuthor = (TextView) findViewById(R.id.author);
+            mDescription = (TextView) findViewById(R.id.description);
+            mCover = (ImageView) findViewById(R.id.cover);
+            mDescriptionLayout = findViewById(R.id.description_layout);
+            mDetails = (TextView) findViewById(R.id.details);
+            mScroll = (NestedScrollView) findViewById(R.id.info_scroll);
+            mRestartButton = findViewById(R.id.restart);
+
+            findViewById(R.id.fab_play).setOnClickListener(this);
+            findViewById(R.id.restart).setOnClickListener(this);
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting up GameDetails UI", e);
+            Toast.makeText(this, "Error loading game details", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
 
         mQuery = getContentResolver().query(game, PROJECTION, null, null, null);
@@ -348,6 +334,23 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
                 String title = mQuery.getString(TITLE);
                 if (title != null) {
                     mTitle.setText(title);
+                    // Set toolbar title for better Material Design
+                    try {
+                        if (getSupportActionBar() != null) {
+                            getSupportActionBar().setTitle(title);
+                        }
+                    } catch (Exception e) {
+                        Log.w(TAG, "Could not set toolbar title", e);
+                        // Try direct toolbar access as fallback
+                        try {
+                            Toolbar toolbar = findViewById(R.id.appbar);
+                            if (toolbar != null) {
+                                toolbar.setTitle(title);
+                            }
+                        } catch (Exception ex) {
+                            Log.w(TAG, "Could not set toolbar title via direct access", ex);
+                        }
+                    }
                 }
 
                 String string = mQuery.getString(HEADLINE);
@@ -457,6 +460,10 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     }
 
     private File getBookmark() {
+        if (mGameFile == null) {
+            Log.w(TAG, "getBookmark: mGameFile is null");
+            return new File(""); // Return empty file that won't exist
+        }
         return new File(
                 Paths.gameStateDir(this,Uri.parse(mGameFile.getAbsolutePath()), mGameIfid), "bookmark");
     }
@@ -473,20 +480,24 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
         int id = arg0.getId();
         if (id == R.id.restart) {
             askRestartGame();
-        } else if (id == R.id.open) {
+        } else if (id == R.id.fab_play) {
             openGame();
-        } else if (id == R.id.remove) {
-            // TODO
         }
     }
 
     private String getZcodeVersion() {
+        if (mGameFile == null) {
+            Log.w(TAG, "getZcodeVersion: mGameFile is null");
+            return "unknown";
+        }
+        
         int zver = 0;
         try {
             RandomAccessFile f = new RandomAccessFile(mGameFile.getAbsolutePath(), "r");
             zver = f.read();
             f.close();
         } catch (Exception ex) {
+            Log.w(TAG, "Error reading ZCode version from " + mGameFile.getAbsolutePath(), ex);
         }
         if (zver == 0) return "unknown";
         else if (zver == 70) return "unknown (blorbed)";
@@ -494,6 +505,11 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     }
 
     private String getTerp() {
+        if (mGameFile == null) {
+            Log.w(TAG, "getTerp: mGameFile is null");
+            return "frotz"; // Default interpreter
+        }
+        
         String ext = Utils.getFileExtension(mGameFile).toLowerCase();
         ext = "|" + ext + "|";
 
@@ -504,6 +520,20 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     }
 
     private void openGame() {
+        // Null safety check for mGameFile
+        if (mGameFile == null) {
+            Log.e(TAG, "openGame: mGameFile is null, cannot open game");
+            Toast.makeText(this, "Game file not found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Verify file exists
+        if (!mGameFile.exists()) {
+            Log.e(TAG, "openGame: game file does not exist: " + mGameFile.getAbsolutePath());
+            Toast.makeText(this, "Game file not found on device", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         Intent intent = new Intent(Intent.ACTION_VIEW,
                 Uri.parse(mGameFile.getAbsolutePath()),
                 this,
@@ -521,7 +551,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
         //TODO Get minimum IFs supported screen size from game file
         float screen = getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().densityDpi;
         //System.out.println(mGameIfid + "|" + screen);
-        if (mGameIfid.equals("ZCODE-2-951203-A9FD") && screen <= 2.7f && !getBookmark().exists()) {
+        if (mGameIfid != null && mGameIfid.equals("ZCODE-2-951203-A9FD") && screen <= 2.7f && !getBookmark().exists()) {
             //tested up to 2.54 = 540/213 then jumps to 3.38 = 540/160
             rotateDialog(intent);
         } else
