@@ -1,7 +1,7 @@
 /*
-	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+    Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
 
-	This file is part of Hunky Punk.
+    This file is part of Hunky Punk.
 
     Hunky Punk is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -197,8 +197,14 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 
-        mScanner = StorageManager.getInstance(this);
-        mScanner.setHandler(mHandler);
+        // Initialize StorageManager with crash guard for AssertionError
+        try {
+            mScanner = StorageManager.getInstance(this);
+            mScanner.setHandler(mHandler);
+        } catch (AssertionError ae) {
+            Log.w(TAG, "AssertionError initializing StorageManager, skipping storage scan", ae);
+            mScanner = null;
+        }
         mScanner.checkExisting();
 
         /** This part creates the list of Ifs */
