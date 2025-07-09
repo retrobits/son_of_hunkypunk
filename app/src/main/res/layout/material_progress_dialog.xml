@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/please_wait"
-        android:textAppearance="@android:style/TextAppearance.Material.Title"
+        android:textAppearance="?attr/textAppearanceHeadline6"
         android:textColor="?attr/colorOnSurface"
         android:layout_marginBottom="16dp" />
 
