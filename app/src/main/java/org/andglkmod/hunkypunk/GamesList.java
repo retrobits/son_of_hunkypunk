@@ -78,7 +78,6 @@ import java.util.regex.Pattern;
 public class GamesList extends AppCompatActivity implements OnClickListener {
     private ListView mListView;
     
-    // Helper method to replace ListActivity's getListView()
     protected ListView getListView() {
         return mListView;
     }
@@ -113,7 +112,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case StorageManager.DONE:
-                    setProgressBarIndeterminateVisibility(false);
+                    // Progress is now handled by Material progress indicators
                     startLookup();
                     break;
             }
@@ -260,7 +259,6 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         // Handle storage permissions based on Android version
         requestStoragePermissions();
 
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 
         // Initialize StorageManager with crash guard for AssertionError
@@ -284,7 +282,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         
         setContentView(R.layout.games_list);
         
-        // Initialize ListView since we're no longer extending ListActivity
+        // Initialize ListView
         mListView = findViewById(android.R.id.list);
         mListView.setAdapter(adapter);
         mListView.setOnItemClickListener((parent, view, position, id) -> 
@@ -445,7 +443,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        new MenuInflater(getApplication()).inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -491,7 +489,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         Log.d(TAG, "startScan called, mScanner: " + mScanner);
         if (mScanner != null && !mScanner.alreadyScanning) {
             Log.d(TAG, "Starting scan...");
-            setProgressBarIndeterminateVisibility(true);
+            // Progress is now handled by Material progress indicators
             mScanner.startScan();
         } else {
             Log.d(TAG, "Scan not started - mScanner null or already scanning");

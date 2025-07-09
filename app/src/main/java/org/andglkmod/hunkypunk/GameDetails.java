@@ -117,13 +117,15 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     private AlertDialog mProgressDialog;
     private Handler mLookupHandler = new Handler() {
         public void handleMessage(Message msg) {
-            setProgressBarIndeterminateVisibility(false);
+            // Progress is now handled by Material progress indicators
             switch (msg.what) {
                 case IFDb.FAILURE:
                     Toast.makeText(GameDetails.this, R.string.lookup_failure, Toast.LENGTH_SHORT).show();
                     break;
                 case IFDb.SUCCESS:
-                    mQuery.requery();
+                    // Replace deprecated requery() with modern cursor refresh
+                    refreshGameData();
+                    break;
             }
         }
     };
@@ -182,7 +184,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        new MenuInflater(getApplication()).inflate(R.menu.menu_game_details, menu);
+        getMenuInflater().inflate(R.menu.menu_game_details, menu);
         return true;
     }
 
@@ -303,8 +305,10 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
             }
         }
 
-        mQuery = managedQuery(game, PROJECTION, null, null, null);
-        mQuery.registerContentObserver(mContentObserver);
+        mQuery = getContentResolver().query(game, PROJECTION, null, null, null);
+        if (mQuery != null) {
+            mQuery.registerContentObserver(mContentObserver);
+        }
         showData();
     }
 
@@ -315,7 +319,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
             mGameIfid = mQuery.getString(IFID);
         if (mQuery.isNull(LOOKED_UP)) {
             Toast.makeText(this, R.string.looking_up, Toast.LENGTH_SHORT).show();
-            setProgressBarIndeterminateVisibility(true);
+            // Progress is now handled by Material progress indicators
             IFDb.getInstance(getContentResolver()).startLookup(this, mGameIfid, mLookupHandler);
         }
 
@@ -576,5 +580,32 @@ public class GameDetails extends AppCompatActivity implements OnClickListener,Ap
                     }
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert).show();
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        
+        // Properly close the cursor to prevent memory leaks
+        if (mQuery != null && !mQuery.isClosed()) {
+            mQuery.unregisterContentObserver(mContentObserver);
+            mQuery.close();
+            mQuery = null;
+        }
+    }
+    
+    private void refreshGameData() {
+        // Close the old cursor and create a new one to get fresh data
+        if (mQuery != null && !mQuery.isClosed()) {
+            mQuery.unregisterContentObserver(mContentObserver);
+            mQuery.close();
+        }
+        
+        Uri game = getIntent().getData();
+        mQuery = getContentResolver().query(game, PROJECTION, null, null, null);
+        if (mQuery != null) {
+            mQuery.registerContentObserver(mContentObserver);
+            showData();
+        }
     }
 }
