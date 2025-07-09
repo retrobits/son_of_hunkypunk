@@ -146,7 +146,7 @@ public class FileRef {
 							return;
 						}
 						final File selected = new File(mBaseDir, list[index]);
-						// For saved games, offer delete or load
+						// For saved games, offer load or dismiss
 						if (usage == FILEUSAGE_SAVEDGAME) {
 							// Confirmation dialog: OK to load, Cancel to dismiss
 							new AlertDialog.Builder(mContext)
