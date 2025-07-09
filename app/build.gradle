@@ -5,6 +5,8 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation project(':library')
     implementation 'com.google.android.material:material:1.14.0-alpha02'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 }
 
 android {

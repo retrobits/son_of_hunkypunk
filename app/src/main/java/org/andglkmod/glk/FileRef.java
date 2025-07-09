@@ -25,7 +25,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -246,7 +246,7 @@ public class FileRef {
 			notify();
 		}
 	}
-	private static class NewFileDialog extends AlertDialog implements OnClickListener, OnCancelListener {
+	private static class NewFileDialog extends androidx.appcompat.app.AlertDialog implements OnClickListener, OnCancelListener {
 		private EditText mNameEdit;
 		private final FilePrompt mNewFilePrompt;
 		private File mBaseDir;

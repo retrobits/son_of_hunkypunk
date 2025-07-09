@@ -35,9 +35,12 @@ import org.andglkmod.hunkypunk.HunkyPunk.Games;
 import org.andglkmod.ifdb.IFDb;
 
 import android.Manifest;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.ListActivity;
-import android.app.ProgressDialog;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -113,7 +116,8 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
         }
     };
 
-    private ProgressDialog progressDialog;
+    private AlertDialog progressDialog;
+    private LinearProgressIndicator progressIndicator;
 
     private Thread downloadThread;
 
@@ -445,23 +449,30 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     private void downloadPreselected() {
         downloadCancelled = false;
 
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle(R.string.please_wait);
-        progressDialog.setMessage(getString(R.string.downloading_stories));
-        progressDialog.setCancelable(true);
-        progressDialog.setOnCancelListener(
-                new OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        synchronized (downloadThread) {
-                            downloadCancelled = true;
+        View progressView = LayoutInflater.from(this).inflate(R.layout.material_progress_dialog, null);
+        TextView messageView = progressView.findViewById(R.id.progress_message);
+        progressIndicator = progressView.findViewById(R.id.progress_linear);
+        
+        messageView.setText(getString(R.string.downloading_stories));
+        progressIndicator.setVisibility(View.VISIBLE);
+        progressIndicator.setMax(BEGINNER_GAMES.length);
+        progressView.findViewById(R.id.progress_circular).setVisibility(View.GONE);
+
+        progressDialog = new AlertDialog.Builder(this)
+                .setView(progressView)
+                .setCancelable(true)
+                .setOnCancelListener(
+                        new OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                synchronized (downloadThread) {
+                                    downloadCancelled = true;
+                                }
+                                downloadThread.interrupt();
+                            }
                         }
-                        downloadThread.interrupt();
-                    }
-                }
-        );
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setMax(BEGINNER_GAMES.length);
+                )
+                .create();
         progressDialog.show();
 
         final Context c = this;
@@ -485,7 +496,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
                     } catch (IOException e) {
                         Log.e(TAG, "I/O error when fetching " + s, e);
                     }
-                    progressDialog.setProgress(++i);
+                    progressIndicator.setProgress(++i);
                 }
 
                 try {

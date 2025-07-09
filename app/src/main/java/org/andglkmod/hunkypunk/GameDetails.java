@@ -28,8 +28,11 @@ import org.andglkmod.ifdb.IFDb;
 import org.andglkmod.glk.Utils;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
+import androidx.appcompat.app.AlertDialog;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -111,7 +114,7 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
     private View mDescriptionLayout;
     private TextView mDetails;
     private ScrollView mScroll;
-    private ProgressDialog mProgressDialog;
+    private AlertDialog mProgressDialog;
     private Handler mLookupHandler = new Handler() {
         public void handleMessage(Message msg) {
             setProgressBarIndeterminateVisibility(false);
@@ -241,10 +244,14 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
     }
 
     private void install(Uri game, String scheme) {
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setMessage(getString(R.string.examining_file, game.getLastPathSegment()));
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.setCancelable(false);
+        View progressView = LayoutInflater.from(this).inflate(R.layout.material_progress_dialog, null);
+        TextView messageView = progressView.findViewById(R.id.progress_message);
+        messageView.setText(getString(R.string.examining_file, game.getLastPathSegment()));
+        
+        mProgressDialog = new AlertDialog.Builder(this)
+                .setView(progressView)
+                .setCancelable(false)
+                .create();
         mProgressDialog.show();
 
         StorageManager mediaScanner = StorageManager.getInstance(this);

@@ -77,6 +77,8 @@
 		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
 		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
 		<item name="textGridWindowStyle">@style/TextGridWindow</item>
+		<item name="alertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
+		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
 	</style>
 
 	<!-- Material 3 Dark Theme -->
@@ -111,6 +113,8 @@
 		<item name="textBufferWindowStyle">@style/TextBufferWindow</item>
 		<item name="textBufferWindowEditStyle">@style/TextBufferWindowEdit</item>
 		<item name="textGridWindowStyle">@style/TextGridWindow</item>
+		<item name="alertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
+		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
 	</style>
 
 	<style name="normal">
@@ -199,7 +203,11 @@
 	</style>
 
 	<style name="prefstheme" parent="Theme.Material3.DayNight">
+		<item name="alertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
+		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
 	</style>
 	<style name="compatbartheme" parent="Theme.Material3.DayNight.NoActionBar">
+		<item name="alertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
+		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
 	</style>
 </resources>
