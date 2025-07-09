@@ -7,10 +7,14 @@
     android:layout_margin="6dp"
     android:minHeight="48dp"
     android:minWidth="56dp"
-    app:cardBackgroundColor="@color/shortcutsColor"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/material_button_ripple"
+    app:cardBackgroundColor="?attr/colorPrimaryContainer"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
     app:strokeWidth="0dp"
+    app:rippleColor="?attr/colorOnPrimaryContainer"
     style="@style/Widget.Material3.CardView.Elevated">
 
     <TextView
@@ -22,8 +26,8 @@
         android:paddingEnd="12dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        android:textColor="?attr/colorOnPrimary"
-        android:textAppearance="@android:style/TextAppearance.Small"
+        android:textColor="?attr/colorOnPrimaryContainer"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
         android:textStyle="bold" />
 
 </com.google.android.material.card.MaterialCardView>

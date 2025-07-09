@@ -27,7 +27,7 @@ import org.andglkmod.hunkypunk.R.id;
 import org.andglkmod.ifdb.IFDb;
 import org.andglkmod.glk.Utils;
 
-import android.app.Activity;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -71,7 +71,7 @@ import androidx.appcompat.app.AppCompatCallback;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 
-public class GameDetails extends Activity implements OnClickListener,AppCompatCallback {
+public class GameDetails extends AppCompatActivity implements OnClickListener,AppCompatCallback {
     private static final String TAG = "hunkypunk.GameDetails";
 
     private static final String[] PROJECTION = {
@@ -188,7 +188,7 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
 
 
     @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
         switch (item.getNumericShortcut()) {
             case '1':
@@ -240,7 +240,7 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
                 }
                 break;
         }
-        return super.onMenuItemSelected(featureId, item);
+        return super.onOptionsItemSelected(item);
     }
 
     private void install(Uri game, String scheme) {

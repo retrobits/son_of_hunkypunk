@@ -52,8 +52,9 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+import android.animation.ObjectAnimator;
+import android.animation.AnimatorSet;
+import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -1056,6 +1057,7 @@ public class TextBufferWindow extends Window {
     public static String DefaultFontName = null;
 
     /*Night Mode Vars*/
+    // Default colors - will be updated with Material 3 theme colors in Interpreter
     public static int DefaultBackground = Color.WHITE;
     public static int DefaultTextColor = Color.BLACK;
     public static int DefaultInputStyle = Glk.STYLE_INPUT;
@@ -1138,13 +1140,20 @@ public class TextBufferWindow extends Window {
                         mCommand1.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                         mCommand1.clear();
                         mCommand1.disableInput();
-                        //mCommand1.setBackgroundColor(Color.YELLOW);
+                        // Apply Material 3 input styling
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            mCommand1.setBackgroundTintList(android.content.res.ColorStateList.valueOf(mContext.getResources().getColor(R.color.md_theme_light_outline, mContext.getTheme())));
+                        }
+                        
                         mCommand2 = new _CommandView(mContext);
                         mCommand2.setPadding(pad, 0, pad, pad);
                         mCommand2.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
                         mCommand2.clear();
                         mCommand2.disableInput();
-                        //mCommand2.setBackgroundColor(Color.LTGRAY);
+                        // Apply Material 3 input styling
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            mCommand2.setBackgroundTintList(android.content.res.ColorStateList.valueOf(mContext.getResources().getColor(R.color.md_theme_light_outline, mContext.getTheme())));
+                        }
                         ToggleCommandView();
 
                         mPrompt = new _PromptView(mContext);
@@ -1173,9 +1182,18 @@ public class TextBufferWindow extends Window {
                         SharedPreferences sharedShortcuts = mContext.getSharedPreferences("shortcuts", Context.MODE_PRIVATE);
                         SharedPreferences sharedShortcutIDs = mContext.getSharedPreferences("shortcutIDs", Context.MODE_PRIVATE);
                         SharedPreferences sharedShortcutPrefs = mContext.getSharedPreferences("shortcutPrefs", Context.MODE_PRIVATE);
+                        SharedPreferences nightPrefs = mContext.getSharedPreferences("Night", Context.MODE_PRIVATE);
+                        
+                        // Use Material 3 colors for shortcut buttons
                         String shortcutsColor = mContext.getSharedPreferences("Color", Context.MODE_PRIVATE)
                                 .getString("newColor", "#52A6B8");
-                        int bg = Color.parseColor(shortcutsColor);
+                        
+                        // Only override default theme colors if user has set a custom color preference
+                        boolean useCustomColor = !shortcutsColor.equals("#52A6B8");
+                        int bg = 0;
+                        if (useCustomColor) {
+                            bg = Color.parseColor(shortcutsColor);
+                        }
 
                         if (sharedShortcutPrefs.getBoolean("enablelist", true))
                             for (int i = 0; i < sharedShortcutIDs.getAll().size(); i++) {
@@ -1188,13 +1206,19 @@ public class TextBufferWindow extends Window {
                                 final TextView textView = (TextView) shortcutView.findViewById(R.id.shortcuttitle);
                                 textView.setText(title);
 
-                                textView.setTextColor(Color.BLACK);
-
-                                if(shortcutsColor.equals("#2ba907"))/*if(green)*/ {
-                                    textView.setTextColor(Color.WHITE);
+                                // Only override Material theme colors if user has a custom color preference
+                                if (useCustomColor) {
+                                    cardView.setCardBackgroundColor(bg);
+                                    
+                                    // Set appropriate text color for custom background
+                                    if(shortcutsColor.equals("#2ba907"))/*if(green)*/ {
+                                        textView.setTextColor(mContext.getResources().getColor(R.color.md_theme_light_onPrimary, mContext.getTheme()));
+                                    } else {
+                                        // For other custom colors, use a contrasting color
+                                        textView.setTextColor(mContext.getResources().getColor(R.color.md_theme_light_onPrimary, mContext.getTheme()));
+                                    }
                                 }
-
-                                cardView.setCardBackgroundColor(bg);
+                                // If no custom color, layout theme attributes will be used automatically
 
 
                                 textView.setTag(command);
@@ -1219,15 +1243,30 @@ public class TextBufferWindow extends Window {
                         mView.setPadding(pad, pad, pad, 0);
                         mView.setFocusable(false);
                         
-                        // Ensure the text view has a proper background and minimum height from resources
+                        // Ensure the text view has Material 3 styling and animations
                         mView.setBackgroundColor(DefaultBackground);
                         mView.setMinHeight(mView.getResources().getDimensionPixelSize(R.dimen.text_buffer_min_height));
-                        mView.setText(R.string.welcome_message); // Add initial content from string resources
+                        mView.setText(R.string.welcome_message);
                         mView.setTextColor(DefaultTextColor);
+                        
+                        // Apply Material 3 typography and spacing
+                        mView.setLineSpacing(4, 1.2f); // Improved line spacing for readability
+                        mView.setLetterSpacing(0.01f); // Subtle letter spacing
+                        
+                        // Add Material 3 state animator
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            mView.setStateListAnimator(android.animation.AnimatorInflater.loadStateListAnimator(mContext, R.animator.text_view_state_animator));
+                        }
 
-                        // Put only the text view in the scroll view
+                        // Put only the text view in the scroll view with Material motion
                         mScrollView.setBackgroundColor(DefaultBackground);
                         mScrollView.addView(mView, paramsDefault);
+                        
+                        // Add Material 3 scroll behavior
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            mScrollView.setNestedScrollingEnabled(true);
+                            mScrollView.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
+                        }
 
                         // Create the main layout with proper constraints
                         LinearLayout.LayoutParams scrollParams = new
@@ -1262,10 +1301,38 @@ public class TextBufferWindow extends Window {
                 });
     }
 
-    /* Simulate a click on the cardView. */
+    /* Material 3 button press animation */
     private void animate(View v) {
-        Animation animation1 = AnimationUtils.loadAnimation(mContext, R.anim.press);
-        v.startAnimation(animation1);
+        // Create Material 3 style press animation using modern ObjectAnimator
+        AnimatorSet animatorSet = new AnimatorSet();
+        
+        // Scale down animation
+        ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(v, "scaleX", 1.0f, 0.95f);
+        ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(v, "scaleY", 1.0f, 0.95f);
+        scaleDownX.setDuration(120);
+        scaleDownY.setDuration(120);
+        scaleDownX.setInterpolator(new DecelerateInterpolator());
+        scaleDownY.setInterpolator(new DecelerateInterpolator());
+        
+        // Scale back up animation with slight overshoot
+        ObjectAnimator scaleUpX = ObjectAnimator.ofFloat(v, "scaleX", 0.95f, 1.02f);
+        ObjectAnimator scaleUpY = ObjectAnimator.ofFloat(v, "scaleY", 0.95f, 1.02f);
+        scaleUpX.setDuration(180);
+        scaleUpY.setDuration(180);
+        scaleUpX.setStartDelay(120);
+        scaleUpY.setStartDelay(120);
+        
+        // Return to normal scale
+        ObjectAnimator returnX = ObjectAnimator.ofFloat(v, "scaleX", 1.02f, 1.0f);
+        ObjectAnimator returnY = ObjectAnimator.ofFloat(v, "scaleY", 1.02f, 1.0f);
+        returnX.setDuration(100);
+        returnY.setDuration(100);
+        returnX.setStartDelay(300);
+        returnY.setStartDelay(300);
+        
+        // Play all animations together
+        animatorSet.playTogether(scaleDownX, scaleDownY, scaleUpX, scaleUpY, returnX, returnY);
+        animatorSet.start();
     }
 
     private Editable toEditable(EditText et) {

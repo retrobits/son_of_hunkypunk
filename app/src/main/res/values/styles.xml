@@ -210,4 +210,26 @@
 		<item name="alertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
 		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
 	</style>
+	
+	<!-- Material 3 Game Interface Styles -->
+	<style name="MaterialGameContainer">
+		<item name="android:background">?attr/colorSurface</item>
+		<item name="android:elevation">2dp</item>
+		<item name="android:clipToPadding">false</item>
+	</style>
+	
+	<style name="MaterialGameText">
+		<item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+		<item name="android:lineSpacingExtra">4dp</item>
+		<item name="android:lineSpacingMultiplier">1.2</item>
+		<item name="android:letterSpacing">0.01</item>
+		<item name="android:textColor">?attr/colorOnSurface</item>
+	</style>
+	
+	<style name="MaterialGameInput">
+		<item name="android:textAppearance">?attr/textAppearanceBodyMedium</item>
+		<item name="android:background">@drawable/material_input_background</item>
+		<item name="android:textColor">?attr/colorOnSurface</item>
+		<item name="android:textColorHint">?attr/colorOnSurfaceVariant</item>
+	</style>
 </resources>

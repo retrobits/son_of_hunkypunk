@@ -36,7 +36,7 @@ import org.andglkmod.ifdb.IFDb;
 
 import android.Manifest;
 import androidx.appcompat.app.AlertDialog;
-import android.app.ListActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -72,13 +72,17 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
-import androidx.appcompat.view.ActionMode;
-import androidx.appcompat.app.AppCompatCallback;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import java.util.regex.Pattern;
 
-public class GamesList extends ListActivity implements OnClickListener, AppCompatCallback {
+public class GamesList extends AppCompatActivity implements OnClickListener {
+    private ListView mListView;
+    
+    // Helper method to replace ListActivity's getListView()
+    protected ListView getListView() {
+        return mListView;
+    }
+    
     private static final String[] PROJECTION = {
             Games._ID,
             Games.IFID,
@@ -124,6 +128,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     protected boolean downloadCancelled;
 
     private SimpleCursorAdapter adapter;
+    private Cursor gamesCursor;
 
 
     private void requestStoragePermissions() {
@@ -150,6 +155,9 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
 
     private void verifyIfDirectory(Context c)
     {
+        Log.d(TAG, "Verifying IF directory: " + Paths.ifDirectory(c));
+        Log.d(TAG, "Directory valid: " + Paths.isIfDirectoryValid(c));
+        
         if (Paths.isIfDirectoryValid(c)){
             findViewById(R.id.go_to_prefs).setVisibility(View.INVISIBLE);
             findViewById(R.id.go_to_prefs_msg).setVisibility(View.INVISIBLE);
@@ -173,22 +181,76 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
          * Ifs from the older Directory*/
         DatabaseHelper mOpenHelper = new DatabaseHelper(this);
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        for (int i = 0; i < adapter.getCount(); i++) {
-            Cursor cur = (Cursor) adapter.getItem(i);
-            if (!Pattern.matches(".*" + Paths.ifDirectory(this) + ".*", cur.getString(4))) {
-                db.execSQL("delete from games where ifid = '" + cur.getString(1) + "'");
+        Log.d(TAG, "Adapter count in verifyIfDirectory: " + (adapter != null ? adapter.getCount() : "null"));
+        
+        if (adapter != null) {
+            for (int i = 0; i < adapter.getCount(); i++) {
+                Cursor cur = (Cursor) adapter.getItem(i);
+                if (cur != null && cur.getString(4) != null) {
+                    Log.d(TAG, "Found game path: " + cur.getString(4));
+                    if (!Pattern.matches(".*" + Paths.ifDirectory(this) + ".*", cur.getString(4))) {
+                        Log.d(TAG, "Deleting game with mismatched path: " + cur.getString(4));
+                        db.execSQL("delete from games where ifid = '" + cur.getString(1) + "'");
+                    }
+                }
             }
         }
         db.close();
 
         /** helps to refresh the View, when come back from preferences */
         startScan();
+        
+        // Refresh the games list after any scanning
+        refreshGamesList();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume called - refreshing adapter");
+        
+        // Refresh the cursor and adapter when returning to this activity
+        refreshGamesList();
         verifyIfDirectory(this);
+    }
+
+    private void refreshGamesList() {
+        Log.d(TAG, "Refreshing games list...");
+        
+        // Close previous cursor if it exists
+        if (gamesCursor != null && !gamesCursor.isClosed()) {
+            gamesCursor.close();
+        }
+        
+        // Create a new cursor to get fresh data using modern approach
+        gamesCursor = getContentResolver().query(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
+        Log.d(TAG, "New cursor count: " + (gamesCursor != null ? gamesCursor.getCount() : "null"));
+        
+        // Debug: Check cursor data
+        if (gamesCursor != null && gamesCursor.getCount() > 0) {
+            gamesCursor.moveToFirst();
+            for (int i = 0; i < Math.min(3, gamesCursor.getCount()); i++) {
+                Log.d(TAG, "Game " + i + ": ID=" + gamesCursor.getLong(0) + 
+                      ", IFID=" + gamesCursor.getString(1) + 
+                      ", TITLE=" + gamesCursor.getString(2) + 
+                      ", AUTHOR=" + gamesCursor.getString(3) + 
+                      ", PATH=" + gamesCursor.getString(4));
+                gamesCursor.moveToNext();
+            }
+            gamesCursor.moveToFirst(); // Reset cursor position
+        }
+        
+        if (adapter != null && mListView != null) {
+            adapter.changeCursor(gamesCursor);
+            adapter.notifyDataSetChanged();
+            Log.d(TAG, "Adapter updated with new cursor. Count: " + adapter.getCount());
+            
+            // Force ListView to update its empty view state
+            if (mListView.getEmptyView() != null) {
+                Log.d(TAG, "ListView empty view state: isEmpty=" + adapter.isEmpty() + 
+                      ", emptyViewVisibility=" + mListView.getEmptyView().getVisibility());
+            }
+        }
     }
 
     @Override
@@ -205,24 +267,39 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
         try {
             mScanner = StorageManager.getInstance(this);
             mScanner.setHandler(mHandler);
+            mScanner.checkExisting();
         } catch (AssertionError ae) {
             Log.w(TAG, "AssertionError initializing StorageManager, skipping storage scan", ae);
             mScanner = null;
         }
-        mScanner.checkExisting();
 
         /** This part creates the list of Ifs */
-        Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
-        adapter = new SimpleCursorAdapter(this, R.layout.game_list_item, cursor,
+        gamesCursor = getContentResolver().query(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
+        Log.d(TAG, "Database query returned cursor with count: " + (gamesCursor != null ? gamesCursor.getCount() : "null"));
+        
+        adapter = new SimpleCursorAdapter(this, R.layout.game_list_item, gamesCursor,
                 new String[]{Games.TITLE, Games.AUTHOR}, new int[]{android.R.id.text1, android.R.id.text2});
-        setListAdapter(adapter);
-
-        AppCompatDelegate delegate = AppCompatDelegate.create(this, this);
-        delegate.onCreate(savedInstanceState);
-        delegate.setContentView(R.layout.games_list);
-        //setContentView(R.layout.games_list);
+        
+        Log.d(TAG, "Adapter created with count: " + (adapter != null ? adapter.getCount() : "null"));
+        
+        setContentView(R.layout.games_list);
+        
+        // Initialize ListView since we're no longer extending ListActivity
+        mListView = findViewById(android.R.id.list);
+        mListView.setAdapter(adapter);
+        mListView.setOnItemClickListener((parent, view, position, id) -> 
+            onListItemClick(mListView, view, position, id));
+        
+        // Set up the empty view relationship
+        View emptyView = findViewById(android.R.id.empty);
+        mListView.setEmptyView(emptyView);
+        
+        Log.d(TAG, "ListView setup complete. Adapter count: " + adapter.getCount() + 
+              ", ListView visibility: " + mListView.getVisibility() + 
+              ", Empty view visibility: " + emptyView.getVisibility());
+        
         Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
-        delegate.setSupportActionBar(toolbar);
+        setSupportActionBar(toolbar);
 
         findViewById(R.id.go_to_ifdb).setOnClickListener(this);
         findViewById(R.id.go_to_prefs).setOnClickListener(this);
@@ -297,14 +374,15 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
         verifyIfDirectory(this);
     }
 
-    public void onSupportActionModeStarted(androidx.appcompat.view.ActionMode mode) {}
-
-    public void onSupportActionModeFinished(androidx.appcompat.view.ActionMode mode) {}
-
-    @Nullable
-    public ActionMode onWindowStartingSupportActionMode(ActionMode.Callback callback)
-    {
-        return null;
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        
+        // Properly close the cursor to prevent memory leaks
+        if (gamesCursor != null && !gamesCursor.isClosed()) {
+            gamesCursor.close();
+            gamesCursor = null;
+        }
     }
 
     public static void copyFileOrDirectory(String srcDir, String dstDir) {
@@ -372,7 +450,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     }
 
     @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
         switch (item.getNumericShortcut()) {
             case '1':
@@ -388,18 +466,17 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
                 }
                 break;
         }
-        return super.onMenuItemSelected(featureId, item);
+        return super.onOptionsItemSelected(item);
     }
 
-    @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         /** the id is not equal to the position, cause of the list is alphabetical sorted.
          * We create an array, where the positions match the ids */
 
-        long ifIDs[] = new long[getListAdapter().getCount()];//array for the right order of the ifIDs (non-alphabetical order)
+        long ifIDs[] = new long[mListView.getAdapter().getCount()];//array for the right order of the ifIDs (non-alphabetical order)
 
         /** matching id of each IF to the position in ListView*/
-        for (int j = 0; j < getListAdapter().getCount(); j++) {
+        for (int j = 0; j < mListView.getAdapter().getCount(); j++) {
             ifIDs[j] = getListView().getItemIdAtPosition(j);
             //System.out.println(ifIDs[j]);
         }
@@ -411,9 +488,13 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
     }
 
     private void startScan() {
-        if (!mScanner.alreadyScanning) {
+        Log.d(TAG, "startScan called, mScanner: " + mScanner);
+        if (mScanner != null && !mScanner.alreadyScanning) {
+            Log.d(TAG, "Starting scan...");
             setProgressBarIndeterminateVisibility(true);
             mScanner.startScan();
+        } else {
+            Log.d(TAG, "Scan not started - mScanner null or already scanning");
         }
     }
 
@@ -496,17 +577,36 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
                     } catch (IOException e) {
                         Log.e(TAG, "I/O error when fetching " + s, e);
                     }
-                    progressIndicator.setProgress(++i);
+                    final int progress = ++i;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressIndicator.setProgress(progress);
+                        }
+                    });
                 }
 
                 try {
-                    mScanner.scan(Paths.ifDirectory(c));
+                    if (mScanner != null) {
+                        Log.d(TAG, "Download complete, starting scan of directory: " + Paths.ifDirectory(c));
+                        mScanner.scan(Paths.ifDirectory(c));
+                    } else {
+                        Log.w(TAG, "mScanner is null, cannot scan directory");
+                    }
                     IFDb.getInstance(getContentResolver()).lookupGames(c);
                 } catch (IOException e) {
                     Log.e(TAG, "I/O error when fetching metadata", e);
                 }
 
-                progressDialog.dismiss();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                        // Refresh the games list after download
+                        Log.d(TAG, "Download finished, refreshing games list");
+                        refreshGamesList();
+                    }
+                });
             }
         };
 
