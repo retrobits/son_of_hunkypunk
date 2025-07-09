@@ -43,6 +43,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.text.Editable;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -55,6 +56,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -253,25 +255,45 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
     private void show(Uri game, Bundle savedInstanceState) {
 
         if (mDelegate == null) {
-            mDelegate = AppCompatDelegate.create(this, this);
-            if (savedInstanceState != null) mDelegate.onCreate(savedInstanceState);
-            mDelegate.setContentView(R.layout.game_details);
-            Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
-            mDelegate.setSupportActionBar(toolbar);
+            try {
+                mDelegate = AppCompatDelegate.create(this, this);
+                if (savedInstanceState != null) mDelegate.onCreate(savedInstanceState);
+                mDelegate.setContentView(R.layout.game_details);
+                Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
+                mDelegate.setSupportActionBar(toolbar);
 
-            mTitle = (TextView) findViewById(R.id.title);
-            mHeadline = (TextView) findViewById(R.id.headline);
-            mAuthor = (TextView) findViewById(R.id.author);
-            mDescription = (TextView) findViewById(R.id.description);
-            mCover = (ImageView) findViewById(R.id.cover);
-            mDescriptionLayout = findViewById(R.id.description_layout);
-            mDetails = (TextView) findViewById(R.id.details);
-            mScroll = (ScrollView) findViewById(R.id.info_scroll);
-            mRestartButton = findViewById(id.restart);
+                mTitle = (TextView) findViewById(R.id.title);
+                mHeadline = (TextView) findViewById(R.id.headline);
+                mAuthor = (TextView) findViewById(R.id.author);
+                mDescription = (TextView) findViewById(R.id.description);
+                mCover = (ImageView) findViewById(R.id.cover);
+                mDescriptionLayout = findViewById(R.id.description_layout);
+                mDetails = (TextView) findViewById(R.id.details);
+                mScroll = (ScrollView) findViewById(R.id.info_scroll);
+                mRestartButton = findViewById(id.restart);
 
-            ((Button) findViewById(R.id.open)).setOnClickListener(this);
-            ((Button) findViewById(R.id.remove)).setOnClickListener(this);
-            mRestartButton.setOnClickListener(this);
+                ((Button) findViewById(R.id.open)).setOnClickListener(this);
+                ((Button) findViewById(R.id.remove)).setOnClickListener(this);
+                mRestartButton.setOnClickListener(this);
+            } catch (IllegalStateException ise) {
+                Log.w(TAG, "AppCompat already installed, using existing setup", ise);
+                // Use regular activity content view instead
+                setContentView(R.layout.game_details);
+                
+                mTitle = (TextView) findViewById(R.id.title);
+                mHeadline = (TextView) findViewById(R.id.headline);
+                mAuthor = (TextView) findViewById(R.id.author);
+                mDescription = (TextView) findViewById(R.id.description);
+                mCover = (ImageView) findViewById(R.id.cover);
+                mDescriptionLayout = findViewById(R.id.description_layout);
+                mDetails = (TextView) findViewById(R.id.details);
+                mScroll = (ScrollView) findViewById(R.id.info_scroll);
+                mRestartButton = findViewById(id.restart);
+
+                ((Button) findViewById(R.id.open)).setOnClickListener(this);
+                ((Button) findViewById(R.id.remove)).setOnClickListener(this);
+                mRestartButton.setOnClickListener(this);
+            }
         }
 
         mQuery = managedQuery(game, PROJECTION, null, null, null);
@@ -364,8 +386,9 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
             int height = (int) (display.getHeight() / 1.5);  // deprecated
             int sz = Math.min(width, height);
 
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(sz, sz);
-            lp.gravity = Gravity.CENTER_HORIZONTAL;
+            // Use FrameLayout.LayoutParams since MaterialCardView extends FrameLayout
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(sz, sz);
+            lp.gravity = Gravity.CENTER;
             mCover.setLayoutParams(lp);
         }
 
