@@ -19,34 +19,39 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
+	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
 	android:orientation="vertical"
 	android:gravity="center"
-	android:layout_margin="5sp"
+	android:layout_margin="16dp"
 >
 	<TextView
 		android:id="@+id/title"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:textAppearance="?android:attr/textAppearanceLarge"
+		android:textAppearance="@android:style/TextAppearance.Large"
+		android:textColor="?attr/colorOnSurface"
+		android:textStyle="bold"
 		android:gravity="center"
+		android:layout_marginBottom="4dp"
 	/>
 	<TextView
 		android:id="@+id/headline"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:textAppearance="?android:attr/textAppearanceMedium"
+		android:textAppearance="@android:style/TextAppearance.Medium"
+		android:textColor="?attr/colorOnSurface"
 		android:gravity="center"
+		android:layout_marginBottom="8dp"
 	/>
 	<TextView
 		android:id="@+id/author"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textColor="?android:attr/textColorSecondary"
-		android:layout_marginTop="4sp"
+		android:textAppearance="@android:style/TextAppearance.Medium"
+		android:textColor="?attr/colorOnSurfaceVariant"
 		android:gravity="center"
+		android:textStyle="italic"
 	/>
 </LinearLayout>
 	
