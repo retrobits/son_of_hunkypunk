@@ -209,7 +209,7 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
 
         /** This part creates the list of Ifs */
         Cursor cursor = managedQuery(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
-        adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, cursor,
+        adapter = new SimpleCursorAdapter(this, R.layout.game_list_item, cursor,
                 new String[]{Games.TITLE, Games.AUTHOR}, new int[]{android.R.id.text1, android.R.id.text2});
         setListAdapter(adapter);
 

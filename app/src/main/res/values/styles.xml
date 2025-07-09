@@ -114,10 +114,13 @@
 	</style>
 
 	<style name="normal">
+		<item name="android:textColor">?attr/colorOnSurface</item>
+		<item name="android:lineSpacingExtra">2dp</item>
 	</style>
 	
 	<style name="emphasized">
 		<item name="android:textStyle">italic</item>
+		<item name="android:textColor">?attr/colorOnSurface</item>
 	</style>
 	
 	<style name="preformatted" parent="@style/TextGridWindow.TextAppearance"/>
@@ -125,17 +128,20 @@
 	<style name="header" parent="@android:style/TextAppearance.Medium">
 		<item name="android:textStyle">bold</item>
 		<item name="android:textColor">?attr/colorOnSurface</item>
+		<item name="android:lineSpacingExtra">2dp</item>
 	</style>
 
 <!-- Also used with some games as 'header' but could be influenced by textColor -->
 	<style name="subheader" parent="@android:style/TextAppearance.Small">
 		<item name="android:textStyle">bold</item>
 		<item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+		<item name="android:lineSpacingExtra">1dp</item>
 	</style>
 
 	<style name="alert">
 		<item name="android:textStyle">bold</item>
 		<item name="android:textColor">@color/game_text_alert</item>
+		<item name="android:lineSpacingExtra">1dp</item>
 	</style>
 	
 	<style name="note">
@@ -166,15 +172,18 @@
 	<style name="night_header" parent="@android:style/TextAppearance.Medium">
 		<item name="android:textStyle">bold</item>
 		<item name="android:textColor">@color/night_game_header</item>
+		<item name="android:lineSpacingExtra">2dp</item>
 	</style>
 
 	<style name="night_subheader" parent="@android:style/TextAppearance.Small">
 		<item name="android:textStyle">bold</item>
 		<item name="android:textColor">@color/night_game_subheader</item>
+		<item name="android:lineSpacingExtra">1dp</item>
 	</style>
 
 	<style name="night_format" parent="@style/TextGridWindow.TextAppearance">
 		<item name="android:textColor">@color/night_game_format</item>
+		<item name="android:lineSpacingExtra">1dp</item>
 	</style>
 
 	<style name="shortcutpreftheme" parent="Theme.Material3.DayNight.NoActionBar" >

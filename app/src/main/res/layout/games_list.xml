@@ -39,8 +39,8 @@
 		android:layout_height="0dp"
 		android:layout_weight="1"
 		android:divider="@android:color/transparent"
-		android:dividerHeight="8dp"
-		android:padding="16dp"
+		android:dividerHeight="0dp"
+		android:padding="12dp"
 		android:clipToPadding="false"
 		android:scrollbarStyle="outsideOverlay"
 	/>

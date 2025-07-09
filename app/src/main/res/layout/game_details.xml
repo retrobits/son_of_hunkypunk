@@ -70,7 +70,8 @@
 					android:layout_marginVertical="8dp"
 					android:textAppearance="@android:style/TextAppearance.Medium"
 					android:textColor="?attr/colorOnSurface"
-					android:lineSpacingExtra="2dp"
+					android:lineSpacingExtra="4dp"
+					android:justificationMode="inter_word"
 				/>
 			</LinearLayout>
 			<com.google.android.material.divider.MaterialDivider

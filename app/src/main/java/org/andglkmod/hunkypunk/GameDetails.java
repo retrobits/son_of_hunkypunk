@@ -322,7 +322,11 @@ public class GameDetails extends Activity implements OnClickListener,AppCompatCa
         mAuthor.setVisibility(string == null ? View.GONE : View.VISIBLE);
 
         string = mQuery.getString(DESCRIPTION);
-        mDescription.setText(string);
+        if (string != null) {
+            // Convert HTML br tags to proper line breaks for better formatting
+            string = string.replace("<br/>", "\n").replace("<br>", "\n").replace("<BR/>", "\n").replace("<BR>", "\n");
+            mDescription.setText(string);
+        }
         mDescriptionLayout.setVisibility(string == null ? View.GONE : View.VISIBLE);
 
         StringBuilder sb = new StringBuilder();
