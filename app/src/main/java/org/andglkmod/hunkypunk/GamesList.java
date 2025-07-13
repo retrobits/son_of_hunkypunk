@@ -123,25 +123,32 @@ public class GamesList extends ListActivity implements OnClickListener, AppCompa
 
 
     private void requestStoragePermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11+ - Use Manage External Storage for legacy compatibility
-            if (!Environment.isExternalStorageManager()) {
-                try {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                    intent.setData(Uri.parse("package:" + getPackageName()));
-                    startActivity(intent);
-                } catch (Exception e) {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                    startActivity(intent);
-                }
-            }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android 6.0-10 - Use traditional storage permissions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            // Android 6.0-10 - Use traditional storage permissions for legacy compatibility
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             }
         }
+        // For Android 11+ (API 30+), we use Storage Access Framework and app-specific storage
         // For Android < 6.0, permissions are granted at install time
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, refresh the view
+                verifyIfDirectory(this);
+            } else {
+                // Permission denied, inform user that app uses app-specific storage
+                Toast.makeText(this, 
+                    "Storage permission denied. The app will use app-specific storage. " +
+                    "Use 'Add Games' button to import game files.", 
+                    Toast.LENGTH_LONG).show();
+                verifyIfDirectory(this);
+            }
+        }
     }
 
     private void verifyIfDirectory(Context c)

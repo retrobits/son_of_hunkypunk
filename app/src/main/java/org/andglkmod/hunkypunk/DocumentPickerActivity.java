@@ -70,7 +70,17 @@ public class DocumentPickerActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
+            
+            // Set specific MIME types for better filtering
+            String[] mimeTypes = {
+                "application/octet-stream",     // General binary files
+                "application/x-zmachine",       // Z-machine files
+                "application/x-tads",           // TADS files
+                "application/x-blorb",          // Blorb files
+                "*/*"                           // Fallback for all files
+            };
             intent.setType("*/*");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
             
             // Allow multiple files selection on newer Android versions
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
@@ -197,10 +207,27 @@ public class DocumentPickerActivity extends AppCompatActivity {
         File targetDir = Paths.ifDirectory(this);
         File targetFile = new File(targetDir, fileName);
         
-        // Check if file already exists
+        // Check if file already exists - if so, try with a number suffix
         if (targetFile.exists()) {
-            Log.w(TAG, "File already exists: " + fileName);
-            return false;
+            String nameWithoutExt = fileName;
+            String extension = "";
+            int dotIndex = fileName.lastIndexOf('.');
+            if (dotIndex > 0) {
+                nameWithoutExt = fileName.substring(0, dotIndex);
+                extension = fileName.substring(dotIndex);
+            }
+            
+            int counter = 1;
+            do {
+                String newFileName = nameWithoutExt + "_" + counter + extension;
+                targetFile = new File(targetDir, newFileName);
+                counter++;
+            } while (targetFile.exists() && counter < 100);
+            
+            if (targetFile.exists()) {
+                Log.w(TAG, "Could not find unique filename for: " + fileName);
+                return false;
+            }
         }
         
         try (InputStream inputStream = getContentResolver().openInputStream(uri);
@@ -213,11 +240,13 @@ public class DocumentPickerActivity extends AppCompatActivity {
             
             byte[] buffer = new byte[8192];
             int bytesRead;
+            long totalBytes = 0;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
+                totalBytes += bytesRead;
             }
             
-            Log.i(TAG, "Successfully copied file: " + fileName);
+            Log.i(TAG, "Successfully copied file: " + targetFile.getName() + " (" + totalBytes + " bytes)");
             return true;
             
         } catch (IOException e) {

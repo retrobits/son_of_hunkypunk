@@ -134,14 +134,20 @@ public class StorageManager {
 		if (!dir.exists() || !dir.isDirectory())
 			return;
 		
-		final File[] files = dir.listFiles();
+		final File[] files;
+		try {
+			files = dir.listFiles();
+		} catch (SecurityException e) {
+			Log.w(TAG, "No permission to read directory: " + dir.getAbsolutePath(), e);
+			return;
+		}
+		
 		if (files == null)
 			return;
 
-		for (File f : files)
-			if (!f.isDirectory())
-				try {
-					
+		for (File f : files) {
+			try {
+				if (!f.isDirectory()) {
 					String g = f.getName().toLowerCase();
 					if (
 						/* zcode: frotz, nitfol */
@@ -164,13 +170,23 @@ public class StorageManager {
 						|| g.matches(".*\\.glb$")
 						|| g.matches(".*\\.ulx$")
 						*/
-						)
+						) {
 						checkFile(f);
-				} catch (IOException e) {
-					Log.w(TAG, "IO exception while checking " + f, e);
+					}
+				} else {
+					// Only scan subdirectories if we have permission
+					try {
+						scan(f);
+					} catch (SecurityException e) {
+						Log.w(TAG, "No permission to scan subdirectory: " + f.getAbsolutePath(), e);
+					}
 				}
-			else
-				scan(f);
+			} catch (IOException e) {
+				Log.w(TAG, "IO exception while checking " + f, e);
+			} catch (SecurityException e) {
+				Log.w(TAG, "Security exception while checking " + f, e);
+			}
+		}
 	}
 
 	public void updateGame(String ifid, String title) {

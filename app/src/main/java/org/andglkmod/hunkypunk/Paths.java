@@ -107,19 +107,39 @@ public abstract class Paths {
     }
 
     public static boolean isIfDirectoryValid(Context c) {
+        // For Android 10+ (API 29+), app-specific storage is always available
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return ifDirectory(c).exists() || ifDirectory(c).mkdirs();
+        }
+        
+        // For older Android versions, check external storage state
         String state = Environment.getExternalStorageState();
-        return state.equals(Environment.MEDIA_MOUNTED)
-            && ifDirectory(c).exists();
+        return (state.equals(Environment.MEDIA_MOUNTED) || state.equals(Environment.MEDIA_MOUNTED_READ_ONLY))
+            && (ifDirectory(c).exists() || ifDirectory(c).mkdirs());
     }
 
     public static File ifDirectory(Context c) {
         File f;
 
-        //if (ifDirectory != null)
-        //    f = ifDirectory;
-        //else
+        // Always use app-specific storage for Android 10+ (API 29+)
+        // This provides privacy-friendly storage without requiring special permissions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             f = defaultIfDirectory(c);
-        if (!f.exists()) f.mkdir();
+        } else {
+            // For older Android versions, try app-specific storage first
+            f = defaultIfDirectory(c);
+            
+            // If external storage is not available, ensure we still have a working directory
+            String state = Environment.getExternalStorageState();
+            if (!state.equals(Environment.MEDIA_MOUNTED)) {
+                // Fall back to internal app storage if external storage is not available
+                File internalDir = new File(c.getFilesDir(), "Interactive Fiction");
+                if (!internalDir.exists()) internalDir.mkdirs();
+                return internalDir;
+            }
+        }
+        
+        if (!f.exists()) f.mkdirs();
         return f;
     }
 
@@ -157,9 +177,9 @@ public abstract class Paths {
      */
     public static String getGameDirectoryDescription(Context c) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return "Use the 'Add Games' button to select game files from any location.";
+            return "Use the 'Add Games' button to select game files from any location on your device.";
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return "Documents/Interactive Fiction or use 'Add Games' button";
+            return "Games are stored in app-specific storage. Use 'Add Games' button to import files.";
         } else {
             return getPublicGamesDirectory().getAbsolutePath();
         }
