@@ -19,19 +19,33 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
 	android:orientation="vertical"
-	android:layout_marginBottom="10sp"
-	android:layout_marginTop="0sp"
+	android:layout_marginBottom="16dp"
+	android:layout_marginTop="8dp"
 >
-	<ImageView
-		android:id="@+id/cover"
-		android:layout_width="fill_parent"
+	<com.google.android.material.card.MaterialCardView
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:scaleType="fitCenter"
-		android:adjustViewBounds="true"
-		android:maxHeight="376dip"
-	/>
+		android:layout_marginStart="8dp"
+		android:layout_marginEnd="8dp"
+		app:cardCornerRadius="16dp"
+		app:cardElevation="4dp"
+		app:cardBackgroundColor="?attr/colorSurface"
+		style="@style/Widget.Material3.CardView.Elevated">
+		
+		<ImageView
+			android:id="@+id/cover"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:scaleType="fitCenter"
+			android:adjustViewBounds="true"
+			android:maxHeight="376dp"
+		/>
+	</com.google.android.material.card.MaterialCardView>
+	
 	<include layout="@layout/game_details_header_title" />
 </LinearLayout>

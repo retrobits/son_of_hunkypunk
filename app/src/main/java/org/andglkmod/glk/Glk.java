@@ -25,7 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.andglkmod.hunkypunk.R;
 
-import android.app.Activity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
@@ -182,7 +182,7 @@ public class Glk extends Thread {
 		};
 		mContext = context;
 
-		Activity activity = (Activity) context;
+		AppCompatActivity activity = (AppCompatActivity) context;
 		if (activity != null)
 			activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 	}
