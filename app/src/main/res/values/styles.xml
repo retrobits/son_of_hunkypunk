@@ -209,6 +209,13 @@
 	<style name="compatbartheme" parent="Theme.Material3.DayNight.NoActionBar">
 		<item name="alertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
 		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
+		<item name="android:windowDrawsSystemBarBackgrounds">true</item>
+		<item name="android:statusBarColor">@android:color/transparent</item>
+		<item name="android:navigationBarColor">@android:color/transparent</item>
+		<item name="android:windowLightStatusBar">true</item>
+		<item name="android:windowLightNavigationBar">true</item>
+		<item name="android:enforceNavigationBarContrast">false</item>
+		<item name="android:enforceStatusBarContrast">false</item>
 	</style>
 	
 	<!-- Material 3 Game Interface Styles -->
