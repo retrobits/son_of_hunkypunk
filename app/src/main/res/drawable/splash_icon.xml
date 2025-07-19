@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="288dp"
+    android:height="288dp"
+    android:viewportWidth="288"
+    android:viewportHeight="288">
+    
+    <!-- Background circle -->
+    <path android:fillColor="@color/md_theme_light_primaryContainer"
+          android:pathData="M144,144m-120,0a120,120 0,1 1,240 0a120,120 0,1 1,-240 0" />
+    
+    <!-- Book Icon - Centered and Larger -->
+    <group android:scaleX="2.5"
+           android:scaleY="2.5"
+           android:pivotX="144"
+           android:pivotY="144">
+        <!-- Book Cover -->
+        <path android:fillColor="@color/md_theme_light_primary"
+              android:pathData="M115,120 L173,120 Q175,120 175,122 L175,166 Q175,168 173,168 L115,168 Q113,168 113,166 L113,122 Q113,120 115,120 Z" />
+        <!-- Book Spine -->
+        <path android:fillColor="@color/md_theme_light_onPrimaryContainer"
+              android:pathData="M113,120 L120,120 L120,168 L113,168 Q113,168 113,166 L113,122 Q113,120 113,120 Z" />
+        <!-- Book Pages -->
+        <path android:fillColor="#FFFFFF"
+              android:pathData="M120,125 L170,125 L170,163 L120,163 Z" />
+        <!-- Text Lines -->
+        <path android:fillColor="@color/md_theme_light_primary"
+              android:pathData="M125,135 L165,135 L165,137 L125,137 Z M125,142 L160,142 L160,144 L125,144 Z M125,149 L165,149 L165,151 L125,151 Z M125,156 L158,156 L158,158 L125,158 Z" />
+    </group>
+</vector>

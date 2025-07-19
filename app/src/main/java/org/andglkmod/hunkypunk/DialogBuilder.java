@@ -51,7 +51,7 @@ public class DialogBuilder {
         // Use Material Design 3 AlertDialog
         AlertDialog d = new MaterialAlertDialogBuilder(context)
                 .setPositiveButton(context.getString(android.R.string.ok), null)
-                .setIcon(R.drawable.icon)
+                .setIcon(R.mipmap.ic_launcher)
                 .setMessage(s)
                 .setCancelable(true)
                 .setTitle(aboutTitle)
@@ -100,7 +100,7 @@ public class DialogBuilder {
         // Use Material Design 3 AlertDialog
         AlertDialog d = new MaterialAlertDialogBuilder(context)
                 .setPositiveButton(context.getString(android.R.string.ok), null)
-                .setIcon(R.drawable.icon)
+                .setIcon(R.mipmap.ic_launcher)
                 .setMessage(s)
                 .setCancelable(true)
                 .setTitle(aboutTitle)

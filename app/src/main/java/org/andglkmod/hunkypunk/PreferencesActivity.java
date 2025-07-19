@@ -65,7 +65,7 @@ public class PreferencesActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -148,20 +148,9 @@ public class PreferencesActivity extends AppCompatActivity {
 
             getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 
-            SharedPreferences sharedPrefs = requireActivity().getSharedPreferences("ifPath", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPrefs.edit();
-            editor.putString("ifPath", Paths.ifDirectory(requireContext()).getAbsolutePath());
-            editor.commit();
 
-            Preference apref = findPreference("setIFDir");
-            if (apref != null) {
-                apref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference preference) {
-                        return false;
-                    }
-                });
-            }
+
+
         }
 
         @Override
@@ -251,16 +240,8 @@ public class PreferencesActivity extends AppCompatActivity {
                 if (ff.contains(save)) prefFn.setValue(save);
 
                 setSummaryPref(prefFn);
-            } else if ("setIFDir".equals(key)) {
-                Preference preference = findPreference(key);
-                if (preference != null) {
-                    preference.setSummary(Paths.ifDirectory(requireContext()).getAbsolutePath());
-                }
-            } else if ("defaultif".equals(key)) {
-                Preference preference = findPreference(key);
-                if (preference != null) {
-                    preference.setSummary(Paths.cardDirectory().getPath() + "/Interactive Fiction");
-                }
+
+
             } else {
                 setSummaryPref(pref);
             }

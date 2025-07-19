@@ -21,6 +21,8 @@ package org.andglkmod.hunkypunk;
 
 import java.io.File;
 import java.io.RandomAccessFile;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.andglkmod.hunkypunk.HunkyPunk.Games;
 import org.andglkmod.hunkypunk.R.id;
@@ -31,8 +33,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.widget.NestedScrollView;
+import androidx.activity.OnBackPressedCallback;
+import androidx.core.content.ContextCompat;
+import androidx.transition.Slide;
+import androidx.transition.TransitionManager;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -50,6 +57,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.text.Editable;
 import android.view.Display;
@@ -61,6 +69,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.WindowMetrics;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -70,8 +79,11 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
+
+import static android.app.Activity.OVERRIDE_TRANSITION_OPEN;
 
 public class GameDetails extends AppCompatActivity implements OnClickListener {
     private static final String TAG = "hunkypunk.GameDetails";
@@ -100,7 +112,8 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     private static final int SCROLL_PROTECTOR = 250;
     private GestureDetector gestureDetector;
 
-    private ContentObserver mContentObserver = new ContentObserver(new Handler()) {
+    // Modern Handler with explicit Looper
+    private ContentObserver mContentObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
         @Override
         public void onChange(boolean selfChange) {
             super.onChange(selfChange);
@@ -119,7 +132,10 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     private TextView mDetails;
     private NestedScrollView mScroll;
     private AlertDialog mProgressDialog;
-    private Handler mLookupHandler = new Handler() {
+    
+    // Modern Handler with explicit Looper and ExecutorService for background tasks
+    private final ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
+    private Handler mLookupHandler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(Message msg) {
             // Progress is now handled by Material progress indicators
             switch (msg.what) {
@@ -134,23 +150,25 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
         }
     };
     protected String mGameIfid;
-    private Handler mInstallHandler = new Handler() {
+    private Handler mInstallHandler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case StorageManager.INSTALLED:
-                    mProgressDialog.dismiss();
+                    if (mProgressDialog != null && mProgressDialog.isShowing()) {
+                        mProgressDialog.dismiss();
+                    }
                     mGameIfid = (String) msg.obj;
                     show(HunkyPunk.Games.uriOfIfid(mGameIfid), null);
                     break;
                 case StorageManager.INSTALL_FAILED:
-                    mProgressDialog.dismiss();
+                    if (mProgressDialog != null && mProgressDialog.isShowing()) {
+                        mProgressDialog.dismiss();
+                    }
                     Toast.makeText(GameDetails.this, R.string.install_failure, Toast.LENGTH_SHORT).show();
                     finish();
                     break;
             }
         }
-
-        ;
     };
     private File mGameFile;
     private View mRestartButton;
@@ -159,17 +177,26 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-
         Uri game = getIntent().getData();
+        if (game == null) {
+            Log.e(TAG, "No game URI provided");
+            finish();
+            return;
+        }
+        
         String scheme = game.getScheme();
+        if (scheme == null) {
+            Log.e(TAG, "No scheme in game URI");
+            finish();
+            return;
+        }
 
         if (scheme.equals(ContentResolver.SCHEME_CONTENT)
                 && game.toString().indexOf("HunkyPunk/games") > 0)
             show(game, savedInstanceState);
         else
             install(game, scheme);
-        gestureDetector = new GestureDetector(new SwipeDetector());
+        gestureDetector = new GestureDetector(this, new SwipeDetector());
         //To relax the Interpreter activity; First time load of SharedPreferences
         getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false);
     }
@@ -186,7 +213,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle back navigation
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+            finish();
             return true;
         }
         
@@ -226,7 +253,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
                                     }
                                 })
                         .setNegativeButton(this.getString(android.R.string.cancel), null)
-                        .setIcon(R.drawable.icon)
+                        .setIcon(R.mipmap.ic_launcher)
                         .setMessage(R.string.delete_confirm)
                         .setCancelable(true)
                         .setTitle(R.string.delete_title).create();
@@ -247,7 +274,9 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     private void install(Uri game, String scheme) {
         View progressView = LayoutInflater.from(this).inflate(R.layout.material_progress_dialog, null);
         TextView messageView = progressView.findViewById(R.id.progress_message);
-        messageView.setText(getString(R.string.examining_file, game.getLastPathSegment()));
+        if (messageView != null) {
+            messageView.setText(getString(R.string.examining_file, game.getLastPathSegment()));
+        }
         
         mProgressDialog = new MaterialAlertDialogBuilder(this)
                 .setView(progressView)
@@ -261,12 +290,17 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     }
 
     private void show(Uri game, Bundle savedInstanceState) {
-        // Simplified approach - just use the inherited AppCompatActivity functionality
         try {
             setContentView(R.layout.game_details);
             
             // Set up toolbar 
             Toolbar toolbar = (Toolbar)findViewById(R.id.appbar);
+            if (toolbar == null) {
+                Log.e(TAG, "Toolbar not found in layout");
+                Toast.makeText(this, "Error loading game details", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
             setSupportActionBar(toolbar);
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -274,7 +308,7 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
             }
             
             // Set up navigation click listener
-            toolbar.setNavigationOnClickListener(v -> onBackPressed());
+            toolbar.setNavigationOnClickListener(v -> finish());
 
             mTitle = (TextView) findViewById(R.id.title);
             mHeadline = (TextView) findViewById(R.id.headline);
@@ -286,8 +320,24 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
             mScroll = (NestedScrollView) findViewById(R.id.info_scroll);
             mRestartButton = findViewById(R.id.restart);
 
-            findViewById(R.id.fab_play).setOnClickListener(this);
-            findViewById(R.id.restart).setOnClickListener(this);
+            // Check if any critical views are null
+            if (mTitle == null || mHeadline == null || mAuthor == null || 
+                mDescription == null || mCover == null || mDescriptionLayout == null ||
+                mDetails == null || mScroll == null || mRestartButton == null) {
+                Log.e(TAG, "One or more views not found in layout");
+                Toast.makeText(this, "Error loading game details", Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+
+            View fabPlay = findViewById(R.id.fab_play);
+            View restartBtn = findViewById(R.id.restart);
+            if (fabPlay != null) {
+                fabPlay.setOnClickListener(this);
+            }
+            if (restartBtn != null) {
+                restartBtn.setOnClickListener(this);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Error setting up GameDetails UI", e);
             Toast.makeText(this, "Error loading game details", Toast.LENGTH_SHORT).show();
@@ -436,18 +486,37 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
                 if (ifid != null) {
                     File i = HunkyPunk.getCover(this, ifid);
                     if (i != null && i.exists()) {
-                        // Uri.fromFile doesn't work for some reason
-                        mCover.setImageURI(Uri.parse(i.getAbsolutePath()));
+                        try {
+                            // Uri.fromFile doesn't work for some reason, using alternative approach
+                            Uri imageUri = Uri.parse(i.getAbsolutePath());
+                            if (imageUri != null) {
+                                mCover.setImageURI(imageUri);
 
-                        Display display = getWindowManager().getDefaultDisplay();
-                        int width = (int) (display.getWidth() / 1.5);  // deprecated
-                        int height = (int) (display.getHeight() / 1.5);  // deprecated
-                        int sz = Math.min(width, height);
+                                // Use modern approach to get display dimensions
+                                int width, height;
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                    WindowMetrics windowMetrics = getWindowManager().getCurrentWindowMetrics();
+                                    android.graphics.Rect bounds = windowMetrics.getBounds();
+                                    width = (int) (bounds.width() / 1.5);
+                                    height = (int) (bounds.height() / 1.5);
+                                } else {
+                                    DisplayMetrics displayMetrics = new DisplayMetrics();
+                                    getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                                    width = (int) (displayMetrics.widthPixels / 1.5);
+                                    height = (int) (displayMetrics.heightPixels / 1.5);
+                                }
+                                int sz = Math.min(width, height);
 
-                        // Use FrameLayout.LayoutParams since MaterialCardView extends FrameLayout
-                        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(sz, sz);
-                        lp.gravity = Gravity.CENTER;
-                        mCover.setLayoutParams(lp);
+                                // Use FrameLayout.LayoutParams since MaterialCardView extends FrameLayout
+                                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(sz, sz);
+                                lp.gravity = Gravity.CENTER;
+                                mCover.setLayoutParams(lp);
+                            } else {
+                                Log.w(TAG, "Failed to create URI for cover image: " + i.getAbsolutePath());
+                            }
+                        } catch (Exception e) {
+                            Log.w(TAG, "Error setting cover image", e);
+                        }
                     }
                 }
 
@@ -583,9 +652,16 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     private class SwipeDetector extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            if (e1 == null || e2 == null) {
+                return false;
+            }
 
             int position = getIntent().getIntExtra("position", -1);
             long[] ifIDs = getIntent().getLongArrayExtra("ifIDs");
+
+            if (ifIDs == null || position == -1) {
+                return false;
+            }
 
             if (e1.getX() - e2.getX() > MIN_DISTANCE) { //swipe right
                 if (++position == ifIDs.length) //increment and check if reached end
@@ -594,7 +670,12 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
                 i.putExtra("position", position);
                 i.putExtra("ifIDs", ifIDs);
                 startActivity(i);
-                overridePendingTransition(R.anim.right_left, R.anim.center);
+                // Use modern activity transitions
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.right_left, R.anim.center);
+                } else {
+                    overridePendingTransition(R.anim.right_left, R.anim.center);
+                }
                 finish();
                 return true;
             }
@@ -605,7 +686,12 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
                 i.putExtra("position", position);
                 i.putExtra("ifIDs", ifIDs);
                 startActivity(i);
-                overridePendingTransition(R.anim.left_right, R.anim.center);
+                // Use modern activity transitions
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.left_right, R.anim.center);
+                } else {
+                    overridePendingTransition(R.anim.left_right, R.anim.center);
+                }
                 finish();
                 return true;
             }
@@ -628,13 +714,8 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     }
 
     private void rotateDialog(final Intent intent) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            MaterialAlertDialogBuilder rotateDialog = new MaterialAlertDialogBuilder(this);
-            setUpAlertTheatre(rotateDialog, intent);
-        } else {
-            MaterialAlertDialogBuilder rotateDialog = new MaterialAlertDialogBuilder(this);
-            setUpAlertTheatre(rotateDialog, intent);
-        }
+        MaterialAlertDialogBuilder rotateDialog = new MaterialAlertDialogBuilder(this);
+        setUpAlertTheatre(rotateDialog, intent);
     }
 
     private void setUpAlertTheatre(MaterialAlertDialogBuilder rotateDialog, final Intent intent) {
@@ -661,6 +742,11 @@ public class GameDetails extends AppCompatActivity implements OnClickListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        
+        // Shutdown background executor
+        if (backgroundExecutor != null && !backgroundExecutor.isShutdown()) {
+            backgroundExecutor.shutdown();
+        }
         
         synchronized (cursorLock) {
             // Properly close the cursor to prevent memory leaks

@@ -34,6 +34,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -110,7 +111,7 @@ public class Glk extends Thread {
 
 	private Stream mCurrentStream;
 	private FrameLayout mFrame;
-	private Handler mUiHandler = new Handler();
+	private Handler mUiHandler = new Handler(Looper.getMainLooper());
 	private BlockingQueue<Event> _eventQueue = new LinkedBlockingQueue<Event>();
 	protected boolean _done;
 	private Context mContext;

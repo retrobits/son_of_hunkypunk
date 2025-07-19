@@ -37,6 +37,9 @@ import org.andglkmod.ifdb.IFDb;
 import android.Manifest;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -75,7 +78,6 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import java.util.regex.Pattern;
 
 public class GamesList extends AppCompatActivity implements OnClickListener {
     private ListView mListView;
@@ -109,7 +111,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
     protected static final String TAG = "HunkyPunk";
 
     private StorageManager mScanner;
-    private Handler mHandler = new Handler() {
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -134,14 +136,15 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
 
 
     private void requestStoragePermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            // Android 6.0-10 - Use traditional storage permissions for legacy compatibility
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-            }
-        }
-        // For Android 11+ (API 30+), we use Storage Access Framework and app-specific storage
-        // For Android < 6.0, permissions are granted at install time
+        // Modern Android approach: Use app-specific storage (no permissions required)
+        // and Storage Access Framework for user file selection
+        
+        // For Android 10+ (API 29+), we rely entirely on:
+        // 1. App-specific storage (no permissions required)
+        // 2. Storage Access Framework for file selection
+        // 3. Media store APIs where appropriate
+        
+        // No legacy storage permissions needed in modern Android
     }
 
     @Override
@@ -167,6 +170,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         Log.d(TAG, "Verifying IF directory: " + Paths.ifDirectory(c));
         Log.d(TAG, "Directory valid: " + Paths.isIfDirectoryValid(c));
         
+        // App-specific storage is always available in modern Android
         if (Paths.isIfDirectoryValid(c)){
             findViewById(R.id.go_to_prefs).setVisibility(View.INVISIBLE);
             findViewById(R.id.go_to_prefs_msg).setVisibility(View.INVISIBLE);
@@ -174,6 +178,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
             findViewById(R.id.go_to_ifdb_msg).setVisibility(View.VISIBLE);
             findViewById(R.id.download_preselected).setVisibility(View.VISIBLE);
         } else {
+            // This should rarely happen with app-specific storage
             findViewById(R.id.go_to_prefs).setVisibility(View.VISIBLE);
             findViewById(R.id.go_to_prefs_msg).setVisibility(View.VISIBLE);
             findViewById(R.id.go_to_ifdb).setVisibility(View.INVISIBLE);
@@ -181,13 +186,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
             findViewById(R.id.download_preselected).setVisibility(View.INVISIBLE);
         }
 
-        /** gets the If-Path from SharedPrefences, which could be changed at the last session */
-        //String path = getSharedPreferences("ifPath", Context.MODE_PRIVATE).getString("ifPath", "");
-        //if (!path.equals(""))
-        //    Paths.setIfDirectory(new File(path));
-
-        /** deletes all Ifs, which are not in the current Path, in other words, it delets the
-         * Ifs from the older Directory*/
+        // Clean up database entries for games that no longer exist
         DatabaseHelper mOpenHelper = new DatabaseHelper(this);
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         Log.d(TAG, "Adapter count in verifyIfDirectory: " + (adapter != null ? adapter.getCount() : "null"));
@@ -197,8 +196,10 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
                 Cursor cur = (Cursor) adapter.getItem(i);
                 if (cur != null && cur.getString(4) != null) {
                     Log.d(TAG, "Found game path: " + cur.getString(4));
-                    if (!Pattern.matches(".*" + Paths.ifDirectory(this) + ".*", cur.getString(4))) {
-                        Log.d(TAG, "Deleting game with mismatched path: " + cur.getString(4));
+                    // Check if the file still exists
+                    File gameFile = new File(cur.getString(4));
+                    if (!gameFile.exists()) {
+                        Log.d(TAG, "Deleting game with missing file: " + cur.getString(4));
                         db.execSQL("delete from games where ifid = '" + cur.getString(1) + "'");
                     }
                 }
@@ -206,10 +207,8 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         }
         db.close();
 
-        /** helps to refresh the View, when come back from preferences */
+        // Refresh the games list
         startScan();
-        
-        // Refresh the games list after any scanning
         refreshGamesList();
     }
 
@@ -276,6 +275,9 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
                     adapter.notifyDataSetChanged();
                     Log.d(TAG, "Adapter updated with new cursor. Count: " + adapter.getCount());
                     
+                    // Update button visibility after data change
+                    updateAddButtonVisibility();
+                    
                     // Force ListView to update its empty view state
                     if (mListView.getEmptyView() != null) {
                         Log.d(TAG, "ListView empty view state: isEmpty=" + adapter.isEmpty() + 
@@ -291,6 +293,17 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Enable edge-to-edge display with modern API
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+            if (controller != null) {
+                controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
+        }
 
         // Handle storage permissions based on Android version
         requestStoragePermissions();
@@ -312,7 +325,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         Log.d(TAG, "Database query returned cursor with count: " + (gamesCursor != null ? gamesCursor.getCount() : "null"));
         
         adapter = new SimpleCursorAdapter(this, R.layout.game_list_item, gamesCursor,
-                new String[]{Games.TITLE, Games.AUTHOR}, new int[]{android.R.id.text1, android.R.id.text2});
+                new String[]{Games.TITLE, Games.AUTHOR}, new int[]{android.R.id.text1, android.R.id.text2}, 0);
         
         Log.d(TAG, "Adapter created with count: " + (adapter != null ? adapter.getCount() : "null"));
         
@@ -328,6 +341,9 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         View emptyView = findViewById(android.R.id.empty);
         mListView.setEmptyView(emptyView);
         
+        // Update button visibility based on game count
+        updateAddButtonVisibility();
+        
         Log.d(TAG, "ListView setup complete. Adapter count: " + adapter.getCount() + 
               ", ListView visibility: " + mListView.getVisibility() + 
               ", Empty view visibility: " + emptyView.getVisibility());
@@ -339,6 +355,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         findViewById(R.id.go_to_prefs).setOnClickListener(this);
         findViewById(R.id.download_preselected).setOnClickListener(this);
         findViewById(R.id.add_games_button).setOnClickListener(this);
+        findViewById(R.id.add_games_button_empty).setOnClickListener(this);
 
         SharedPreferences sharedPreferences = getSharedPreferences("shortcutPrefs", MODE_PRIVATE);
         SharedPreferences sharedShortcuts = getSharedPreferences("shortcuts", MODE_PRIVATE);
@@ -536,7 +553,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
 
     private void startLookup() {
         IFDb ifdb = IFDb.getInstance(getContentResolver());
-        ifdb.startLookup(this, new Handler() {
+        ifdb.startLookup(this, new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 Toast.makeText(GamesList.this, R.string.ifdb_connection_error, Toast.LENGTH_LONG).show();
@@ -553,7 +570,7 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
             downloadPreselected();
         } else if (id == R.id.go_to_prefs) {
             startActivity(new Intent(this, PreferencesActivity.class));
-        } else if (id == R.id.add_games_button) {
+        } else if (id == R.id.add_games_button || id == R.id.add_games_button_empty) {
             openDocumentPicker();
         }
     }
@@ -647,5 +664,14 @@ public class GamesList extends AppCompatActivity implements OnClickListener {
         };
 
         downloadThread.start();
+    }
+
+    private void updateAddButtonVisibility() {
+        View addButton = findViewById(R.id.add_games_button);
+        if (addButton != null) {
+            // Show the button when there are games in the list
+            boolean hasGames = adapter != null && adapter.getCount() > 0;
+            addButton.setVisibility(hasGames ? View.VISIBLE : View.GONE);
+        }
     }
 }

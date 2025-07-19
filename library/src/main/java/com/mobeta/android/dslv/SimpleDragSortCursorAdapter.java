@@ -210,10 +210,30 @@ public class SimpleDragSortCursorAdapter extends ResourceDragSortCursorAdapter {
      * @param value the value retrieved from the cursor
      */
     public static void setViewImage(ImageView v, String value) {
+        if (value == null || value.trim().isEmpty()) {
+            v.setImageDrawable(null);
+            return;
+        }
+        
         try {
-            v.setImageResource(Integer.parseInt(value));
+            int resourceId = Integer.parseInt(value);
+            if (resourceId != 0) {
+                v.setImageResource(resourceId);
+            } else {
+                // Don't set invalid resource ID 0x00000000
+                v.setImageDrawable(null);
+            }
         } catch (NumberFormatException nfe) {
-            v.setImageURI(Uri.parse(value));
+            try {
+                Uri uri = Uri.parse(value);
+                if (uri != null) {
+                    v.setImageURI(uri);
+                } else {
+                    v.setImageDrawable(null);
+                }
+            } catch (Exception e) {
+                v.setImageDrawable(null);
+            }
         }
     }
 

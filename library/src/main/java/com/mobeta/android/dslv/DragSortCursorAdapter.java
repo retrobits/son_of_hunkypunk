@@ -41,7 +41,7 @@ public abstract class DragSortCursorAdapter extends CursorAdapter implements Dra
     }
 
     public DragSortCursorAdapter(Context context, Cursor c, boolean autoRequery) {
-        super(context, c, autoRequery);
+        super(context, c, autoRequery ? FLAG_AUTO_REQUERY : 0);
     }
 
     public DragSortCursorAdapter(Context context, Cursor c, int flags) {
