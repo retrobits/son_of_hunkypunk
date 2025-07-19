@@ -1,3 +1,31 @@
+# Keep Parcelable CREATOR fields
 -keepclassmembers class * implements android.os.Parcelable {
     static ** CREATOR;
+}
+
+# Keep native methods
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Keep JNI classes
+-keep class org.andglkmod.** { *; }
+
+# Remove debug logging in release builds
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int i(...);
+    public static int w(...);
+    public static int d(...);
+    public static int e(...);
+}
+
+# Keep database content provider
+-keep class * extends android.content.ContentProvider
+
+# Keep enum values
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }

@@ -72,8 +72,8 @@
     <string name="edit_title">Edit Game Title</string>
     <string name="delete_confirm">Really delete this game?</string>
 
-    <string name="invalid_if_dir">The current storage location is not accessible.
-        Use the "Add Games" button on the main screen to import game files from any location on your device.
+    <string name="invalid_if_dir">I\'m unable to access the current storage location.
+        Please use the "Add Games" button to select game files from your device.
    	</string>
     <string name="empty_list">You seem to have no stories installed.\n
         \n
@@ -83,7 +83,7 @@
         Z-Code files (ending in .z1-.z8, .zblorb, or .zlb) and
 		Tads files (ending in .t2, t3, or .gam) are all currently supported.\n
         \n
-    	To install one, use the "Add Games" button below to browse and select files, or download a story file and tap on it in a file manager.\n
+    	To install one, use the "Add Games" button below, or download a story file and tap on it in a file manager.\n
         \n
    	</string>
    	<string name="go_to_ifdb">Go to IFDb</string>

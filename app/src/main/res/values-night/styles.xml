@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+	
+	This file is part of Hunky Punk.
+	
+	Hunky Punk is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	Hunky Punk is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<resources>
+	<!-- Dark mode specific theme overrides -->
+	<style name="compatbartheme" parent="Theme.Material3.DayNight.NoActionBar">
+		<item name="alertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
+		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
+		<item name="android:windowDrawsSystemBarBackgrounds">true</item>
+		<item name="android:statusBarColor">@android:color/transparent</item>
+		<item name="android:navigationBarColor">@android:color/transparent</item>
+		<item name="android:windowLightStatusBar">false</item>
+		<item name="android:windowLightNavigationBar">false</item>
+		<item name="android:enforceNavigationBarContrast">false</item>
+		<item name="android:enforceStatusBarContrast">false</item>
+	</style>
+
+	<!-- Dark mode splash screen theme -->
+	<style name="Theme.HunkyPunk.Splash.Legacy" parent="Theme.Material3.DayNight.NoActionBar">
+		<item name="android:windowBackground">@drawable/splash_background_night</item>
+		<item name="android:windowNoTitle">true</item>
+		<item name="android:windowActionBar">false</item>
+		<item name="android:windowFullscreen">false</item>
+		<item name="android:windowContentOverlay">@null</item>
+		<item name="android:windowDrawsSystemBarBackgrounds">true</item>
+		<item name="android:statusBarColor">@android:color/transparent</item>
+		<item name="android:navigationBarColor">@android:color/transparent</item>
+		<item name="android:windowLightStatusBar">false</item>
+		<item name="android:windowLightNavigationBar">false</item>
+	</style>
+</resources>

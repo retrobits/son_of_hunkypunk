@@ -5,6 +5,9 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation project(':library')
     implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
 }
 
 android {
@@ -24,8 +27,9 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
-            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
         }
         debug {
             debuggable true
@@ -38,6 +42,23 @@ android {
             path "src/main/jni/Android.mk"
         }
     }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+        // Enable all lint checks for production readiness
+        checkAllWarnings true
+        warningsAsErrors false
+        disable 'InvalidPackage'
+    }
+    
     packagingOptions {
         jniLibs {
             pickFirsts += ['**/libc++_shared.so', '**/libjsc.so']

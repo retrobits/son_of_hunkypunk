@@ -1,24 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<set xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- Material 3 touch feedback animation -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/fast_out_slow_in">
 
-    <scale xmlns:android="http://schemas.android.com/apk/res/android"
-        android:fromXScale="100%"
-        android:toXScale="95%"
-        android:fromYScale="100%"
-        android:toYScale="95%"
-        android:duration="50"
+    <!-- Scale down with Material motion -->
+    <scale
+        android:fromXScale="1.0"
+        android:toXScale="0.95"
+        android:fromYScale="1.0"
+        android:toYScale="0.95"
+        android:duration="120"
         android:pivotX="50%"
-        android:pivotY="50%" >
-    </scale>
+        android:pivotY="50%" />
 
-    <scale xmlns:android="http://schemas.android.com/apk/res/android"
-        android:startOffset="50"
-        android:fromXScale="100%"
-        android:toXScale="104%"
-        android:fromYScale="100%"
-        android:toYScale="104%"
-        android:duration="50"
+    <!-- Scale back up with bounce -->
+    <scale
+        android:startOffset="120"
+        android:fromXScale="0.95"
+        android:toXScale="1.02"
+        android:fromYScale="0.95"
+        android:toYScale="1.02"
+        android:duration="180"
         android:pivotX="50%"
-        android:pivotY="50%" >
-    </scale>
+        android:pivotY="50%" />
+
+    <!-- Return to normal size -->
+    <scale
+        android:startOffset="300"
+        android:fromXScale="1.02"
+        android:toXScale="1.0"
+        android:fromYScale="1.02"
+        android:toYScale="1.0"
+        android:duration="100"
+        android:pivotX="50%"
+        android:pivotY="50%" />
+
 </set>

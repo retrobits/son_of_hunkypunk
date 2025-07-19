@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Copyright © 2009 Rafał Rzepecki <divided.mind@gmail.com>
+	
+	This file is part of Hunky Punk.
+	
+	Hunky Punk is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	Hunky Punk is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Hunky Punk.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<resources>
+    <!-- Material 3 Expressive Light Theme Colors -->
+    <color name="md_theme_light_primary">#6750A4</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#E9DDFF</color>
+    <color name="md_theme_light_onPrimaryContainer">#21005E</color>
+    <color name="md_theme_light_secondary">#625B71</color>
+    <color name="md_theme_light_onSecondary">#FFFFFF</color>
+    <color name="md_theme_light_secondaryContainer">#E8DEF8</color>
+    <color name="md_theme_light_onSecondaryContainer">#1E192B</color>
+    <color name="md_theme_light_tertiary">#7E5260</color>
+    <color name="md_theme_light_onTertiary">#FFFFFF</color>
+    <color name="md_theme_light_tertiaryContainer">#FFD9E3</color>
+    <color name="md_theme_light_onTertiaryContainer">#31101D</color>
+    <color name="md_theme_light_error">#BA1A1A</color>
+    <color name="md_theme_light_errorContainer">#FFDAD6</color>
+    <color name="md_theme_light_onError">#FFFFFF</color>
+    <color name="md_theme_light_onErrorContainer">#410002</color>
+    <color name="md_theme_light_background">#FFFBFF</color>
+    <color name="md_theme_light_onBackground">#1C1B1F</color>
+    <color name="md_theme_light_surface">#FFFBFF</color>
+    <color name="md_theme_light_onSurface">#1C1B1F</color>
+    <color name="md_theme_light_surfaceVariant">#E7E0EC</color>
+    <color name="md_theme_light_onSurfaceVariant">#49454E</color>
+    <color name="md_theme_light_outline">#7A757F</color>
+    <color name="md_theme_light_inverseOnSurface">#F4EFF4</color>
+    <color name="md_theme_light_inverseSurface">#313033</color>
+    <color name="md_theme_light_inversePrimary">#CFBCFF</color>
+    <color name="md_theme_light_shadow">#000000</color>
+    <color name="md_theme_light_surfaceTint">#6750A4</color>
+    <color name="md_theme_light_outlineVariant">#CAC4CF</color>
+    <color name="md_theme_light_scrim">#000000</color>
+
+    <!-- Material 3 Expressive Dark Theme Colors -->
+    <color name="md_theme_dark_primary">#CFBCFF</color>
+    <color name="md_theme_dark_onPrimary">#381E72</color>
+    <color name="md_theme_dark_primaryContainer">#4F378A</color>
+    <color name="md_theme_dark_onPrimaryContainer">#E9DDFF</color>
+    <color name="md_theme_dark_secondary">#CCC2DC</color>
+    <color name="md_theme_dark_onSecondary">#332D41</color>
+    <color name="md_theme_dark_secondaryContainer">#4A4458</color>
+    <color name="md_theme_dark_onSecondaryContainer">#E8DEF8</color>
+    <color name="md_theme_dark_tertiary">#F2B8C6</color>
+    <color name="md_theme_dark_onTertiary">#4A2532</color>
+    <color name="md_theme_dark_tertiaryContainer">#633B48</color>
+    <color name="md_theme_dark_onTertiaryContainer">#FFD9E3</color>
+    <color name="md_theme_dark_error">#FFB4AB</color>
+    <color name="md_theme_dark_errorContainer">#93000A</color>
+    <color name="md_theme_dark_onError">#690005</color>
+    <color name="md_theme_dark_onErrorContainer">#FFDAD6</color>
+    <color name="md_theme_dark_background">#1C1B1F</color>
+    <color name="md_theme_dark_onBackground">#E6E1E5</color>
+    <color name="md_theme_dark_surface">#1C1B1F</color>
+    <color name="md_theme_dark_onSurface">#E6E1E5</color>
+    <color name="md_theme_dark_surfaceVariant">#49454E</color>
+    <color name="md_theme_dark_onSurfaceVariant">#CAC4CF</color>
+    <color name="md_theme_dark_outline">#948F99</color>
+    <color name="md_theme_dark_inverseOnSurface">#1C1B1F</color>
+    <color name="md_theme_dark_inverseSurface">#E6E1E5</color>
+    <color name="md_theme_dark_inversePrimary">#6750A4</color>
+    <color name="md_theme_dark_shadow">#000000</color>
+    <color name="md_theme_dark_surfaceTint">#CFBCFF</color>
+    <color name="md_theme_dark_outlineVariant">#49454E</color>
+    <color name="md_theme_dark_scrim">#000000</color>
+
+    <!-- Legacy colors for backward compatibility -->
+    <color name="shortcutsColor">#6750A4</color>
+    
+    <!-- Game-specific colors using Material 3 palette -->
+    <color name="game_text_input">#1B5E20</color>  <!-- Dark green for input text -->
+    <color name="game_text_alert">#B71C1C</color>  <!-- Dark red for alerts -->
+    <color name="game_text_user1">#1565C0</color>  <!-- Blue for user1 -->
+    <color name="game_text_user2">#2E7D32</color>  <!-- Green for user2 -->
+    
+    <!-- Night theme game colors -->
+    <color name="night_game_text">#81C784</color>      <!-- Light green for night text -->
+    <color name="night_game_header">#4FC3F7</color>    <!-- Light blue for night headers -->
+    <color name="night_game_subheader">#F8BBD9</color> <!-- Light pink for night subheaders -->
+    <color name="night_game_format">#E0F2F1</color>    <!-- Very light green for night format -->
+    
+    <!-- App Icon Colors -->
+    <color name="ic_launcher_background">#6750A4</color>       <!-- Material Purple -->
+    <color name="ic_launcher_foreground">#FFD700</color>       <!-- Gold for book -->
+    <color name="ic_launcher_foreground_dark">#FFA000</color>  <!-- Darker gold for depth -->
+</resources>

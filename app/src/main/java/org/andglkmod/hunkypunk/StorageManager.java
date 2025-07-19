@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.andglkmod.babel.Babel;
 import org.andglkmod.glk.Utils;
@@ -38,6 +40,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.database.sqlite.SQLiteDatabase;
@@ -60,6 +63,9 @@ public class StorageManager {
 	private Handler mHandler;
 	private DatabaseHelper mOpenHelper;
 	private Context mContext;
+	
+	// Modern thread pool for background operations
+	private final ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
 	
 	private StorageManager(Context context) {
 		mContext = context;
@@ -119,15 +125,22 @@ public class StorageManager {
 	
 	public void checkExisting() {
 		Cursor c = mContentResolver.query(Games.CONTENT_URI, PROJECTION, Games.PATH + " IS NOT NULL", null, null);
+		if (c == null) {
+			Log.w(TAG, "checkExisting: cursor is null");
+			return;
+		}
 		
-		while (c.moveToNext())
-			if (!new File(c.getString(PATH)).exists()) {
-				ContentValues cv = new ContentValues();
-				cv.putNull(Games.PATH);
-				mContentResolver.update(ContentUris.withAppendedId(Games.CONTENT_URI, c.getLong(_ID)), cv, null, null);
+		try {
+			while (c.moveToNext()) {
+				if (!new File(c.getString(PATH)).exists()) {
+					ContentValues cv = new ContentValues();
+					cv.putNull(Games.PATH);
+					mContentResolver.update(ContentUris.withAppendedId(Games.CONTENT_URI, c.getLong(_ID)), cv, null, null);
+				}
 			}
-		
-		c.close();
+		} finally {
+			c.close();
+		}
 	}
 
 	public void scan(File dir) {
@@ -196,29 +209,44 @@ public class StorageManager {
 		ContentValues cv = new ContentValues();
 		cv.put(Games.TITLE, title);
 		
-		if (query != null && query.getCount() == 1) 
-			mContentResolver.update(uri, cv, null, null);
-		
-		query.close();	
+		if (query != null) {
+			try {
+				if (query.getCount() == 1) {
+					mContentResolver.update(uri, cv, null, null);
+				}
+			} finally {
+				query.close();
+			}
+		}
 	}
 
 	public void deleteGame(String ifid) {
 		String path = null;
 		Uri uri = HunkyPunk.Games.uriOfIfid(ifid);
 		//Log.d("StorageManager",uri.toString());
-		Cursor query = mContentResolver.query(uri, PROJECTION, null, null, null);		
-		if (query != null || query.getCount() == 1)
-			if (query.moveToNext())
-				path = query.getString(PATH);			
+		Cursor query = mContentResolver.query(uri, PROJECTION, null, null, null);
+		
+		if (query != null) {
+			try {
+				if (query.getCount() == 1 && query.moveToNext()) {
+					path = query.getString(PATH);
+				}
+			} finally {
+				query.close();
+			}
+		}
 
-		if (path != null){
+		if (path != null) {
 			File fp = new File(path);
 			if (fp.exists()) fp.delete();
 		}
-		query.close();
 
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-		db.execSQL("delete from games where ifid = '"+ifid+"'");
+		try {
+			db.execSQL("delete from games where ifid = ?", new String[]{ifid});
+		} finally {
+			db.close();
+		}
 	}
 
 	private String checkFile(File f) throws IOException {
@@ -287,39 +315,51 @@ public class StorageManager {
 	}
 
 	public void startCheckingFile(final File file) {
-		new Thread() {
+		backgroundExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					String ifid;
 					if ((ifid = checkFile(file)) != null) {
-						Message.obtain(mHandler, INSTALLED, ifid).sendToTarget();
+						if (mHandler != null) {
+							Message.obtain(mHandler, INSTALLED, ifid).sendToTarget();
+						}
 						return;
 					}
 				} catch (IOException e) {
+					Log.w(TAG, "Error checking file: " + file, e);
 				}
 				
-				Message.obtain(mHandler, INSTALL_FAILED).sendToTarget();
+				if (mHandler != null) {
+					Message.obtain(mHandler, INSTALL_FAILED).sendToTarget();
+				}
 			}
-		}.run();
+		});
 	}
 
 	public boolean alreadyScanning = false;
 	public void startScan() {
 		alreadyScanning = true;
-		new Thread() {
+		backgroundExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				scan(Paths.ifDirectory(mContext));
-				Message.obtain(mHandler, DONE).sendToTarget();
-				alreadyScanning = false;
+				try {
+					scan(Paths.ifDirectory(mContext));
+					if (mHandler != null) {
+						Message.obtain(mHandler, DONE).sendToTarget();
+					}
+				} catch (Exception e) {
+					Log.e(TAG, "Error during scan", e);
+				} finally {
+					alreadyScanning = false;
+				}
 			}
-		}.start();
+		});
 	}
 
 	public static String unknownContent = "IFID_";
 	public void startInstall(final Uri game, final String scheme) {
-		new Thread() {
+		backgroundExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
 
@@ -330,10 +370,20 @@ public class StorageManager {
 				try {
 					if (scheme.equals(ContentResolver.SCHEME_CONTENT)) {
 						ftemp = File.createTempFile(unknownContent,null,Paths.tempDirectory(mContext));
-						InputStream in = mContentResolver.openInputStream(game);
-						OutputStream out = new FileOutputStream(ftemp);
-						Utils.copyStream(in, out);
-						in.close(); out.close();
+						
+						try (InputStream in = mContentResolver.openInputStream(game);
+						     FileOutputStream out = new FileOutputStream(ftemp)) {
+							
+							if (in == null) {
+								Log.e(TAG, "Could not open input stream for: " + game);
+								if (mHandler != null) {
+									Message.obtain(mHandler, INSTALL_FAILED).sendToTarget();
+								}
+								return;
+							}
+							
+							Utils.copyStream(in, out);
+						}
 
 						try {
 							ifid = Babel.examine(ftemp);
@@ -347,7 +397,7 @@ public class StorageManager {
 
 						//TODO: obtain terp from Babel
 						String ext = "zcode";					
-						if (ifid.indexOf("TADS")==0) ext="gam";
+						if (ifid != null && ifid.indexOf("TADS")==0) ext="gam";
 
 						fgame = new File(Paths.tempDirectory(mContext).getAbsolutePath()
 												 + "/" + unknownContent + ifid + "." + ext);
@@ -363,11 +413,10 @@ public class StorageManager {
 
 					if (installedPath == null || !(new File(installedPath).exists())) {
 						if (!dst.equals(src)) {
-							InputStream in = new FileInputStream(src);
-							OutputStream out = new FileOutputStream(dst);
-
-							Utils.copyStream(in,out);
-							in.close(); out.close();
+							try (FileInputStream in = new FileInputStream(src);
+							     FileOutputStream out = new FileOutputStream(dst)) {
+								Utils.copyStream(in, out);
+							}
 						}
 					}
 					else {
@@ -375,7 +424,9 @@ public class StorageManager {
 					}
 
 					if ((ifid = checkFile(new File(dst), ifid)) != null) {
-						Message.obtain(mHandler, INSTALLED, ifid).sendToTarget();
+						if (mHandler != null) {
+							Message.obtain(mHandler, INSTALLED, ifid).sendToTarget();
+						}
 						return;
 					}
 				} catch (Exception e){
@@ -387,9 +438,11 @@ public class StorageManager {
 					}
 				}
 
-				Message.obtain(mHandler, INSTALL_FAILED).sendToTarget();
+				if (mHandler != null) {
+					Message.obtain(mHandler, INSTALL_FAILED).sendToTarget();
+				}
 			}
-		}.start();
+		});
 	}
 	//added for Swipe
 	//creates an array with pathes of all games
@@ -467,5 +520,15 @@ public class StorageManager {
 
 		}
 		return ifIdArray;
+	}
+	
+	/**
+	 * Shutdown the background executor service. Should be called when the application is terminating.
+	 * This is a modern best practice to properly clean up background threads.
+	 */
+	public void shutdown() {
+		if (backgroundExecutor != null && !backgroundExecutor.isShutdown()) {
+			backgroundExecutor.shutdown();
+		}
 	}
 }

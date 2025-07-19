@@ -1,61 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:key="preferences"
     android:title="@string/preferences">
-    <PreferenceCategory android:title="Fonts">
-        <ListPreference
-            android:defaultValue="Droid Serif"
+    
+    <androidx.preference.PreferenceCategory 
+        android:title="Fonts"
+        android:iconSpaceReserved="false">
+        <androidx.preference.ListPreference
+            android:defaultValue="Roboto Regular"
             android:enabled="true"
             android:entries="@array/fontNameArray"
             android:entryValues="@array/fontNameArray"
             android:key="fontFileName"
             android:summary="Custom TTF font file"
-            android:title="Font file name" />
-        <ListPreference
+            android:title="Font file name"
+            android:iconSpaceReserved="false" />
+        <androidx.preference.ListPreference
             android:defaultValue="16"
             android:entries="@array/fontSizeArray"
             android:entryValues="@array/fontSizeArray"
             android:key="fontSize"
             android:summary="font size"
-            android:title="Font size" />
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Copy words and shortcuts">
-        <SwitchPreference
+            android:title="Font size"
+            android:iconSpaceReserved="false" />
+    </androidx.preference.PreferenceCategory>
+    
+    <androidx.preference.PreferenceCategory 
+        android:title="Copy words and shortcuts"
+        android:iconSpaceReserved="false">
+        <androidx.preference.SwitchPreferenceCompat
             android:id="@+id/enable_list"
             android:defaultValue="true"
             android:key="enablelist"
-            android:title="Shortcuts list" />
-        <SwitchPreference
+            android:title="Shortcuts list"
+            android:iconSpaceReserved="false" />
+        <androidx.preference.SwitchPreferenceCompat
             android:id="@+id/Longpresstocopy"
             android:defaultValue="true"
             android:key="enablelongpress"
-            android:title="Long press to copy" />
-        <Preference
+            android:title="Long press to copy"
+            android:iconSpaceReserved="false" />
+        <androidx.preference.Preference
             android:key="manageshortcuts"
-            android:title="@string/manageshortcuts" />
+            android:title="@string/manageshortcuts"
+            android:iconSpaceReserved="false" />
+    </androidx.preference.PreferenceCategory>
+    
 
-    </PreferenceCategory>
-    <PreferenceCategory android:title="File Path">
-        <Preference
-            android:key="setIFDir"
-            android:summary="Your new IF-Directory"
-            android:title="@string/add"
-            android:enabled="false"
-            />
-        <!--
-        <Preference
-            android:key="defaultif"
-            android:summary="Your default IF-Directory"
-            android:title="@string/ifdef"
-            android:enabled="false" />
-        -->
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Night Mode">
-        <SwitchPreference
+    <androidx.preference.PreferenceCategory 
+        android:title="Night Mode"
+        android:iconSpaceReserved="false">
+        <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
             android:hint="NightOn"
             android:key="day_night"
-            android:title="@string/dayNight" />
-    </PreferenceCategory>
+            android:title="@string/dayNight"
+            android:iconSpaceReserved="false" />
+    </androidx.preference.PreferenceCategory>
 
-</PreferenceScreen>
+</androidx.preference.PreferenceScreen>

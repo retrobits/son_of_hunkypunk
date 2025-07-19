@@ -31,8 +31,10 @@ import org.andglkmod.glk.Glk;
 import org.andglkmod.glk.Window;
 import org.andglkmod.glk.TextBufferWindow;
 
-import android.app.Activity;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -43,7 +45,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -51,18 +53,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class Interpreter extends Activity {
+public class Interpreter extends AppCompatActivity {
     private static final String TAG = "hunkypunk.Interpreter";
     private Glk glk;
     private File mDataDir;
 
-    /**
-     * Called when the activity is first created.
-     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
         System.loadLibrary("andglk-loader");
 
+        // Apply Material 3 theme based on night mode preference
         if (getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false))
             setTheme(R.style.theme2);
         else
@@ -82,7 +84,43 @@ public class Interpreter extends Activity {
         if (i.getBooleanExtra("landscape", false))
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        setContentView(glk.getView());
+        // Set up Material 3 layout with toolbar
+        setContentView(R.layout.activity_interpreter);
+        
+        // Set up the Material Toolbar
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("Interactive Fiction");
+        }
+
+        // Create the game view with Material theming and animations
+        View gameView = glk.getView();
+        
+        // Apply Material 3 background color to the game view
+        int materialBackgroundColor;
+        if (getSharedPreferences("Night", Context.MODE_PRIVATE).getBoolean("NightOn", false)) {
+            materialBackgroundColor = getResources().getColor(R.color.md_theme_dark_background, getTheme());
+        } else {
+            materialBackgroundColor = getResources().getColor(R.color.md_theme_light_background, getTheme());
+        }
+        gameView.setBackgroundColor(materialBackgroundColor);
+        
+        // Add Material 3 entrance animation
+        gameView.setAlpha(0.0f);
+        gameView.setTranslationY(50);
+        gameView.animate()
+                .alpha(1.0f)
+                .translationY(0)
+                .setDuration(400)
+                .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                .start();
+        
+        // Add the game view to the container
+        ViewGroup gameContainer = findViewById(R.id.game_container);
+        gameContainer.addView(gameView);
+        
         glk.setAutoSave(getBookmark(), 0);
         glk.setSaveDir(saveDir);
         glk.setTranscriptDir(Paths.transcriptDirectory(this)); // there goes separation, and so cheaply...
@@ -98,8 +136,6 @@ public class Interpreter extends Activity {
         String arga[] = new String[args.size()];
         glk.setArguments(args.toArray(arga));
 
-        super.onCreate(savedInstanceState);
-
         // dead code, doesn't work
         // TODO: remove all the Parcelable/SavedState objects and onRestoreInstanceState code in Windows
         //if (savedInstanceState != null)
@@ -112,19 +148,19 @@ public class Interpreter extends Activity {
             loadBookmark();
         }
         glk.start();
-		/*
-			Sets the night mode privately if it was previously on, otherwise it is left so
-			Basically, acts like a restore and overwrites the colors accoring to the switch
-			value.
-		 */
+        /*
+            Sets the night mode privately if it was previously on, otherwise it is left so
+            Basically, acts like a restore and overwrites the colors according to the switch
+            value with Material 3 colors.
+         */
         SharedPreferences sharedPrefs = getSharedPreferences("Night", Context.MODE_PRIVATE);
         if (sharedPrefs.getBoolean("NightOn", false)) {
-            org.andglkmod.glk.TextBufferWindow.DefaultBackground = Color.DKGRAY;
-            org.andglkmod.glk.TextBufferWindow.DefaultTextColor = Color.WHITE;
+            org.andglkmod.glk.TextBufferWindow.DefaultBackground = getResources().getColor(R.color.md_theme_dark_background, getTheme());
+            org.andglkmod.glk.TextBufferWindow.DefaultTextColor = getResources().getColor(R.color.md_theme_dark_onBackground, getTheme());
             org.andglkmod.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_NIGHT;
         } else {
-            org.andglkmod.glk.TextBufferWindow.DefaultBackground = Color.WHITE;
-            org.andglkmod.glk.TextBufferWindow.DefaultTextColor = Color.BLACK;
+            org.andglkmod.glk.TextBufferWindow.DefaultBackground = getResources().getColor(R.color.md_theme_light_background, getTheme());
+            org.andglkmod.glk.TextBufferWindow.DefaultTextColor = getResources().getColor(R.color.md_theme_light_onBackground, getTheme());
             org.andglkmod.glk.TextBufferWindow.DefaultInputStyle = Glk.STYLE_INPUT;
         }
     }
@@ -137,7 +173,7 @@ public class Interpreter extends Activity {
     }
 
     @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
         switch (item.getNumericShortcut()) {
             case '1':
@@ -154,7 +190,7 @@ public class Interpreter extends Activity {
                 }
                 break;
         }
-        return super.onMenuItemSelected(featureId, item);
+        return super.onOptionsItemSelected(item);
     }
 
     private void loadBookmark() {

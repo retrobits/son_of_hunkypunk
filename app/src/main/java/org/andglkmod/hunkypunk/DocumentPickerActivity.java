@@ -19,7 +19,6 @@
 
 package org.andglkmod.hunkypunk;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -101,7 +100,7 @@ public class DocumentPickerActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         
-        if (resultCode == Activity.RESULT_OK && data != null) {
+        if (resultCode == RESULT_OK && data != null) {
             if (requestCode == PICK_MULTIPLE_GAME_FILES_REQUEST && data.getClipData() != null) {
                 // Handle multiple files
                 int count = data.getClipData().getItemCount();
@@ -128,10 +127,14 @@ public class DocumentPickerActivity extends AppCompatActivity {
     private void processSelectedFiles(List<Uri> uris) {
         int successCount = 0;
         int totalCount = uris.size();
+        boolean hasValidGameFiles = false;
         
         for (Uri uri : uris) {
-            if (isGameFile(uri) && copyFileToGameDirectory(uri)) {
-                successCount++;
+            if (isGameFile(uri)) {
+                hasValidGameFiles = true;
+                if (copyFileToGameDirectory(uri)) {
+                    successCount++;
+                }
             }
         }
         
@@ -140,18 +143,28 @@ public class DocumentPickerActivity extends AppCompatActivity {
             String message = getResources().getQuantityString(
                 R.plurals.games_added_successfully, successCount, successCount);
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-            
-            // Trigger rescan of games directory
-            StorageManager scanner = StorageManager.getInstance(this);
-            scanner.scan(Paths.ifDirectory(this));
-            
-            // Return to games list
-            Intent intent = new Intent(this, GamesList.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+        } else if (hasValidGameFiles) {
+            // Files exist but no new ones were added - still trigger rescan
+            Toast.makeText(this, "Game files already exist, refreshing game list...", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, R.string.no_valid_games_selected, Toast.LENGTH_LONG).show();
         }
+        
+        // Always trigger rescan if we have valid game files (new or existing)
+        if (hasValidGameFiles) {
+            // Trigger rescan of games directory
+            try {
+                StorageManager scanner = StorageManager.getInstance(this);
+                scanner.scan(Paths.ifDirectory(this));
+            } catch (Exception e) {
+                Log.e(TAG, "Error scanning games directory", e);
+            }
+        }
+        
+        // Return to games list
+        Intent intent = new Intent(this, GamesList.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
         
         finish();
     }
