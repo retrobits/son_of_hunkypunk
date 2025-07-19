@@ -2,5 +2,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       android:versionCode="4"
       android:versionName="0.6.1">
-    <uses-sdk android:targetSdkVersion="7" />
+    <!-- uses-sdk is deprecated in library modules and should be specified in build.gradle -->
 </manifest>

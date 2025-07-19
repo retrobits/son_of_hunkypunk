@@ -53,8 +53,9 @@
 		android:layout_height="wrap_content"
 		android:text="@string/add_games"
 		android:layout_margin="16dp"
-		style="@style/Widget.Material3.Button.Icon"
+		style="@style/Widget.Material3.Button"
 		app:cornerRadius="12dp"
+		android:visibility="gone"
 	/>
 	<LinearLayout android:id="@id/android:empty"
 		android:orientation="vertical"
@@ -92,6 +93,15 @@
 			android:textAppearance="@android:style/TextAppearance.Medium"
 			android:textColor="?attr/colorOnSurface"
 			android:layout_marginBottom="16dp"
+		/>
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/add_games_button_empty"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/add_games"
+			style="@style/Widget.Material3.Button"
+			android:layout_marginBottom="16dp"
+			app:cornerRadius="12dp"
 		/>
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/go_to_ifdb"

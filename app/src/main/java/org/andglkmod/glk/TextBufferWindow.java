@@ -35,6 +35,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
@@ -397,7 +398,7 @@ public class TextBufferWindow extends Window {
             //    imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT);
             //}
             //else {
-                (new Handler()).postDelayed(
+                (new Handler(Looper.getMainLooper())).postDelayed(
                         new Runnable() {
                             public void run() {
                                 _CommandView.this.dispatchTouchEvent(

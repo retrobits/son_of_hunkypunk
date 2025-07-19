@@ -97,4 +97,9 @@
     <color name="night_game_header">#4FC3F7</color>    <!-- Light blue for night headers -->
     <color name="night_game_subheader">#F8BBD9</color> <!-- Light pink for night subheaders -->
     <color name="night_game_format">#E0F2F1</color>    <!-- Very light green for night format -->
+    
+    <!-- App Icon Colors -->
+    <color name="ic_launcher_background">#6750A4</color>       <!-- Material Purple -->
+    <color name="ic_launcher_foreground">#FFD700</color>       <!-- Gold for book -->
+    <color name="ic_launcher_foreground_dark">#FFA000</color>  <!-- Darker gold for depth -->
 </resources>

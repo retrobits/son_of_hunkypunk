@@ -230,18 +230,18 @@ public class PairWindow extends Window {
 		default:
 			assert(false);
 		}
-		free.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.FILL_PARENT, android.widget.LinearLayout.LayoutParams.FILL_PARENT, size));
+		free.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.MATCH_PARENT, size));
 
 		switch (division) {
 		case WINMETHOD_PROPORTIONAL:
-			constrained.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.FILL_PARENT, android.widget.LinearLayout.LayoutParams.FILL_PARENT, 100 - size + .01f));
+			constrained.setLayoutParams(new LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 100 - size + .01f));
 			break;
 		case WINMETHOD_FIXED:
 			boolean horiz = (dir == WINMETHOD_LEFT) || (dir == WINMETHOD_RIGHT);
 			int measure = 0;
 			if (mKeyWindow != null)
 				measure = horiz ? mKeyWindow.measureWidth(size) : mKeyWindow.measureHeight(size);
-			constrained.setLayoutParams(new LinearLayout.LayoutParams(horiz ? measure : LinearLayout.LayoutParams.FILL_PARENT, horiz ? LinearLayout.LayoutParams.FILL_PARENT : measure));
+			constrained.setLayoutParams(new LinearLayout.LayoutParams(horiz ? measure : LinearLayout.LayoutParams.MATCH_PARENT, horiz ? LinearLayout.LayoutParams.MATCH_PARENT : measure));
 		}
 		
 		_view.requestLayout();

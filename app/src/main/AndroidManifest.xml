@@ -29,17 +29,14 @@
         android:smallScreens="true" />
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
-        android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
-        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_DOCUMENTS" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" 
-        tools:ignore="ScopedStorage" />
 
     <application
-        android:icon="@drawable/icon"
-        android:label="@string/app_name">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Material3.DayNight"
+        android:enableOnBackInvokedCallback="true">
         <!-- android:debuggable="true" -->
         <activity
             android:name="org.andglkmod.hunkypunk.Interpreter"
@@ -60,16 +57,22 @@
             android:authorities="org.andglkmod.hunkypunk.HunkyPunk"
             android:exported="false" />
 
+        <!-- Splash Activity - Main Launcher -->
         <activity
-            android:name="org.andglkmod.hunkypunk.GamesList"
-            android:label="@string/hunky_punk"
-            android:theme="@style/compatbartheme"
-            android:exported="true"
-            >
+            android:name="org.andglkmod.hunkypunk.SplashActivity"
+            android:theme="@style/Theme.HunkyPunk.Splash.Legacy"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name="org.andglkmod.hunkypunk.GamesList"
+            android:label="@string/hunky_punk"
+            android:theme="@style/compatbartheme"
+            android:exported="true">
         </activity>
         <activity
             android:name="org.andglkmod.hunkypunk.GameDetails"

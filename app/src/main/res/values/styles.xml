@@ -239,4 +239,24 @@
 		<item name="android:textColor">?attr/colorOnSurface</item>
 		<item name="android:textColorHint">?attr/colorOnSurfaceVariant</item>
 	</style>
+
+	<!-- Splash Screen Theme for API 31+ -->
+	<style name="Theme.HunkyPunk.Splash" parent="Theme.SplashScreen">
+		<item name="windowSplashScreenBackground">?attr/colorSurface</item>
+		<item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+		<item name="windowSplashScreenAnimationDuration">1000</item>
+		<item name="postSplashScreenTheme">@style/compatbartheme</item>
+	</style>
+
+	<!-- Legacy Splash Screen Theme for API < 31 -->
+	<style name="Theme.HunkyPunk.Splash.Legacy" parent="Theme.Material3.DayNight.NoActionBar">
+		<item name="android:windowBackground">@drawable/splash_background</item>
+		<item name="android:windowNoTitle">true</item>
+		<item name="android:windowActionBar">false</item>
+		<item name="android:windowFullscreen">false</item>
+		<item name="android:windowContentOverlay">@null</item>
+		<item name="android:windowDrawsSystemBarBackgrounds">true</item>
+		<item name="android:statusBarColor">@android:color/transparent</item>
+		<item name="android:navigationBarColor">@android:color/transparent</item>
+	</style>
 </resources>

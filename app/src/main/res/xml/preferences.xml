@@ -8,7 +8,7 @@
         android:title="Fonts"
         android:iconSpaceReserved="false">
         <androidx.preference.ListPreference
-            android:defaultValue="Droid Serif"
+            android:defaultValue="Roboto Regular"
             android:enabled="true"
             android:entries="@array/fontNameArray"
             android:entryValues="@array/fontNameArray"
@@ -47,17 +47,7 @@
             android:iconSpaceReserved="false" />
     </androidx.preference.PreferenceCategory>
     
-    <androidx.preference.PreferenceCategory 
-        android:title="File Path"
-        android:iconSpaceReserved="false">
-        <androidx.preference.Preference
-            android:key="setIFDir"
-            android:summary="Your new IF-Directory"
-            android:title="@string/add"
-            android:enabled="false"
-            android:iconSpaceReserved="false" />
-    </androidx.preference.PreferenceCategory>
-    
+
     <androidx.preference.PreferenceCategory 
         android:title="Night Mode"
         android:iconSpaceReserved="false">

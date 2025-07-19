@@ -107,19 +107,17 @@ public abstract class Paths {
     }
 
     public static boolean isIfDirectoryValid(Context c) {
-        String state = Environment.getExternalStorageState();
-        return state.equals(Environment.MEDIA_MOUNTED)
-            && ifDirectory(c).exists();
+        // App-specific storage is always available and doesn't require permissions
+        File ifDir = ifDirectory(c);
+        return ifDir.exists() || ifDir.mkdirs();
     }
 
     public static File ifDirectory(Context c) {
-        File f;
-
-        //if (ifDirectory != null)
-        //    f = ifDirectory;
-        //else
-            f = defaultIfDirectory(c);
-        if (!f.exists()) f.mkdir();
+        // Always use app-specific storage - no permissions required
+        File f = defaultIfDirectory(c);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
         return f;
     }
 
